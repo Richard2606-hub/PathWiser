@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathWiser · Career OS Navigation Platform</title>
+    <meta name="description" content="Navigate your career, wiser. An evidence-based Career OS powered by the Career Twin Engine for Asia's talent ecosystem.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230d1117'/><text x='50' y='62' font-family='monospace' font-size='48' font-weight='800' text-anchor='middle' fill='%23facc15'>[T]</text></svg>">
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-vignette"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <!-- ═══════════════════ HERO ═══════════════════ -->
+    <section class="hero" id="hero-section">
+        <canvas id="hero-canvas"></canvas>
+        <div class="hero-content">
+            <div class="hero-logo">
+                <span class="hero-bracket">[</span>
+                <span class="hero-wordmark">Path<span>Wiser</span></span>
+                <span class="hero-bracket">]</span>
+            </div>
+            <p class="hero-tagline">Navigate your career, wiser.</p>
+            <p class="hero-desc">
+                An evidence-based <strong>Career OS</strong> that uses the <strong>Career Twin Engine</strong>
+                to match your trajectory shape against <strong>real anonymised paths</strong> — surfacing
+                realistic ranges of outcomes, not false predictions. Built for <strong>candidates, employers, and universities</strong> across Asia.
+            </p>
+            <div class="hero-badges">
+                <span class="hero-badge">🔬 DOSM Calibrated</span>
+                <span class="hero-badge">🧠 Career Twin Engine</span>
+                <span class="hero-badge">🔁 Career Signal Loop</span>
+                <span class="hero-badge">📊 9-Module Ecosystem</span>
+                <span class="hero-badge">🛡️ Honest AI — No Prediction</span>
+            </div>
+            <div class="signal-loop">
+                <div class="signal-node">
+                    <div class="signal-icon c">C</div>
+                    <span class="signal-node-label">Candidate</span>
+                    <span class="signal-node-sub">Navigate Paths</span>
+                </div>
+                <span class="signal-arrow">⟶</span>
+                <div class="signal-node">
+                    <div class="signal-icon e">E</div>
+                    <span class="signal-node-label">Employer</span>
+                    <span class="signal-node-sub">Demand Signals</span>
+                </div>
+                <span class="signal-arrow">⟶</span>
+                <div class="signal-node">
+                    <div class="signal-icon u">U</div>
+                    <span class="signal-node-label">University</span>
+                    <span class="signal-node-sub">Outcome Loop</span>
+                </div>
+            </div>
+            <button class="hero-cta" onclick="enterDashboard()">
+                Enter the Dashboard
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <div class="hero-quick-personas">
+                <span class="qp-sep">— or jump straight in as —</span>
+                <button class="qp-btn" onclick="quickLaunch('candidate')"><span class="qp-icon">👤</span> Aisyah · Junior Data Analyst</button>
+                <button class="qp-btn" onclick="quickLaunch('employer')"><span class="qp-icon">🏢</span> BoldRise Sdn Bhd · Hiring Lead</button>
+                <button class="qp-btn" onclick="quickLaunch('university')"><span class="qp-icon">🎓</span> UTM · Programme Director</button>
+            </div>
+        </div>
+        <span class="hero-scroll">Scroll to explore ↓</span>
+    </section>
+
+    <!-- ═══════════════════ ONBOARDING ═══════════════════ -->
+    <div class="onboarding-overlay" id="onboarding-overlay">
+        <div class="onboarding-box">
+            <div class="onboard-header">
+                <div class="onboard-step-indicator" id="step-dots"></div>
+                <h2 class="onboard-title" id="onboard-title">Welcome to PathWiser</h2>
+                <p class="onboard-subtitle" id="onboard-subtitle">Let's build your career shape.</p>
+            </div>
+            <div class="onboard-body" id="onboard-body">
+                <!-- Step 1: Audience Selection -->
+                <div class="onboard-step active" id="onboard-step-0">
+                    <p class="form-label">Select your audience role</p>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn" style="flex:1;" onclick="setOnboardRole('candidate')">👤 Candidate</button>
+                        <button class="btn btn-teal" style="flex:1;" onclick="setOnboardRole('employer')">🏢 Employer</button>
+                        <button class="btn btn-violet" style="flex:1;" onclick="setOnboardRole('university')">🎓 University</button>
+                    </div>
+                </div>
+                <!-- Step 2: Profile Intake -->
+                <div class="onboard-step" id="onboard-step-1">
+                    <!-- Dynamic fields injected by renderIntakeForm() in app.js -->
+                </div>
+                <!-- Step 3: ESCO Normalization Preview -->
+                <div class="onboard-step" id="onboard-step-2">
+                    <div class="callout">
+                        <strong>🔄 ESCO Normalization Engine</strong>
+                        <p style="margin-top:4px;">Your profile is being normalized against ESCO occupation codes and O*NET skill identifiers for standardized trajectory matching.</p>
+                    </div>
+                    <div class="detail" id="esco-preview">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+                <!-- Step 4: Shape Embedding Visualization -->
+                <div class="onboard-step" id="onboard-step-3">
+                    <div class="callout callout-emerald">
+                        <strong>✅ Profile Mapped Successfully</strong>
+                        <p style="margin-top:4px;">We have analyzed your background and mapped it into a unique "Career Shape". The engine will now use this shape to find real, historically successful paths from people who look just like you on paper.</p>
+                    </div>
+                    <div class="shape-radar-container">
+                        <svg id="shape-radar" viewBox="0 0 280 280"></svg>
+                    </div>
+                    <div class="metrics" id="shape-metrics">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="onboard-footer">
+                <button class="btn btn-ghost" id="onboard-back" onclick="onboardBack()" style="visibility:hidden;">← Back</button>
+                <span class="form-label" id="onboard-step-label">Step 1 of 4</span>
+                <button class="btn" id="onboard-next" onclick="onboardNext()" style="visibility:hidden;">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+    <div class="app-container" id="dashboard-section">
+
+        <!-- ENGINE PIPELINE BAR -->
+        <div class="engine-pipeline" id="engine-pipeline">
+            <div class="pipe-stage" id="pipe-shape"><div class="pipe-dot"></div><span class="pipe-label">Shape</span></div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-stage" id="pipe-retrieval"><div class="pipe-dot"></div><span class="pipe-label">Retrieval</span></div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-stage" id="pipe-aggregation"><div class="pipe-dot"></div><span class="pipe-label">Aggregation</span></div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-stage" id="pipe-narrative"><div class="pipe-dot"></div><span class="pipe-label">Narrative</span></div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-stage" id="pipe-validation"><div class="pipe-dot"></div><span class="pipe-label">Validation</span></div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-stage" id="pipe-delivery"><div class="pipe-dot"></div><span class="pipe-label">Delivery</span></div>
+        </div>
+
+        <!-- HEADER -->
+        <header>
+            <div class="brand">
+                <span class="logo-bracket">[</span>
+                <span class="logo-text">Path<span>Wiser</span></span>
+                <span class="logo-bracket">]</span>
+            </div>
+            <div class="engine-status">
+                <div class="status-dot" id="engine-dot"></div>
+                <span class="status-text" id="engine-status-text">Engine calibrated: 42,850 trajectories</span>
+            </div>
+            <!-- Identity pill (locked / production mode) -->
+            <div class="identity-pill" id="identity-pill" onclick="onIdentityClick()" title="The account you're signed in as. Click to see what production users see.">
+                <span class="id-icon" id="id-icon">👤</span>
+                <div class="id-text">
+                    <span class="id-name" id="id-name">Aisyah binti Rahman</span>
+                    <span class="id-role" id="id-role">Candidate</span>
+                </div>
+            </div>
+            <!-- Persona switcher (judge mode only) -->
+            <div class="persona-switcher">
+                <button class="persona-btn active" data-persona="candidate" onclick="switchPersona('candidate')"><span>👤</span> Candidate</button>
+                <button class="persona-btn" data-persona="employer" onclick="switchPersona('employer')"><span>🏢</span> Employer</button>
+                <button class="persona-btn" data-persona="university" onclick="switchPersona('university')"><span>🎓</span> University</button>
+            </div>
+            <!-- Judge-view toggle -->
+            <button class="judge-toggle" id="judge-toggle" onclick="toggleJudgeMode()" title="In production, each user only sees their own surface. Toggle to see all three at once for the judge tour.">
+                <span class="jt-icon">🎬</span>
+                <span class="jt-label" id="judge-toggle-label">Judge view</span>
+            </button>
+        </header>
+
+        <!-- WORKSPACE -->
+        <div class="workspace">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <div class="card">
+                    <span class="card-title">System Overview</span>
+                    <div class="support-grid">
+                        <div class="mini-card mini-card-wide" data-module="architecture" onclick="selectModule('architecture')"><span class="mini-card-abbr">🏗️</span><span class="mini-card-name">Architecture & Vision</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <span class="card-title">Engine Layer</span>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                        <div class="grid-2">
+                            <div class="mini-card" data-module="user_profile" onclick="selectModule('user_profile')"><span class="mini-card-abbr">UP</span><span class="mini-card-name">Profile & Shape</span></div>
+                            <div class="mini-card" data-module="trajectory_retrieval" onclick="selectModule('trajectory_retrieval')"><span class="mini-card-abbr">TR</span><span class="mini-card-name">Retrieval</span></div>
+                            <div class="mini-card" data-module="outcomes_aggregation" onclick="selectModule('outcomes_aggregation')"><span class="mini-card-abbr">OA</span><span class="mini-card-name">Aggregation</span></div>
+                            <div class="mini-card" data-module="ai_explanation" onclick="selectModule('ai_explanation')"><span class="mini-card-abbr">AI</span><span class="mini-card-name">Honest Narrative</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Candidate Surface · Navigation / Intelligence / Valuation -->
+                <div class="card persona-card persona-candidate active" id="persona-card-candidate" data-persona="candidate">
+                    <div class="persona-card-head" onclick="onPersonaCardHeadClick('candidate')">
+                        <span class="persona-icon">👤</span>
+                        <span class="card-title">For Candidates</span>
+                        <span class="persona-card-tagline">— decide your next move</span>
+                        <span class="persona-collapse-hint">▾</span>
+                    </div>
+                    <div class="persona-card-body">
+                        <div class="cap-row" data-module="path_navigator" onclick="selectModule('path_navigator')">
+                            <span class="cap-label">Navigation</span>
+                            <span class="cap-mod-name">Career Path Navigator</span>
+                            <span class="cap-mod-hint">your realistic next moves</span>
+                        </div>
+                        <div class="cap-row" data-module="ai_coach" onclick="selectModule('ai_coach')">
+                            <span class="cap-label">Intelligence</span>
+                            <span class="cap-mod-name">AI Career Coach</span>
+                            <span class="cap-mod-hint">the questions you can't ask</span>
+                        </div>
+                        <div class="cap-row" data-module="fair_pay" onclick="selectModule('fair_pay')">
+                            <span class="cap-label">Valuation</span>
+                            <span class="cap-mod-name">Fair Pay Engine</span>
+                            <span class="cap-mod-hint">are you paid what you're worth?</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Employer Surface · Navigation / Intelligence / Valuation -->
+                <div class="card persona-card persona-employer" id="persona-card-employer" data-persona="employer">
+                    <div class="persona-card-head" onclick="onPersonaCardHeadClick('employer')">
+                        <span class="persona-icon">🏢</span>
+                        <span class="card-title">For Employers</span>
+                        <span class="persona-card-tagline">— find, keep, ramp talent</span>
+                        <span class="persona-collapse-hint">▾</span>
+                    </div>
+                    <div class="persona-card-body">
+                        <div class="cap-row" data-module="talent_matching" onclick="selectModule('talent_matching')">
+                            <span class="cap-label">Navigation</span>
+                            <span class="cap-mod-name">Smart Talent Matching</span>
+                            <span class="cap-mod-hint">trajectory fit, not keywords</span>
+                        </div>
+                        <div class="cap-row" data-module="retention_signals" onclick="selectModule('retention_signals')">
+                            <span class="cap-label">Intelligence</span>
+                            <span class="cap-mod-name">Talent Retention Signals</span>
+                            <span class="cap-mod-hint">before the letter arrives</span>
+                        </div>
+                        <div class="cap-row" data-module="onboarding_predictor" onclick="selectModule('onboarding_predictor')">
+                            <span class="cap-label">Valuation</span>
+                            <span class="cap-mod-name">Onboarding Success Predictor</span>
+                            <span class="cap-mod-hint">who needs support, who'll thrive</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- University Surface · Navigation / Intelligence / Valuation -->
+                <div class="card persona-card persona-university" id="persona-card-university" data-persona="university">
+                    <div class="persona-card-head" onclick="onPersonaCardHeadClick('university')">
+                        <span class="persona-icon">🎓</span>
+                        <span class="card-title">For Universities</span>
+                        <span class="persona-card-tagline">— close the curriculum loop</span>
+                        <span class="persona-collapse-hint">▾</span>
+                    </div>
+                    <div class="persona-card-body">
+                        <div class="cap-row" data-module="outcome_loop" onclick="selectModule('outcome_loop')">
+                            <span class="cap-label">Navigation</span>
+                            <span class="cap-mod-name">Lifelong Outcome Loop</span>
+                            <span class="cap-mod-hint">where graduates actually land</span>
+                        </div>
+                        <div class="cap-row" data-module="curriculum_engine" onclick="selectModule('curriculum_engine')">
+                            <span class="cap-label">Intelligence</span>
+                            <span class="cap-mod-name">Future-State Curriculum Engine</span>
+                            <span class="cap-mod-hint">teach what the market wants</span>
+                        </div>
+                        <div class="cap-row" data-module="readiness_profile" onclick="selectModule('readiness_profile')">
+                            <span class="cap-label">Valuation</span>
+                            <span class="cap-mod-name">Alumni Readiness Profile</span>
+                            <span class="cap-mod-hint">a credential that stays alive</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <span class="card-title">Support Layer</span>
+                    <div class="support-grid">
+                        <div class="mini-card" data-module="feedback" onclick="selectModule('feedback')"><span class="mini-card-abbr">F&R</span><span class="mini-card-name">Feedback</span></div>
+                        <div class="mini-card" data-module="analytics" onclick="selectModule('analytics')"><span class="mini-card-abbr">SAM</span><span class="mini-card-name">Analytics</span></div>
+                        <div class="mini-card" data-module="security" onclick="selectModule('security')"><span class="mini-card-abbr">SPA</span><span class="mini-card-name">Security</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN PANEL -->
+            <div class="main-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <span class="panel-badge" id="module-badge">Navigation · Candidate</span>
+                        <h1 class="panel-title" id="module-title">Career Path Navigator</h1>
+                        <span class="panel-subtitle" id="module-desc">Map realistic trajectory branches anchored on Malaysian labor outcomes.</span>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="btn btn-outline btn-sm" onclick="openFeedbackModal()">📝 Feedback</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+
+                    <!-- ══════ M1: USER PROFILE & SHAPE ══════ -->
+                    <div class="screen" id="screen-user_profile">
+                        <div class="stats" id="profile-stats">
+                            <div class="stat-box"><span class="stat-label">Profile Status</span><span class="stat-value" style="color:var(--emerald);">Validated</span></div>
+                            <div class="stat-box"><span class="stat-label">ESCO Alignment</span><span class="stat-value">98.5%</span></div>
+                            <div class="stat-box"><span class="stat-label">Vector Dimensions</span><span class="stat-value">768</span></div>
+                            <div class="stat-box"><span class="stat-label">Last Sync</span><span class="stat-value">Just now</span></div>
+                        </div>
+                        <div class="split split-wide">
+                            <div class="chart-card">
+                                <span class="form-label">Live Capability Vector Simulator</span>
+                                <div class="form-group" style="margin-top:10px;">
+                                    <label class="form-label" style="font-size:11px;">Input new skill or role to see shape adapt:</label>
+                                    <div style="display:flex;gap:6px;">
+                                        <input type="text" class="form-input" id="profile-skill-input" placeholder="e.g. Prompt Engineering" onkeydown="if(event.key==='Enter') simulateShapeUpdate()">
+                                        <button class="btn btn-sm" onclick="simulateShapeUpdate()">Inject</button>
+                                    </div>
+                                </div>
+                                <div class="graph-container" style="min-height:250px;display:flex;align-items:center;justify-content:center;">
+                                    <svg id="shape-radar-svg" viewBox="0 0 200 200" width="100%" height="100%">
+                                        <polygon id="shape-polygon" points="100,20 180,60 180,140 100,180 20,140 20,60" fill="rgba(45,212,191,0.2)" stroke="var(--teal)" stroke-width="2" style="transition: all 0.5s ease;"/>
+                                        <circle cx="100" cy="20" r="4" fill="var(--teal)"/>
+                                        <circle cx="180" cy="60" r="4" fill="var(--teal)"/>
+                                        <circle cx="180" cy="140" r="4" fill="var(--teal)"/>
+                                        <circle cx="100" cy="180" r="4" fill="var(--teal)"/>
+                                        <circle cx="20" cy="140" r="4" fill="var(--teal)"/>
+                                        <circle cx="20" cy="60" r="4" fill="var(--teal)"/>
+                                        <text x="100" y="10" fill="var(--text-2)" font-size="8" text-anchor="middle">Technical</text>
+                                        <text x="195" y="60" fill="var(--text-2)" font-size="8" text-anchor="middle">Domain</text>
+                                        <text x="195" y="145" fill="var(--text-2)" font-size="8" text-anchor="middle">Leadership</text>
+                                        <text x="100" y="195" fill="var(--text-2)" font-size="8" text-anchor="middle">Strategy</text>
+                                        <text x="5" y="145" fill="var(--text-2)" font-size="8" text-anchor="middle">Analytics</text>
+                                        <text x="5" y="60" fill="var(--text-2)" font-size="8" text-anchor="middle">Comms</text>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail">
+                                    <div class="detail-header"><span class="detail-tag">Normalisation Layer</span><h3 class="detail-heading">ESCO Taxonomy Match</h3></div>
+                                    <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--text-2);background:var(--bg-3);padding:10px;border-radius:6px;border:1px solid var(--border);">
+                                        <div style="color:var(--teal);margin-bottom:6px;">> NORMALISING RAW INPUT...</div>
+                                        <div>Found: "Data Analyst"</div>
+                                        <div>Mapped to: ESCO 2511.2</div>
+                                        <div>Confidence: 98.4%</div>
+                                        <div style="color:var(--yellow);margin-top:6px;">> EXTRACTING SKILLS...</div>
+                                        <div>+ python_programming (Core)</div>
+                                        <div>+ sql_database (Core)</div>
+                                        <div>+ stakeholder_mgmt (Adjacent)</div>
+                                    </div>
+                                </div>
+                                <div class="callout callout-teal"><strong>Action:</strong> Vectorizing structural shape to dense embedding... <code>[0.12, -0.45, 0.88, ...]</code></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M2: TRAJECTORY RETRIEVAL ══════ -->
+                    <div class="screen" id="screen-trajectory_retrieval">
+                        <div class="callout" style="border-color:var(--amber);"><strong>Engine Room:</strong> Visualising the <code>pgvector</code> HNSW similarity search across the trajectory corpus. The numbers below come from cohort aggregation — never from the LLM.</div>
+                        <div class="stats" style="margin-top:12px;">
+                            <div class="stat-box"><span class="stat-label">Corpus Size</span><span class="stat-value">42,850</span></div>
+                            <div class="stat-box"><span class="stat-label">Vector Dim</span><span class="stat-value">768</span></div>
+                            <div class="stat-box"><span class="stat-label">Index</span><span class="stat-value">HNSW</span></div>
+                            <div class="stat-box"><span class="stat-label">Distance</span><span class="stat-value">cosine</span></div>
+                        </div>
+                        <div class="controls" style="margin-top:14px;">
+                            <button class="btn btn-sm btn-amber" onclick="simulateRetrieval()">▶ Run Vector Search (cosine similarity)</button>
+                            <span class="form-label" style="margin-left:10px;">Target K = 1,200 trajectories</span>
+                            <span class="form-label" id="retrieval-status" style="margin-left:auto;color:var(--text-3);">Idle</span>
+                        </div>
+                        <div class="split split-wide" style="margin-top:14px;">
+                            <div class="chart-card" style="padding:14px;">
+                                <span class="form-label">Vector space (UMAP projection · 768 → 2D for display)</span>
+                                <div class="vec-space-wrap">
+                                    <svg id="vec-space-svg" viewBox="0 0 400 280"></svg>
+                                    <div class="vec-space-legend">
+                                        <span class="leg"><span class="leg-dot" style="background:var(--text-3);"></span>Corpus trajectory</span>
+                                        <span class="leg"><span class="leg-dot" style="background:var(--accent);"></span>Top-K retrieved</span>
+                                        <span class="leg"><span class="leg-dot" style="background:var(--teal);border:2px solid var(--bg-base);width:12px;height:12px;"></span>Your shape (query)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail" id="retrieval-log" style="font-family:var(--mono);font-size:11px;background:#0d1117;color:#c9d1d9;padding:14px;border-radius:8px;min-height:280px;overflow-y:auto;">
+                                <div style="color:var(--text-3);">$ awaiting trigger — click "Run Vector Search" to begin</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm" id="retrieval-handoff" onclick="selectModule('outcomes_aggregation')" style="display:none;margin-top:12px;">→ Hand off to Aggregation Engine</button>
+                    </div>
+
+                    <!-- ══════ M3: OUTCOMES AGGREGATION ══════ -->
+                    <div class="screen" id="screen-outcomes_aggregation">
+                        <div class="stats">
+                            <div class="stat-box"><span class="stat-label">Retrieved Cohort</span><span class="stat-value">1,240</span></div>
+                            <div class="stat-box"><span class="stat-label">Variance (σ)</span><span class="stat-value">Low</span></div>
+                            <div class="stat-box"><span class="stat-label">Distribution</span><span class="stat-value">Normal</span></div>
+                        </div>
+                        <div class="split split-wide">
+                            <div class="chart-card">
+                                <span class="form-label">Deterministic Distribution (Raw Data)</span>
+                                <div style="display:flex;align-items:flex-end;gap:2px;height:200px;margin-top:20px;border-bottom:1px solid var(--border);">
+                                    <div style="flex:1;background:var(--sky);height:10%;border-radius:4px 4px 0 0;opacity:0.3;"></div>
+                                    <div style="flex:1;background:var(--sky);height:20%;border-radius:4px 4px 0 0;opacity:0.5;"></div>
+                                    <div style="flex:1;background:var(--sky);height:45%;border-radius:4px 4px 0 0;opacity:0.7;"></div>
+                                    <div style="flex:1;background:var(--sky);height:80%;border-radius:4px 4px 0 0;opacity:0.9;"></div>
+                                    <div style="flex:1;background:var(--sky);height:100%;border-radius:4px 4px 0 0;opacity:1.0;"></div>
+                                    <div style="flex:1;background:var(--sky);height:75%;border-radius:4px 4px 0 0;opacity:0.8;"></div>
+                                    <div style="flex:1;background:var(--sky);height:40%;border-radius:4px 4px 0 0;opacity:0.6;"></div>
+                                    <div style="flex:1;background:var(--sky);height:15%;border-radius:4px 4px 0 0;opacity:0.4;"></div>
+                                    <div style="flex:1;background:var(--sky);height:5%;border-radius:4px 4px 0 0;opacity:0.2;"></div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:10px;color:var(--text-2);">
+                                    <span>P10 (RM4k)</span>
+                                    <span>Median (RM6.5k)</span>
+                                    <span>P90 (RM12k)</span>
+                                </div>
+                            </div>
+                            <div class="detail" style="display:flex;flex-direction:column;justify-content:center;">
+                                <h3 class="detail-heading">Aggregation Engine</h3>
+                                <p style="font-size:12px;color:var(--text-2);margin-bottom:12px;">This module computes the exact mathematical distribution of the cohort before any AI text generation happens. It prevents the AI from "hallucinating" numbers.</p>
+                                <div class="pills" style="gap:6px;">
+                                    <span class="pill acquired">P25: RM5,200</span>
+                                    <span class="pill acquired">P50: RM6,500</span>
+                                    <span class="pill acquired">P75: RM8,100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M4: AI EXPLANATION & NARRATIVE ══════ -->
+                    <div class="screen" id="screen-ai_explanation">
+                        <div class="split-equal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="detail">
+                                <div class="detail-header"><span class="detail-tag">Structured Input</span><h3 class="detail-heading">JSON from Aggregator</h3></div>
+                                <pre style="background:var(--bg-3);padding:12px;border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--text-2);overflow-x:auto;">{
+  "cohort_size": 1240,
+  "role": "Data Scientist",
+  "median_salary": 6500,
+  "top_bridges": ["AWS", "PyTorch"],
+  "variance": "low",
+  "system_prompt": "Explain this data. Do NOT use predictive verbs like 'will'. Always cite cohort size."
+}</pre>
+                            </div>
+                            <div class="detail">
+                                <div class="detail-header"><span class="detail-tag">LLM Output</span><h3 class="detail-heading">Honest Narrative</h3></div>
+                                <div class="callout" style="margin-top:10px;line-height:1.6;font-size:13px;">
+                                    <span style="background:rgba(24acc1,0.2);padding:2px 4px;border-radius:4px;">Based on a cohort of 1,240 individuals</span> with similar trajectories, the most common next role is Data Scientist. 
+                                    The <span style="background:rgba(24acc1,0.2);padding:2px 4px;border-radius:4px;">median salary in this cohort is RM 6,500</span>. 
+                                    To make this transition, <span style="background:rgba(24acc1,0.2);padding:2px 4px;border-radius:4px;">this cohort typically acquired skills</span> in AWS and PyTorch. 
+                                    <em>Note: These are historical aggregates, not a guarantee of your individual outcome.</em>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M5: CAREER PATH NAVIGATOR ══════ -->
+                    <div class="screen active" id="screen-path_navigator">
+                        <div class="stats" id="nav-stats"></div>
+                        <!-- Shape Adjustment -->
+                        <div class="detail" style="padding:12px 14px;">
+                            <span class="detail-tag">Shape Adjustment Loop · Adjust and re-explore</span>
+                            <div class="slider-group" id="shape-sliders">
+                                <div class="slider-row"><label>Technical</label><input type="range" min="0" max="100" value="65" oninput="adjustShape(this)"><span class="slider-val">65</span></div>
+                                <div class="slider-row"><label>Domain</label><input type="range" min="0" max="100" value="50" oninput="adjustShape(this)"><span class="slider-val">50</span></div>
+                                <div class="slider-row"><label>Leadership</label><input type="range" min="0" max="100" value="30" oninput="adjustShape(this)"><span class="slider-val">30</span></div>
+                                <div class="slider-row"><label>Analytics</label><input type="range" min="0" max="100" value="75" oninput="adjustShape(this)"><span class="slider-val">75</span></div>
+                                <div class="slider-row"><label>Communication</label><input type="range" min="0" max="100" value="45" oninput="adjustShape(this)"><span class="slider-val">45</span></div>
+                            </div>
+                        </div>
+                        <div class="split">
+                            <div class="graph-container">
+                                <svg id="path-svg"></svg>
+                                <div class="graph-legend">
+                                    <div class="legend-item"><span class="legend-dot" style="background:var(--yellow);"></span><span>Primary path</span></div>
+                                    <div class="legend-item"><span class="legend-dot" style="background:var(--text-3);"></span><span>Adjacent (one bridge)</span></div>
+                                    <div class="legend-item"><span class="legend-dot" style="background:transparent;border:1.5px dashed var(--sky);"></span><span>MyCOL Critical Occupation</span></div>
+                                </div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail">
+                                    <div class="detail-header"><span class="detail-tag">Selected Node</span><h3 class="detail-heading" id="node-name">Senior Data Scientist</h3></div>
+                                    <div class="metrics">
+                                        <div class="metric"><span class="metric-label">Salary Range</span><span class="metric-val" id="node-salary">RM 9,500/m</span></div>
+                                        <div class="metric"><span class="metric-label">Cohort Size</span><span class="metric-val" id="node-cohort">1,240</span></div>
+                                        <div class="metric"><span class="metric-label">Avg Tenure</span><span class="metric-val" id="node-tenure">2.8 yrs</span></div>
+                                        <div class="metric"><span class="metric-label">Probability</span><span class="metric-val" id="node-prob">48%</span></div>
+                                    </div>
+                                    <div><span class="detail-tag">Skill Bridges Required</span><div class="pills" id="node-skills" style="margin-top:4px;"></div></div>
+                                </div>
+                                <div class="callout" id="node-narrative"><strong>Honest Narrative:</strong><p style="margin-top:3px;">Outcomes represent cohort aggregates, not individual predictions.</p></div>
+                                <div class="callout callout-teal" id="node-tradeoff" style="display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M8: SMART TALENT MATCHING ══════ -->
+                    <div class="screen" id="screen-talent_matching">
+                        <div class="stats" id="match-stats"></div>
+                        <div class="chart-card" style="margin-bottom:10px;">
+                            <span class="form-label" style="margin-bottom:8px;">Declare Demand Vector</span>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <input type="text" class="form-input" id="match-role-input" placeholder="e.g. Data Scientist" value="Data Scientist" style="flex:1;max-width:250px;">
+                                <input type="text" class="form-input" id="match-skills-input" placeholder="e.g. Python, SQL, Machine Learning" value="Python, SQL, Tableau, PowerBI" style="flex:2;">
+                                <button class="btn btn-sm" onclick="renderTalentMatching()">Search & Run Inverse Retrieval</button>
+                            </div>
+                        </div>
+                        <div class="detail" id="match-esco-preview" style="display:none;"></div>
+                        <div style="display:flex;flex-direction:column;gap:8px;" id="match-results"></div>
+                    </div>
+
+                    <!-- ══════ M11: LIFELONG OUTCOME LOOP ══════ -->
+                    <div class="screen" id="screen-outcome_loop">
+                        <div class="stats" id="outcome-stats"></div>
+                        <div class="split split-wide">
+                            <div class="chart-card">
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <span class="form-label">Programme:</span>
+                                    <select class="form-select" id="outcome-program" onchange="renderOutcomeLoop()" style="max-width:350px;"><option value="cs">BSc Computer Science (AI/DS)</option><option value="it">BSc Information Technology</option><option value="biz">BSc Business Analytics</option></select>
+                                    <div class="tabs" id="outcome-horizon-tabs">
+                                        <button class="tab-btn active" onclick="setOutcomeHorizon('first',this)">First Job</button>
+                                        <button class="tab-btn" onclick="setOutcomeHorizon('five',this)">5-Year</button>
+                                        <button class="tab-btn" onclick="setOutcomeHorizon('ten',this)">10-Year</button>
+                                    </div>
+                                </div>
+                                <div class="bars" id="outcome-bars"></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail"><div class="detail-header"><span class="detail-tag">Consortium Outcomes</span><h3 class="detail-heading">Graduate Career Tracking</h3></div><p style="font-size:11px;color:var(--text-2);line-height:1.5;">Multi-horizon benchmarks tracking graduate paths across 1yr, 5yr, and 10yr intervals. Anonymised cohort data from 18 consortium universities.</p></div>
+                                <div class="callout callout-violet"><strong>Curriculum Feedback:</strong><p style="margin-top:3px;">Outcome data automatically feeds into the Future-State Curriculum Engine for gap identification.</p></div>
+                                <button class="btn btn-violet btn-sm" onclick="selectModule('curriculum_engine')">→ Feed to Curriculum Engine</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M6: AI CAREER COACH ══════ -->
+                    <div class="screen" id="screen-ai_coach">
+                        <div class="coach-layout">
+                            <div class="chat-wrap">
+                                <div class="chat-bar"><div class="chat-dot"></div><span class="chat-bar-text">Career Twin Coach · Online · Honesty Constraints Active</span></div>
+                                <div class="chat-messages" id="chat-box"><div class="bubble bot">Welcome! I'm your evidence-grounded Career Coach. I reason over trajectory cohorts retrieved by the Career Twin Engine — I never make individual predictions. What would you like to explore?</div></div>
+                                <div class="chat-input-row">
+                                    <input type="text" class="chat-input" id="chat-input" placeholder="Ask about pivots, skills, salary, transitions..." onkeydown="if(event.key==='Enter') sendChat()">
+                                    <button class="btn" style="padding:8px 14px;" onclick="sendChat()">Send</button>
+                                </div>
+                            </div>
+                            <div class="quick-actions">
+                                <span class="form-label" style="margin-bottom:3px;">Quick Topics</span>
+                                <div class="quick-card" onclick="quickChat('What does a pivot from software engineering to product management look like?')"><div class="quick-title">🔄 Career Pivot</div><div class="quick-desc">Engineering → PM transitions</div></div>
+                                <div class="quick-card" onclick="quickChat('What salary can I expect as a Senior Data Scientist in KL?')"><div class="quick-title">💰 Salary Insight</div><div class="quick-desc">Benchmark compensation</div></div>
+                                <div class="quick-card" onclick="quickChat('What skills should I learn for machine learning?')"><div class="quick-title">🎯 Skill Bridge</div><div class="quick-desc">Critical gap skills</div></div>
+                                <div class="quick-card" onclick="quickChat('How long does a mid-career transition take?')"><div class="quick-title">⏱️ Timeline</div><div class="quick-desc">Realistic transition durations</div></div>
+                                <div class="quick-card" onclick="quickChat('Compare the trade-offs between staying technical vs going into management')"><div class="quick-title">⚖️ Trade-offs</div><div class="quick-desc">Path comparison analysis</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M7: FAIR PAY ENGINE ══════ -->
+                    <div class="screen" id="screen-fair_pay">
+                        <div class="stats" id="pay-stats"></div>
+                        <div class="calc-grid">
+                            <div class="form-card">
+                                <div class="form-group"><span class="form-label">MASCO Occupation Code</span><select class="form-select" id="pay-masco"><option value="se">2512 – Software Developer</option><option value="da">2511 – Data Analyst</option><option value="pm">1219 – Product Specialist</option></select></div>
+                                <div class="form-group"><span class="form-label">Current Monthly Salary (RM)</span><input type="number" class="form-input" id="pay-salary" value="5500"></div>
+                                <div class="form-group"><span class="form-label">State / Region</span><select class="form-select" id="pay-state"><option value="kl">Kuala Lumpur</option><option value="sel">Selangor</option><option value="pen">Penang</option></select></div>
+                                <div class="form-group"><span class="form-label">Years of Experience</span><select class="form-select" id="pay-exp"><option value="1">1–2 years</option><option value="3" selected>3–5 years</option><option value="6">6–10 years</option><option value="10">10+ years</option></select></div>
+                                <button class="btn" onclick="renderFairPay()">Analyze Fair Pay</button>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:12px;">
+                                <div class="detail" id="pay-results">
+                                    <div class="detail-header"><span class="detail-tag">DOSM Calibrated Wage Percentile</span><h3 class="detail-heading" id="pay-title">RM 5,500 — Analysis</h3></div>
+                                    <div class="pct-track"><div class="pct-fill" id="pay-fill" style="width:55%;"></div><div class="pct-pointer" id="pay-pointer" style="left:55%;"></div></div>
+                                    <div class="pct-ticks"><span>P10</span><span>P25</span><span>Median</span><span>P75</span><span>P90</span></div>
+                                    <div class="metrics" id="pay-metrics"></div>
+                                </div>
+                                <div class="callout" id="pay-summary"><strong>Calibration:</strong> Salary calibrated using DOSM Salaries & Wages Survey.</div>
+                                <div class="detail" id="pay-sources">
+                                    <span class="detail-tag">Calibration Sources</span>
+                                    <div style="font-size:10px;color:var(--text-2);display:flex;flex-direction:column;gap:4px;margin-top:4px;">
+                                        <div>📊 <strong>DOSM</strong> — Salaries & Wages Survey Report (CC-BY-4.0)</div>
+                                        <div>📋 <strong>Michael Page MY</strong> — Salary Guide (headline anchors)</div>
+                                        <div>📋 <strong>Hays Asia</strong> — Salary Guide (headline anchors)</div>
+                                        <div>📋 <strong>Robert Walters MY</strong> — Salary Survey (headline anchors)</div>
+                                        <div>📋 <strong>Randstad MY</strong> — Market Outlook (headline anchors)</div>
+                                        <div>🏛️ <strong>TalentCorp</strong> — MyMahir Critical Occupations List</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M9: RETENTION SIGNALS ══════ -->
+                    <div class="screen" id="screen-retention_signals">
+                        <div class="stats" id="retention-stats"></div>
+                        <div style="display:flex;flex-direction:column;gap:8px;" id="retention-list"></div>
+                    </div>
+
+                    <!-- ══════ M10: ONBOARDING PREDICTOR ══════ -->
+                    <div class="screen" id="screen-onboarding_predictor">
+                        <div class="stats" id="onboard-stats"></div>
+                        <div class="split split-wide">
+                            <div style="display:flex;flex-direction:column;gap:12px;">
+                                <div class="controls">
+                                    <span class="form-label" style="white-space:nowrap;">New Hire:</span>
+                                    <select class="form-select" id="onboard-hire-select" onchange="renderOnboarding()" style="flex:1;max-width:300px;">
+                                        <option value="0">Ahmad Faizal — Full-Stack Dev</option>
+                                        <option value="1">Siti Aminah — Data Analyst</option>
+                                        <option value="2">Lee Mei Ling — Product Designer</option>
+                                    </select>
+                                </div>
+                                <div class="chart-card"><span class="form-label">Cohort Intervention Effectiveness</span><div class="bars" id="onboard-bars"></div></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail" id="onboard-detail"></div>
+                                <div class="callout callout-teal" id="onboard-callout"></div>
+                                <button class="btn btn-teal btn-sm" onclick="openModal('onboarding')">Generate Manager Briefing</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M12: CURRICULUM ENGINE ══════ -->
+                    <div class="screen" id="screen-curriculum_engine">
+                        <div class="stats" id="curriculum-stats"></div>
+                        <div class="chart-card" style="margin-bottom:10px;">
+                            <span class="form-label" style="margin-bottom:8px;">Declare Curriculum Profile</span>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <input type="text" class="form-input" id="curr-prog-input" placeholder="e.g. BSc Computer Science" value="BSc Computer Science" style="flex:1;max-width:250px;">
+                                <input type="text" class="form-input" id="curr-skills-input" placeholder="e.g. Java, C++, Data Structures" value="Java, C++, OOP, Data Structures, Basic SQL" style="flex:2;">
+                                <button class="btn btn-sm" onclick="renderCurriculum()">Run Gap Analysis vs Employer Demand</button>
+                            </div>
+                        </div>
+                        <div class="split split-wide">
+                            <div class="chart-card"><span class="form-label">Skill Gap vs. Employer Demand Signal</span><div class="bars" id="curriculum-bars"></div></div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail"><div class="detail-header"><span class="detail-tag" id="curr-demand-tag">Demand Signal Intake</span><h3 class="detail-heading">Emerging Skill Discrepancy</h3></div><p style="font-size:11px;color:var(--text-2);line-height:1.5;">Aggregating employer search patterns from Smart Talent Matching. Cross-referencing against your declared curriculum.</p></div>
+                                <div class="callout callout-violet"><strong>Lead-Time Trade-off:</strong><p style="margin-top:3px;">Curriculum changes require 1–2 semesters to implement. Current gap projections factor in this implementation lag.</p></div>
+                                <button class="btn btn-violet btn-sm" onclick="openModal('curriculum')">View Syllabus Recommendations</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M13: READINESS PROFILE ══════ -->
+                    <div class="screen" id="screen-readiness_profile">
+                        <div class="stats" id="readiness-stats"></div>
+                        <div class="split split-wide">
+                            <div class="chart-card"><span class="form-label">ESCO Capability Benchmark · Student Vector</span><div class="bars" id="readiness-bars"></div></div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail">
+                                    <div class="detail-header"><span class="detail-tag">Graduating Vector Profile</span><h3 class="detail-heading">Ahmad Syamil</h3></div>
+                                    <p style="font-size:11px;color:var(--text-2);line-height:1.5;">A dynamic, continuously-updated capability profile replacing the static degree certificate. Mapped against ESCO and O*NET taxonomies.</p>
+                                    <div class="pills" style="margin-top:6px;"><span class="pill acquired">Core Algorithms ✓</span><span class="pill acquired">SQL Design ✓</span><span class="pill">REST APIs</span><span class="pill bridge">Project Mgmt ⟶</span><span class="pill gap">Cloud Infra ✗</span></div>
+                                    <div style="margin-top:8px;font-size:9px;color:var(--text-3);font-family:var(--mono);">Last updated: 12 hours ago · Auto-refresh enabled</div>
+                                </div>
+                                <div class="callout callout-violet"><strong>Employer Sharing:</strong><p style="margin-top:3px;">Students can share a capability snapshot with prospective employers under explicit consent. Consent is revocable.</p></div>
+                                <button class="btn btn-violet btn-sm" onclick="openModal('readiness')">Generate Capability Dossier</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M14: FEEDBACK & REFLECTION ══════ -->
+                    <div class="screen" id="screen-feedback">
+                        <div class="stats" id="feedback-stats"></div>
+                        <div class="split-equal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="chart-card">
+                                <span class="form-label">Recent Sessions</span>
+                                <div id="feedback-sessions" style="display:flex;flex-direction:column;gap:8px;"></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div class="detail">
+                                    <div class="detail-header"><span class="detail-tag">Corpus Improvement Queue</span><h3 class="detail-heading">Feedback Pipeline</h3></div>
+                                    <div class="metrics" id="feedback-queue-metrics"></div>
+                                </div>
+                                <div class="callout callout-emerald"><strong>Feedback Loop:</strong><p style="margin-top:3px;">Structured feedback (accuracy/freshness ratings) flows into the curation queue, informing corpus updates and prompt quality review.</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M15: SYSTEM ANALYTICS ══════ -->
+                    <div class="screen" id="screen-analytics">
+                        <div class="callout" style="border-color:var(--sky);"><strong>⚙️ Engineering View</strong> — This dashboard is internal to the operations team. End users do not see this surface.</div>
+                        <div class="stats" id="analytics-stats"></div>
+                        <div class="split-equal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="chart-card"><span class="form-label">AI Invocation Latency (ms)</span><div class="bars" id="analytics-latency-bars"></div></div>
+                            <div class="chart-card"><span class="form-label">Validation & Quality Metrics</span><div class="bars" id="analytics-quality-bars"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- ══════ ARCHITECTURE & VISION (OVERVIEW SCREEN) ══════ -->
+                    <div class="screen" id="screen-architecture">
+                        <!-- Hero strip -->
+                        <div class="arch-hero">
+                            <div class="arch-hero-text">
+                                <span class="detail-tag">PathWiser · Career OS Navigation Platform</span>
+                                <h2 class="arch-hero-title">Navigate your career, <span style="color:var(--yellow);">wiser</span>.</h2>
+                                <p class="arch-hero-desc">Three audiences. One shared engine. Honest navigation, never prediction. Built for Asia, calibrated to Malaysian labour realities, designed for direct integration into Talentbank's Career OS.</p>
+                                <div class="arch-hero-pills">
+                                    <span class="pill acquired">🔬 DOSM Calibrated</span>
+                                    <span class="pill acquired">🧠 Career Twin Engine</span>
+                                    <span class="pill acquired">🔁 Career Signal Loop</span>
+                                    <span class="pill acquired">🛡️ Honest AI — No Prediction</span>
+                                </div>
+                            </div>
+                            <div class="arch-hero-loop">
+                                <div class="signal-loop-mini">
+                                    <div class="signal-mini-node c"><span class="sn-letter">C</span><span class="sn-label">Candidate</span><span class="sn-flow">Navigate paths</span></div>
+                                    <span class="signal-mini-arrow">⟶</span>
+                                    <div class="signal-mini-node e"><span class="sn-letter">E</span><span class="sn-label">Employer</span><span class="sn-flow">Demand signal</span></div>
+                                    <span class="signal-mini-arrow">⟶</span>
+                                    <div class="signal-mini-node u"><span class="sn-letter">U</span><span class="sn-label">University</span><span class="sn-flow">Outcome loop</span></div>
+                                    <span class="signal-mini-arrow signal-mini-arrow-back">⟲ feedback closes the loop</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compulsory module + brief alignment -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">Brief Alignment</span><h3 class="detail-heading">How PathWiser maps to Talentbank's Career OS pillars</h3></div>
+                            <div class="brief-pillars">
+                                <div class="pillar"><span class="pillar-num">01</span><span class="pillar-name">Navigation, not prediction</span><span class="pillar-how">Retrieval + deterministic aggregation produce numbers; the LLM only explains, never predicts.</span></div>
+                                <div class="pillar"><span class="pillar-num">02</span><span class="pillar-name">The 40-year arc</span><span class="pillar-how">Six life stages from Student (13–17) to Executive (55+); cohorts filtered by stage at every retrieval.</span></div>
+                                <div class="pillar"><span class="pillar-num">03</span><span class="pillar-name">Both sides honestly</span><span class="pillar-how">One engine serves Candidate, Employer, and University surfaces — the Career Signal Loop is structural, not bolted on.</span></div>
+                                <div class="pillar"><span class="pillar-num">04</span><span class="pillar-name">Human language to humans</span><span class="pillar-how">Every output discloses cohort size, range, and trade-offs; no black-box scores, no false precision.</span></div>
+                                <div class="pillar"><span class="pillar-num">05</span><span class="pillar-name">Compulsory Career OS module</span><span class="pillar-how">Smart Talent Matching + Career Path Navigator + shared engine = the marketplace the brief requires.</span></div>
+                            </div>
+                        </div>
+
+                        <!-- 3x3 module grid -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">The 9-Module Map</span><h3 class="detail-heading">Three capabilities × three audiences, one engine underneath</h3></div>
+                            <p style="font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px;">Every module is drawn directly from the Talentbank Challenge Module library. Each calls the same Career Twin Engine — only the framing of the user shape and the aggregation target differ.</p>
+                            <div class="arch-grid-wrap">
+                                <div class="arch-row-label">Navigation</div>
+                                <div class="arch-row-label">Intelligence</div>
+                                <div class="arch-row-label">Valuation</div>
+                                <div class="arch-grid" id="arch-grid"></div>
+                            </div>
+                        </div>
+
+                        <!-- Engine pipeline / execution flow -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">End-to-End Execution</span><h3 class="detail-heading">From user shape to honest narrative — the 10-step pipeline</h3></div>
+                            <p style="font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px;">Numerical claims are produced deterministically. The language model only explains the aggregates it receives — it has no mechanism to invent numbers about an individual.</p>
+                            <div class="exec-flow" id="exec-flow"></div>
+                        </div>
+
+                        <!-- Differentiation panel -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">Competitive Differentiation</span><h3 class="detail-heading">Why none of the incumbents do this honestly</h3></div>
+                            <p style="font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px;">Every existing player does one slice and frames it as prediction. PathWiser is the only one that combines all three audiences on one engine and refuses to predict.</p>
+                            <table class="diff-table">
+                                <thead><tr><th>Player</th><th>Scope</th><th>Framing</th><th>Where PathWiser is different</th></tr></thead>
+                                <tbody>
+                                    <tr><td>LinkedIn Career Explorer</td><td>Single-step skill similarity, US-centric, proprietary data</td><td>Single transitions</td><td>Multi-step trajectory landscape, Malaysian-calibrated</td></tr>
+                                    <tr><td>Eightfold AI</td><td>Enterprise ATS scoring "1–5 across 50+ variables"</td><td><span style="color:var(--rose);">Black-box predictive</span></td><td>No scores — only cohort size, range, and honest narrative</td></tr>
+                                    <tr><td>SkyHive / Cornerstone</td><td>Workforce reskilling, enterprise-only</td><td>Recommendation engine</td><td>Consumer + employer + university surfaces on one engine</td></tr>
+                                    <tr><td>FutureFit AI</td><td>"GPS for your career," gov/workforce-board</td><td>Roadmap recommendation</td><td>Range-of-outcomes, not a single recommended destination</td></tr>
+                                    <tr><td>JobStreet / Hiredly (MY)</td><td>Job listings + AI matching</td><td>Transaction</td><td>Trajectory navigation, not job-by-job matching</td></tr>
+                                    <tr><td>MyNext (TalentCorp)</td><td>Psychometric + internship matching</td><td>Profiling</td><td>Evidence-based cohort retrieval, not personality inference</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Data sources -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">Data Strategy</span><h3 class="detail-heading">Open, licensed, Malaysian-calibrated</h3></div>
+                            <p style="font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px;">All six sources are disclosed in-product. Synthetic trajectories are explicitly framed as "modelled trajectories calibrated to Malaysian labour data" — never as real individuals.</p>
+                            <div class="data-sources-grid" id="data-sources-grid"></div>
+                        </div>
+
+                        <!-- Tech stack -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">Technology Stack</span><h3 class="detail-heading">Production-ready, integrable into Talentbank's Angular stack via OpenAPI</h3></div>
+                            <div id="tech-stack-tables"></div>
+                        </div>
+
+                        <!-- 5 judging criteria alignment -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">Judging Criteria Alignment</span><h3 class="detail-heading">How PathWiser scores against the five weighted criteria</h3></div>
+                            <p style="font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px;">Criteria pulled directly from the Talentbank starter kit. Each criterion maps to specific architectural choices visible in the build.</p>
+                            <div class="criteria-grid" id="criteria-grid"></div>
+                        </div>
+
+                        <!-- 28-day timeline -->
+                        <div class="detail" style="margin-bottom:14px;">
+                            <div class="detail-header"><span class="detail-tag">28-Day Build Timeline</span><h3 class="detail-heading">Six phases · three written checkpoints · live URL from day 3</h3></div>
+                            <p style="font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px;">Build phase runs Mon 29 June – Sun 26 July 2026 if the team is shortlisted. Engine and three deep modules are checkpoint-anchored.</p>
+                            <div id="timeline-bar"></div>
+                        </div>
+
+                        <!-- Risk & honesty footer -->
+                        <div class="callout" style="border-color:var(--amber);">
+                            <strong>🛡️ Honest framing as a continuous discipline.</strong>
+                            <p style="margin-top:4px;font-size:12px;color:var(--text-2);line-height:1.5;">Three risks are acknowledged in the proposal and reflected in the product: (1) no large Malaysian trajectory dataset exists publicly — our corpus is synthetic-but-calibrated, disclosed; (2) recruiter salary guides are copyrighted — we use headline figures as calibration constants only; (3) maintaining "navigation, not prediction" is a discipline, not a setting — prompt validation rejects predictive verbs at the gate.</p>
+                        </div>
+                    </div>
+
+                    <!-- ══════ M16: SECURITY & ACCESS ══════ -->
+                    <div class="screen" id="screen-security">
+                        <div class="callout" style="border-color:var(--rose);"><strong>🛡️ Security Layer</strong> — Foundational layer enforcing authentication, row-level security, consent management, and anonymisation across all modules.</div>
+                        <div class="stats" id="security-stats"></div>
+                        <div class="split-equal" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="detail">
+                                <div class="detail-header"><span class="detail-tag">Access Control</span><h3 class="detail-heading">Row-Level Security</h3></div>
+                                <div id="security-rls-table"></div>
+                            </div>
+                            <div class="detail">
+                                <div class="detail-header"><span class="detail-tag">Consent Management</span><h3 class="detail-heading">Active Consent Flows</h3></div>
+                                <div id="security-consent-table"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modal-header"><h3 class="modal-title" id="modal-title">Detail</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- FEEDBACK MODAL -->
+    <div class="modal-overlay" id="feedback-overlay" onclick="if(event.target===this)closeFeedbackModal()">
+        <div class="modal">
+            <div class="modal-header"><h3 class="modal-title">📝 Session Feedback</h3><button class="modal-close" onclick="closeFeedbackModal()">✕</button></div>
+            <div class="modal-body">
+                <div class="form-group"><span class="form-label">Accuracy Rating</span><div class="star-rating" id="fb-accuracy"></div></div>
+                <div class="form-group"><span class="form-label">Freshness Rating</span><div class="star-rating" id="fb-freshness"></div></div>
+                <div class="form-group"><span class="form-label">Free-text Reflection</span><textarea class="form-textarea" placeholder="Share your thoughts on this engine output..."></textarea></div>
+                <div class="form-group"><span class="form-label">Private Note (visible only to you)</span><textarea class="form-textarea" placeholder="Personal notes for your reflection surface..."></textarea></div>
+                <button class="btn" onclick="submitFeedback()">Submit Feedback → Corpus Queue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Feedback FAB -->
+    <button class="feedback-fab" onclick="openFeedbackModal()" title="Leave Feedback">📝</button>
+
+    <!-- Demo Tour FAB & Spotlight -->
+    <button class="tour-fab" onclick="startTour()" title="Take the Tour — guided walkthrough for judges">🎬</button>
+    <div class="tour-spotlight" id="tour-spotlight">
+        <div class="tour-card" id="tour-card">
+            <span class="tour-card-step" id="tour-step-label">Step 1 of 10</span>
+            <h3 class="tour-card-title" id="tour-step-title">Welcome to the Demo Tour</h3>
+            <p class="tour-card-body" id="tour-step-body">This 90-second walkthrough shows the Career Signal Loop in action across all three audiences.</p>
+            <div class="tour-card-actions">
+                <div class="tour-progress" id="tour-progress"></div>
+                <div style="display:flex;gap:6px;">
+                    <button class="btn btn-ghost btn-sm" onclick="endTour()">Skip</button>
+                    <button class="btn btn-sm" id="tour-prev-btn" onclick="tourPrev()" style="display:none;">← Back</button>
+                    <button class="btn btn-sm" id="tour-next-btn" onclick="tourNext()">Begin →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

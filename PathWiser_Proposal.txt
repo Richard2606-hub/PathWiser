@@ -1,0 +1,806 @@
+PathWiser: A Career OS Navigation Platform
+Powered by the Career Twin Engine for Asia’s Talent Ecosystem
+Short Description:
+A web-based Career OS navigation platform that uses an evidence-based Career Twin Engine, guided by trajectory similarity and honest range-of-outcomes reasoning, to help candidates, employers, and universities across Asia see the realistic landscape of career paths and make wiser, better-informed decisions — without overpromising prediction.
+Submitted for the Talentbank Tech Hackathon — First Cohort
+Build Asia’s Career OS with AI — Ship in 28 Days
+Introduction
+Across Asia, the question of what comes next in a person’s career is rarely answered with anything resembling evidence. From students choosing a stream at sixteen, to graduates entering their first role, to mid-career professionals weighing a pivot, to senior leaders deciding when to step back, most people make consequential decisions about their working lives without a map, without comparable data, and without a co-pilot. They navigate by guesswork, peer pressure, generic advice, and the limited visibility their immediate network can offer. The consequences compound across an entire region of brilliant graduates and growing economies whose talent and opportunities continue to miss each other in the dark.
+Although a wide range of digital tools exists to address parts of this problem, the existing landscape remains structurally fragmented. Job boards function as inventory dumps that list openings without explaining how a person might arrive at them. Applicant tracking systems filter rather than match. Generic career advice abounds on social media and content platforms, yet none of it speaks to a specific person’s situation with the granularity required to inform a real decision. Recruiter salary guides offer benchmark figures but no path-level context. University career centres prepare students for first jobs but rarely follow what happens afterwards. Each of these tools solves a slice of the problem in isolation, and none assembles them into a coherent operating system for a forty-year career.
+Recent advancements in artificial intelligence, particularly large language models and vector retrieval, have introduced new possibilities for evidence-grounded career navigation. Unlike traditional rule-based systems, modern AI can analyse a person’s skills, education, and prior roles as a structured shape, retrieve a cohort of comparable real-world trajectories, aggregate outcomes deterministically, and explain the result in human language with appropriate hedging. When designed responsibly, such systems do not predict an individual’s future. They reveal the landscape of paths taken by people with similar shapes and the realistic ranges of outcomes those paths produced. Many AI-powered career applications, however, lean into prediction language and black-box scoring that overstate what the technology can honestly deliver. The opportunity is for a system that is explicitly designed around honesty and user agency rather than confidence and false precision.
+Motivated by these challenges, this project proposes the development of PathWiser, a Career OS navigation platform implemented as a production-ready web application. PathWiser is built around three integrated layers: a Career Signal Loop architecture that connects candidates, employers, and universities through one shared data engine; a Career Twin Engine that retrieves and aggregates anonymised trajectory cohorts to surface realistic ranges of outcomes; and a nine-module functional map that delivers tailored views to each audience while drawing on a single underlying intelligence layer. The platform is positioned as an extension of Talentbank’s Career OS vision rather than a competing brand, designed for direct integration with the existing Talentbank ecosystem and for compliance with the production-readiness expectations of the First Cohort hackathon.
+The proposed solution prioritises practicality, honesty, and deployability. Built using Next.js, Supabase with the pgvector extension, and modern large language model APIs, the system is designed to run on accessible infrastructure with a live public deployment from the earliest days of the build phase. The platform does not attempt to predict any single person’s career outcome, control hiring decisions, or replace human judgement. It functions as an evidence-grounded navigation layer that surfaces the realistic landscape of paths available to a given user, explains the trade-offs honestly, and leaves the choice in the user’s hands. Through this approach, PathWiser seeks to demonstrate how a navigation-first Career OS can be applied meaningfully to address one of the most consequential coordination failures in Asia’s talent ecosystem.
+Motivation
+Rapid economic growth and educational expansion across Asia have produced one of the largest, most talented cohorts of working-age people in the world. Yet at the individual level, the experience of building a career in this environment remains disorienting. Students choose university programmes based on incomplete information about where those programmes actually lead. Graduates enter their first jobs without a clear picture of how that role fits into a longer arc. Mid-career professionals contemplate pivots while privately worrying that they are the only ones unsure of what comes next. Senior professionals weigh advisory and leadership transitions without comparable models for how that transition typically unfolds. At every stage, the absence of evidence-based navigation forces people to rely on the limited heuristics available to them, including the experiences of a few friends and family members, generic content from social media, and the implicit signals of peer pressure.
+Although numerous digital applications exist to address specific aspects of these issues, most of them solve a transactional problem rather than a navigational one. Job boards present available openings without explaining the trajectory that leads to them. Applicant tracking systems filter candidates against keyword criteria that often fail to capture trajectory direction or potential. Salary benchmarking services produce static range figures by role and seniority but cannot explain how a particular individual would realistically arrive at any of those benchmarks. Educational platforms emphasise credentials and completion rates rather than long-term career outcomes. Career coaching, where available, depends heavily on the individual coach’s personal network and accumulated experience, which limits its scalability and consistency. This fragmented landscape produces an experience in which a user must integrate multiple disconnected sources of information independently and apply judgement to a decision they have rarely encountered before, with low confidence and high consequences.
+Recent advancements in artificial intelligence, particularly the combination of vector retrieval over high-dimensional embeddings and large language model reasoning, present a structural opportunity to address these limitations. By representing a user’s career shape as a dense embedding, retrieving similarly shaped trajectories from a curated corpus, and aggregating the outcomes of that cohort deterministically before passing them to a language model for honest explanation, it becomes possible to deliver navigation guidance that is both personal and evidence-grounded. Critically, this hybrid architecture isolates the numerical claims from the language model itself. Numbers come from transparent aggregation, while the language model handles only the explanation of those aggregates. This separation allows the system to make confident claims about cohorts and ranges without ever making predictive claims about an individual, which directly addresses the most common failure mode of contemporary AI career applications.
+Furthermore, there is a growing need for career navigation solutions that are practical, accessible, and deployable at the scale of Asia’s talent ecosystem. Systems that require enterprise-grade integrations, specialised consulting engagements, or proprietary data licences risk excluding the very candidates, universities, and small to mid-size employers who would benefit most from improved navigation. Web-first platforms built on cloud infrastructure offer a more inclusive approach by enabling users to access intelligent support through ordinary devices and standard browsers. By combining open data sources such as O*NET, ESCO, and the Department of Statistics Malaysia open datasets with synthetic-but-calibrated trajectory cohorts and modern AI services, a navigation platform can be both rigorous and reachable. Such solutions can enhance daily decision-making without imposing significant cost, complexity, or institutional barriers on the users who interact with them.
+Motivated by these challenges, this project aims to demonstrate how an evidence-based Career OS navigation platform can support individuals, organisations, and institutions in making wiser career decisions across the full forty-year arc. By integrating candidate guidance, employer talent intelligence, and university outcome insight into a single system powered by one shared trajectory engine, the project seeks to show how AI can move beyond predictive overpromise toward honest navigation. The motivation of this work lies in closing the gap between advanced AI capabilities and practical, real-world impact in a domain where the absence of good navigation has consequences measured in entire careers.
+Community Impact and Contribution
+The proposed project aims to create meaningful impact by supporting individuals, organisations, and institutions in making better career decisions across Asia’s talent ecosystem. By combining artificial intelligence with accessible web technology and evidence-based trajectory data, PathWiser provides practical navigation that helps users see the realistic landscape of paths available to them and decide with greater confidence. Rather than offering isolated tools or generic advice, the platform delivers integrated, honest, and actionable insight that reflects how careers actually unfold for people with comparable shapes. This shift from prescription to navigation is the foundation of the platform’s contribution to the broader Career OS vision.
+At the individual level, the platform empowers candidates to understand the relationship between their current shape and the realistic range of futures available to them. Through cohort-based evidence and clearly hedged explanations, users are encouraged to evaluate options on the basis of how similar people have actually progressed, rather than on the basis of aspirational job titles or the experience of one or two friends. The platform deliberately preserves user agency at every step, surfacing trade-offs honestly and never reducing a person to a single predicted destination. This promotes evidence-driven decision-making and helps individuals make informed choices that positively affect their long-term professional well-being, their financial outcomes, and the quality of their working lives.
+At the organisational level, the project contributes by giving employers a more honest lens on talent. Smart talent matching based on trajectory direction rather than keyword overlap helps hiring teams identify candidates whose career shape genuinely fits the role being filled, including adjacent candidates whose paths are one reasonable bridge away. Trajectory-based retention signals help managers see when an employee’s career pattern suggests imminent disengagement, opening a window for earlier and more constructive conversations. Onboarding success indicators help organisations understand which new hires are likely to thrive in their first six months and which may need additional support. Together, these capabilities reduce the noise that makes hiring and retention cynical exercises and replace it with evidence employers can act on responsibly.
+At the institutional level, the platform closes a long-standing loop between universities and the labour market they prepare students for. The lifelong outcome loop tracks where graduates of specific programmes end up over years and decades rather than only their first job, feeding that signal back into curriculum design through the future-state curriculum engine. The adaptive readiness profile provides a richer alternative to a static degree certificate by representing a student’s genuine capabilities at a moment in time. Education and career network partners, including university computing faculties, career centre networks, and HR communities, gain access to ecosystem-wide signal that can inform programme decisions, partnerships, and student support without compromising individual privacy.
+The project also emphasises accessibility, inclusivity, and honesty. Delivered as a web-based platform with a live public deployment, PathWiser lowers the barrier to entry for AI-powered career navigation by removing the need for installations, specialised hardware, or institutional gatekeeping. The system is explicitly multilingual-ready, deliberately framed around Malaysian and broader Asia Pacific labour realities, and architected to integrate with the Career OS that Talentbank is building rather than to compete with it. Users do not require technical expertise to benefit from the platform, and at no point are they presented with a black-box score they cannot interrogate. Every recommendation is accompanied by the size of the cohort it draws on, the range of outcomes within that cohort, and the trade-offs implied by each path.
+Overall, the contribution of this project lies in demonstrating how AI can be applied responsibly and practically to support one of the most consequential and underserved decision contexts in modern life. By focusing on navigation rather than prediction, by integrating three audiences into a single coherent system, and by anchoring every claim in transparent aggregation rather than language model confidence, the platform contributes toward better individual decisions, more honest organisational practice, and a healthier institutional feedback loop across Asia’s talent ecosystem.
+Alignment with the Career OS Brief
+Career environments across Asia are complex ecosystems in which individual aspiration, employer demand, educational supply, and macroeconomic trends interact continuously. Building a Career OS therefore requires solutions that recognise these interdependencies rather than addressing them in isolation. PathWiser is designed around this principle, aligning explicitly with each pillar of the Career OS brief published by Talentbank for the First Cohort hackathon. The platform uses artificial intelligence as a navigation and decision-support tool, enabling individuals, organisations, and institutions to make more informed choices that collectively contribute to a healthier and more honest labour ecosystem. The alignment with the brief is intentional and grounded in real-world navigation outcomes rather than predictive overpromise or black-box scoring.
+Navigation, Not Prediction
+The Career OS brief is explicit that the platform being built is a navigation tool, not a prediction tool. It does not tell anyone what their career will be. It helps users see the paths available, the realistic ranges of outcomes for people like them, and the trade-offs each path implies. PathWiser aligns with this pillar directly through its architectural separation of retrieval, aggregation, and explanation. The Career Twin Engine retrieves a cohort of anonymised trajectories whose shape resembles the user’s, the aggregation layer computes the deterministic range of outcomes within that cohort, and only then does the language model produce a hedged, honest narrative that explains the landscape. Numerical claims never originate from the language model. This separation is what allows PathWiser to make confident statements about cohorts while never overstating what can be said about any single individual.
+The Forty-Year Career Arc
+The brief frames a career as a forty-year arc with phases, plateaus, pivots, and compounding skills, rather than as a sequence of job applications. The Career OS is intended to help users navigate from their first profile at sixteen to their final pivot at sixty-five or beyond. PathWiser aligns with this pillar by structuring its data model and user experience around the six life stages described in the brief, including Student (13 to 17), Young Adult (18 to 22), Early Career (23 to 34), Mid-Career (35 to 44), Senior Career (45 to 54), and Executive & Beyond (55 and above). Trajectory cohorts are filtered and aggregated with respect to the user’s stage, so that a student exploring streams sees evidence relevant to that decision context, while a mid-career professional considering a pivot sees evidence drawn from the mid-career cohort. This stage-awareness ensures that the platform holds the long view at every interaction rather than collapsing the user’s situation to a single transaction.
+Both Sides Honestly
+The brief insists that a Career OS must connect both sides of the labour market honestly. Candidates need to be findable at the right moment and for the right reason, while employers need to spot the right person without resorting to the spam and noise that makes both sides cynical. PathWiser aligns with this pillar through its Career Signal Loop architecture, which unifies the candidate, employer, and university surfaces around a single shared trajectory engine. The same data that helps a candidate see their realistic next moves also helps an employer recognise a candidate whose trajectory direction fits a role, and helps a university understand where its graduates actually land. Because all three surfaces draw on the same engine, signals flow naturally between them and the temptation to overreach on any single side is structurally constrained by the other two.
+Human Language to Humans
+The brief asks that the system speak human language back to humans, explaining why a recommendation makes sense and where the uncertainty sits, without black-box scores or false precision. PathWiser aligns with this pillar through the design of the AI explanation layer, which converts deterministic aggregates into hedged, evidence-grounded narratives. Every explanation surfaces the size of the cohort it draws on, the spread of outcomes within that cohort, and an explicit statement of what the evidence does and does not support. The language model is instructed and validated to avoid predictive verbs, to surface uncertainty rather than smooth it over, and to maintain a tone of honest navigation throughout. Users never see a confidence score divorced from an explanation, and they never see an explanation that overstates what the evidence supports.
+The Compulsory Career OS and Career Marketplace
+The brief identifies a compulsory module that every team must build, namely a Career OS and Career Marketplace that covers both sides of the labour market and serves as the connective tissue of the platform. PathWiser delivers this compulsory module through the combination of its Smart Talent Matching capability for employers, its Career Path Navigator capability for candidates, and the shared trajectory engine that powers both. The marketplace is not a job board. It is a navigation layer that surfaces candidates and roles to one another on the basis of trajectory direction, with honest explanation of why a match makes sense and where it might fail. Because the engine underneath is the same engine that powers candidate-only and university-only surfaces, the marketplace inherits the same standards of evidence and honesty.
+Integrated Career OS Contribution
+Beyond aligning with each individual pillar of the brief, PathWiser is designed to demonstrate the integrated value of a Career OS that holds candidates, employers, and universities in a single coherent system. Individual modules can be evaluated on their own merits, but the strongest argument for the platform emerges when the loop is closed. Candidate decisions generate trajectory data that helps employers find better fits. Employer demand reveals what the labour market actually values, which feeds back into curriculum decisions at partner universities. University outcomes return as fresh trajectory data that improves the realism of candidate navigation. Each surface strengthens the others, and the system as a whole begins to function as the connective layer the Career OS brief envisions. PathWiser is positioned as a faithful contribution to that vision, designed for direct integration with Talentbank’s production platform once the build phase concludes.
+Problem Statement
+Rapid economic growth, expanding educational systems, and the steady integration of digital technology have transformed how careers are built across Asia. However, the actual lived experience of navigating a career within this environment remains structurally underserved. Despite the availability of job boards, applicant tracking systems, salary benchmarking services, generic career advice content, and university career centres, the central question of what comes next remains unanswered for most individuals, employers, and institutions in any rigorous, evidence-grounded way. This proposal identifies several interconnected problems that collectively define the gap PathWiser is designed to address.
+First, candidates lack a personalised, evidence-based view of the realistic paths available to them. The dominant interfaces through which most people encounter career information are job boards optimised for transaction, social media optimised for engagement, and generic listicles optimised for traffic. None of these surfaces is designed to answer the specific navigational question a candidate is actually facing, which is some version of: given who I am, what I have done, and where I am now, what is the realistic range of futures available to me, and what does each of them imply? In the absence of a system that can answer this question with cohort evidence, candidates fall back on guesswork, peer pressure, and the experiences of a small number of people in their immediate network, which is structurally insufficient to inform decisions of this magnitude.
+Second, employers lack a meaningful signal beyond keyword-matched résumés. Most applicant tracking systems filter candidates against role descriptions using surface lexical overlap, which captures only what a candidate has already done and entirely misses where their trajectory is heading. As a result, organisations routinely overlook strong candidates whose past titles do not match the role description but whose trajectory direction is a clear fit, while accepting candidates whose résumé matches the keywords but who are obviously misaligned with the role on closer inspection. Beyond hiring, employers also lack early-warning signals about retention. Most organisations only discover that an employee is leaving when the resignation letter arrives, at which point the conversation that might have retained them is already too late.
+Third, universities lack a long-term feedback loop from the labour market they prepare students for. The conventional measure of programme success is the graduate employment rate within six months of graduation, which is a coarse and short-sighted metric that says very little about whether students are landing in roles that compound into successful careers over decades. Without longitudinal trajectory data, universities cannot reliably distinguish between programmes that produce strong long-term outcomes and programmes that merely produce strong first jobs. Furthermore, curriculum decisions are typically made on the basis of faculty intuition and industry advisory boards that, however well-intentioned, lack the data to anticipate where labour demand is heading over the next five to ten years. This produces a chronic mismatch between what students are taught and what the labour market actually rewards by the time they graduate.
+Fourth, even where partial solutions exist for one audience, they rarely benefit the others. A salary benchmarking service that helps candidates understand pay does not help employers improve their hiring or help universities improve their curricula. A psychometric profiling tool that helps a student choose a major does not produce signal that an employer or a curriculum planner can act on. The absence of a shared, evidence-based substrate across all three audiences means that signals which could be informative if pooled are wasted in silos. The opportunity is not merely to build a better tool for any single audience, but to build a Career OS layer that connects the three through one underlying engine.
+Fifth, the AI-powered tools that have entered this domain in recent years often overpromise prediction while underdelivering navigation. Many systems present black-box scores that cannot be interrogated, surface deterministic career recommendations without acknowledging uncertainty, or imply forecasting capabilities that the underlying technology cannot honestly support. This overpromise erodes user trust in the long term and undermines the broader case for evidence-based career navigation, because users who are burned by inflated claims often retreat to the very heuristics the systems were meant to replace. The opportunity, therefore, is not only to deliver a better navigation product but to do so in a way that is architecturally and rhetorically honest about what AI can and cannot say about a person’s career.
+Summary of the Problem Statements
+Taken together, these problems describe an ecosystem in which candidates navigate consequential decisions without evidence, employers hire and retain with limited signal, universities prepare students for a market they cannot see, and the AI tools that have entered the space frequently make the trust problem worse by overpromising. PathWiser is proposed as an integrated response to this set of problems, addressing each audience through a tailored surface while drawing on one shared engine that maintains the evidence and honesty standards required to earn long-term user trust.
+Project Objectives
+In response to the problems identified above, the project pursues a set of interconnected objectives that together describe what PathWiser is intended to achieve. Each objective addresses one or more of the problem statements and contributes to the overall goal of delivering a Career OS navigation layer that is honest, useful, and production-ready within the twenty-eight day build window of the First Cohort hackathon.
+To Enable Evidence-Based Career Navigation for Candidates
+The first objective of the project is to give candidates a personalised, evidence-grounded view of the realistic paths available to them at any stage of their career. The platform aims to convert the abstract question of what comes next into a concrete landscape of possibilities, each anchored in a cohort of anonymised trajectories whose shape resembles the user’s. By integrating the Career Path Navigator, the AI Career Coach, and the Fair Pay Engine on top of one shared trajectory engine, the project seeks to demonstrate that career navigation can be both deeply personal and rigorously evidence-based without overpromising prediction. The candidate-facing surface is designed to preserve user agency at every step, surfacing trade-offs honestly and never reducing a person to a single recommended destination.
+To Surface Trajectory-Based Talent Signal for Employers
+The second objective is to provide employers with a more honest, more useful talent signal than keyword-matched résumé filtering can deliver. By matching candidates on the basis of trajectory direction rather than past job titles, by flagging trajectory-based retention risk before resignation, and by predicting onboarding success on the basis of trajectory pattern, the platform aims to give employers earlier, richer, and more actionable signal across the talent lifecycle. The employer-facing surface is designed to reduce hiring noise, surface adjacent candidates that conventional filtering would miss, and create earlier opportunities for retention conversations that conventional systems would only surface too late.
+To Close the Curriculum-to-Outcome Loop for Universities
+The third objective is to give universities and education partners a long-term, evidence-grounded feedback loop between curriculum decisions and graduate outcomes. The Lifelong Outcome Loop tracks where graduates of specific programmes end up over years and decades rather than only their first job. The Future-State Curriculum Engine surfaces emerging skill demand from the employer side of the platform and translates it into actionable curriculum recommendations. The Adaptive Readiness Profile provides a dynamic alternative to static degree credentials. Together, these capabilities seek to close the long-standing feedback gap between education and the labour market it prepares students for, in a way that respects individual privacy and supports collective improvement.
+To Demonstrate Honest AI for Career Guidance
+The fourth objective is to demonstrate that AI-powered career guidance can be architecturally and rhetorically honest. By separating retrieval, aggregation, and explanation into distinct layers, the platform aims to show that the numerical claims of a career navigation system can come from transparent deterministic aggregation rather than from the language model itself, while the language model handles only the explanation of those aggregates with appropriate hedging. Through careful prompt design, structured output validation, and explicit cohort-size disclosure throughout the user interface, the project seeks to set a higher standard for AI honesty in a domain where overpromise has been the norm.
+To Build a Production-Ready Career OS Layer
+The fifth objective is to deliver a production-ready Career OS layer that meets the integration standards described in the Talentbank Tech Hackathon brief. This includes a live public deployment from the early days of the build phase, clean and documented code that can be reviewed by Talentbank’s engineering team without significant rework, an architecture that is independently callable and integrable into the existing Career OS platform regardless of frontend framework, and a clear declaration of the AI tooling used in the build process. The objective is not only to build a compelling demonstration but to deliver a system that could be adopted, integrated, and extended by Talentbank’s production team with minimal friction.
+To Honour the Talentbank Career OS Vision
+The sixth and final objective is to honour the Career OS vision articulated by Talentbank in the hackathon brief. PathWiser is not designed as a competing brand but as a faithful contribution to the Career OS Talentbank is building. The naming, positioning, and architecture of the platform reflect the understanding that full intellectual property transfers to Talentbank on adoption and that the most valuable contribution a hackathon team can make is one that the host can absorb, extend, and ship. Every design decision is taken with that integration in mind, from the choice of stack to the structure of the data layer to the framing of the user interface.
+Summary of the Project Objectives
+Collectively, these objectives reflect the project’s goal of addressing the interconnected problems of career navigation across Asia through a single AI-powered Career OS layer. Each objective directly responds to one or more problem statements, while together they support a holistic approach to improving individual decisions, organisational practice, and institutional feedback. The objectives are scoped to be achievable within the twenty-eight day build window while remaining substantial enough to demonstrate the long-term potential of the platform.
+The PathWiser Concept
+PathWiser is organised as three integrated conceptual layers that together describe what the platform is, how it is different, and what users actually experience. The first layer is an architecture called the Career Signal Loop, which connects three audiences through one shared data engine. The second layer is the AI differentiator called the Career Twin Engine, which retrieves real anonymised trajectory cohorts to surface realistic ranges of outcomes rather than predicted destinations. The third layer is the functional map of nine modules organised as three capabilities across three audiences. Each layer answers a different question that judges and users will reasonably ask, and the three together make a coherent product story.
+Career Signal Loop — The Architecture
+The Career Signal Loop is the architectural pattern that distinguishes PathWiser from a single-audience career application. The loop has one engine and three surfaces. The engine holds a curated corpus of anonymised, ESCO-normalised career trajectories calibrated to Malaysian labour data, together with the AI capabilities that retrieve, aggregate, and explain cohorts within that corpus. The three surfaces are the candidate surface, the employer surface, and the university surface, each of which calls the engine through a tailored interface but draws on the same underlying data and intelligence.
+The value of this architecture is that signals naturally flow between the three audiences without any audience seeing data it should not see. Candidate decisions and outcomes contribute fresh trajectory data that strengthens the cohort evidence available to all three surfaces. Employer demand patterns reveal which destinations are becoming more or less common in the corpus, which the curriculum engine surfaces to universities. University programme outcomes feed back into the trajectory corpus, improving the realism of candidate navigation. The loop is closed not by direct data sharing between users, but by the shared engine that all three audiences trust to remain honest and well-curated.
+Career Twin Engine — The Differentiator
+The Career Twin Engine is the AI differentiator that gives PathWiser its name and its competitive edge. The engine takes a user’s career shape, encoded as a structured combination of skills, education, prior roles, and geography, and retrieves a cohort of anonymised trajectories whose shape resembles the user’s. The retrieval step uses dense vector embeddings of the user shape and the corpus trajectories, with similarity computed by cosine distance and indexed using pgvector’s HNSW index. The aggregation step then computes the deterministic distribution of next roles, salary percentiles, common skill bridges, typical time-in-role, and other outcomes within the retrieved cohort. The explanation step uses a language model to convert those aggregates into a hedged, evidence-grounded narrative that surfaces the realistic range and the trade-offs honestly.
+The defining architectural property of the engine is the separation of numbers from language. Numerical claims are produced by transparent aggregation over the retrieved cohort and never originate from the language model. The language model receives the aggregates as structured input and is instructed to explain them in human language with explicit hedging, cohort-size disclosure, and trade-off framing. This separation is what makes the engine architecturally honest. It cannot make a predictive claim about an individual because it has no mechanism for doing so. The strongest claim it can make is about the cohort, which is the strongest claim the evidence supports.
+The engine is built to be reusable across all nine functional modules. Each module calls the engine with a different framing of the user shape and a different aggregation target, but the underlying retrieval, aggregation, and explanation pattern is consistent. This consistency is what makes the platform feel like one product rather than nine, and what makes the system design defensible to judges who will reasonably ask why the three audiences should share infrastructure.
+The Nine-Module Map — The Feature Set
+The functional surface of PathWiser is organised as a three-by-three grid of nine modules, with three capabilities across three audiences. The three capabilities are Navigation, Intelligence, and Valuation. The three audiences are Candidates, Employers, and Universities. Each cell of the grid corresponds to a specific module drawn from the problem statements published in the Talentbank Tech Hackathon brief, ensuring that every module the platform delivers is one that the host has explicitly invited.
+On the Navigation row, candidates receive the Career Path Navigator, employers receive Smart Talent Matching, and universities receive the Lifelong Outcome Loop. These three modules are the most visual and the most directly demoable, and they together demonstrate the basic value of the engine to all three audiences. On the Intelligence row, candidates receive the AI Career Coach, employers receive Talent Retention Signals, and universities receive the Future-State Curriculum Engine. These three modules apply the engine’s explanation capability to deeper interpretive questions. On the Valuation row, candidates receive the Fair Pay Engine, employers receive the Onboarding Success Predictor, and universities receive the Adaptive Readiness Profile. These three modules apply the engine to questions about what something is worth or how ready someone is.
+For the Intent Form stage of the hackathon, the prototype demonstrates all nine modules at concept depth while going deep on one module per audience, namely the Career Path Navigator, Smart Talent Matching, and the Lifelong Outcome Loop. These three modules are selected because they are the most visual, the most easily understood from a cold cohort perspective, and the most representative of the engine’s capabilities. The remaining six modules are presented as clear concept screens that communicate their purpose and their relationship to the engine without requiring full interactivity at the prototype stage. The build phase that follows shortlisting expands all nine modules to production-ready status.
+Detailed Functional Description of Application Modules
+This section describes the functional design of each module in the PathWiser platform. The modules are organised into three layers. The Engine Layer contains the four shared modules that constitute the Career Twin Engine and the user shape it operates on. The Audience Layer contains the nine modules that deliver tailored views to candidates, employers, and universities. The Support Layer contains the three operational modules that handle feedback, analytics, and security across the platform. For each module, the description identifies the core functions the module is responsible for, the internal flow of operations it executes, how the module runs in the application, and how it interacts with the rest of the platform.
+1. User Profile and Trajectory Shape Module
+Core Functions
+Manage user registration, onboarding, and authentication across the three audience surfaces
+Capture and update each user’s career shape, including skills, education, prior roles, geography, and life stage
+Maintain a continuously evolving structured representation of user state that other modules can rely on
+Provide normalised, ESCO-aligned shape data to the Career Twin Engine for retrieval
+Internal Flow
+1. Onboarding Phase
+User selects audience role (candidate, employer representative, or university representative)
+User inputs structured profile information appropriate to their role, including education, prior roles, and current focus
+Inputs are normalised into ESCO occupation codes and standardised skill identifiers
+2. Shape Construction Phase
+Structured profile data is converted into a dense vector embedding using a hosted embedding model
+The embedding is stored alongside the structured fields to support both retrieval and explainability
+3. Continuous Update Phase
+User-initiated updates such as new roles, new skills, or completed learning events update both the structured profile and the embedding
+System-derived updates such as inferred skill progression are flagged for user confirmation before being committed
+4. Validation Phase
+Shape data is checked for completeness, freshness, and consistency before being used by the engine
+Incomplete shapes surface gentle prompts in the user interface rather than blocking the user from progressing
+How It Runs in the Application
+This module is always active and serves as the single source of truth for user state across the platform
+It is invoked on every interaction that requires shape-based retrieval, including all audience-facing modules
+It runs as a stateful service backed by Postgres with row-level security to ensure users only see their own data
+Module Interactions
+Supplies normalised shape data to the Career Twin Engine Trajectory Retrieval Module
+Receives feedback signals from the Feedback and Reflection Module
+Provides historical state to the System Analytics and Monitoring Module
+Is protected by the Security, Privacy, and Access Control Module
+2. Career Twin Engine — Trajectory Retrieval Module
+Core Functions
+Maintain the curated corpus of anonymised, ESCO-normalised career trajectories used by the platform
+Retrieve cohorts of trajectories whose shape resembles a given user shape, using dense vector similarity
+Apply audience-appropriate filters such as life stage, geography, and time horizon to retrieved cohorts
+Expose retrieval as a reusable API that all nine audience modules can call with a consistent contract
+Internal Flow
+1. Trigger Detection
+Receives a retrieval request from an audience module with a structured user shape and an aggregation target
+2. Embedding Lookup
+Loads the user shape embedding from the User Profile and Trajectory Shape Module
+If the shape has changed since the last embedding, requests a fresh embedding before proceeding
+3. Vector Similarity Retrieval
+Queries the pgvector HNSW index over the trajectory corpus using cosine similarity
+Returns the top-k nearest trajectories along with their similarity scores and structured metadata
+4. Cohort Filtering
+Applies audience-appropriate filters such as life stage, geography, and sector to the retrieved set
+Discards cohorts below a minimum size threshold and returns a cohort-too-small signal to the calling module
+5. Cohort Handoff
+Returns the filtered cohort, with similarity-weighted metadata, to the Range-of-Outcomes Aggregation Module
+How It Runs in the Application
+Runs on-demand in response to retrieval requests from audience modules
+Caches recent retrieval results for a short window to avoid redundant similarity queries during a single user session
+Operates as a stateless service with deterministic outputs given a fixed corpus and a fixed user shape
+Module Interactions
+Receives user shape data from the User Profile and Trajectory Shape Module
+Hands cohorts off to the Range-of-Outcomes Aggregation Module for deterministic aggregation
+Logs retrieval metadata to the System Analytics and Monitoring Module
+Operates under access controls enforced by the Security, Privacy, and Access Control Module
+3. Range-of-Outcomes Aggregation Module
+Core Functions
+Compute deterministic distributions of outcomes within a retrieved trajectory cohort
+Produce structured aggregates including next-role distributions, salary percentiles, time-in-role medians, and common skill bridges
+Calibrate salary aggregates against Malaysian labour data anchors including DOSM open datasets and recruiter salary guide ranges
+Generate the structured input that the AI Explanation Module needs in order to produce honest narratives
+Internal Flow
+1. Cohort Intake
+Receives a filtered cohort and an aggregation target from the Trajectory Retrieval Module
+2. Distribution Computation
+Computes the distribution of next roles, weighted by similarity score and adjusted for cohort imbalance
+Computes percentile salary ranges by next role using the calibration anchors
+Computes median time-in-role and common skill bridges between current and next nodes
+3. Trade-Off Surfacing
+Identifies meaningful trade-offs between paths in the cohort, such as faster paths with lower salary growth versus slower paths with higher growth
+Flags paths with notably high or low variance to be surfaced honestly in the explanation
+4. Structured Output
+Produces a structured aggregate object with cohort size, distributions, ranges, trade-offs, and audit metadata
+Hands the aggregate object to the AI Explanation Module
+How It Runs in the Application
+Runs synchronously after every retrieval, before any language model invocation
+Operates as a pure function over the cohort and the calibration anchors, producing identical output for identical input
+Is unit-tested rigorously because it is the part of the system that must not lie
+Module Interactions
+Receives cohorts from the Trajectory Retrieval Module
+Provides structured aggregates to the AI Explanation and Honest Narrative Module
+References calibration anchors maintained alongside the trajectory corpus
+Logs aggregation metadata to the System Analytics and Monitoring Module
+4. AI Explanation and Honest Narrative Module
+Core Functions
+Convert structured aggregates into human-readable narratives with explicit hedging and cohort disclosure
+Enforce prompt constraints that forbid predictive language and require evidence-grounded explanation
+Validate language model output against a structured schema before surfacing it to the user
+Maintain consistent tone and honesty standards across all audience modules
+Internal Flow
+1. Aggregate Intake
+Receives a structured aggregate object from the Range-of-Outcomes Aggregation Module
+2. Prompt Construction
+Selects the appropriate audience-specific prompt template for the requesting module
+Injects the structured aggregates, cohort size, and trade-off summary into the prompt
+Applies the standard honesty constraints, including the prohibition on predictive verbs and the requirement to surface cohort size
+3. Language Model Invocation
+Calls the configured language model provider through the provider abstraction layer
+Uses structured output or tool-use formatting to enforce schema compliance from the model
+4. Output Validation
+Parses the model output and validates it against the expected schema
+Rejects and retries any output that violates the honesty constraints or fails schema validation
+5. Narrative Delivery
+Returns the validated narrative, together with the aggregate object it explains, to the calling audience module
+How It Runs in the Application
+Runs on-demand, invoked only after retrieval and aggregation have produced a cohort and a structured aggregate
+Runs through a provider-agnostic abstraction so that the underlying language model can be swapped without changing calling code
+Logs prompt and response metadata to the System Analytics and Monitoring Module for prompt quality review
+Module Interactions
+Receives structured aggregates from the Range-of-Outcomes Aggregation Module
+Returns validated narratives to the calling audience module
+Reports prompt and response telemetry to the System Analytics and Monitoring Module
+Operates under safety guardrails enforced by the Security, Privacy, and Access Control Module
+5. Career Path Navigator Module
+Core Functions
+Provide candidates with an interactive landscape of realistic next moves drawn from cohort evidence
+Render the landscape as a branching graph visualisation with probability-weighted nodes
+Surface honest range information for every node, including salary band, time-in-role, and cohort size
+Let users adjust their shape and re-explore the landscape without leaving the navigator
+Internal Flow
+1. Landscape Request
+Receives a navigation request from the candidate interface, including the user’s current shape
+2. Engine Invocation
+Calls the Trajectory Retrieval Module to obtain a cohort of similar trajectories
+Calls the Range-of-Outcomes Aggregation Module to compute the distribution of next moves
+Calls the AI Explanation Module to obtain an honest narrative explaining the landscape
+3. Visualisation Construction
+Constructs a branching graph in which the user’s current node sits to the left and next-move nodes branch to the right
+Sizes each next-move node by probability mass and colours it by salary band
+Annotates each node with cohort size, time-in-role, and salary range
+4. Side-Panel Detail
+When the user selects a node, surfaces a side panel with the honest narrative and the deterministic aggregates
+Provides links to the relevant skill bridges and learning suggestions for that node
+5. Shape Adjustment Loop
+Lets the user adjust their shape inline and re-runs the engine to re-render the landscape
+How It Runs in the Application
+Runs as the primary surface of the candidate experience and is one of the three modules demonstrated in depth at the Intent Form stage
+Operates as a stateless interactive view backed by the shared engine
+Is designed to remain responsive even on modest devices through careful client-side rendering
+Module Interactions
+Invokes the Career Twin Engine through the Trajectory Retrieval Module
+Receives narratives from the AI Explanation Module
+Surfaces options to the AI Career Coach Module for deeper conversational follow-up
+Shares signal with the Fair Pay Engine Module to surface salary detail on selected nodes
+6. AI Career Coach Module
+Core Functions
+Provide a conversational layer over the navigator landscape for deeper interpretive questions
+Reason over the cohort evidence already surfaced by the engine, with honest hedging and explicit reference to the cohort
+Help users articulate goals and trade-offs without prescribing a single destination
+Surface skill bridges and learning paths relevant to the user’s active landscape
+Internal Flow
+1. Conversation Intake
+Receives a user question or reflection from the candidate interface, with the current shape and active landscape in context
+2. Context Aggregation
+Loads the user shape and the most recent cohort retrieval and aggregation from cache
+Constructs the conversation context with explicit references to the cohort and aggregate the user is looking at
+3. Honest Response Generation
+Calls the language model with conversation context and the standard honesty constraints
+Validates the response for predictive language and references to cohort size where applicable
+4. Skill-Bridge Surfacing
+Where the conversation touches on skill gaps, surfaces relevant skill-bridge suggestions drawn from the O*NET and ESCO skill graphs
+How It Runs in the Application
+Runs as a side panel or dedicated chat surface within the candidate experience
+Operates in close coordination with the Career Path Navigator to avoid presenting contradictory information
+Invoked only when the user explicitly engages, never as an unprompted alert
+Module Interactions
+Shares cohort context with the Career Path Navigator Module
+Surfaces skill bridges that connect to the Adaptive Readiness Profile Module on the university surface
+Logs conversation metadata to the System Analytics and Monitoring Module for prompt quality review
+7. Fair Pay Engine Module
+Core Functions
+Surface salary information for the user’s current role and for the realistic next moves in their landscape
+Calibrate salary aggregates against Malaysian labour data anchors and recruiter salary guide ranges
+Present salary as honest range percentiles rather than single point figures
+Help users see whether their current pay reflects the market for their role and shape
+Internal Flow
+1. Pay Request
+Receives a salary request from the candidate interface, scoped either to the current role or to a selected next move
+2. Aggregate Lookup
+Retrieves the salary aggregate from the most recent engine run, or initiates a fresh run if no recent aggregate is available
+3. Calibration
+Calibrates the aggregate against DOSM open data and the recruiter salary guide anchors maintained alongside the trajectory corpus
+Adjusts percentile presentation to reflect Malaysian sector and education context where appropriate
+4. Honest Range Presentation
+Presents salary as a range with explicit lower, median, and upper percentile figures
+Surfaces the cohort size and the calibration sources to maintain transparency
+How It Runs in the Application
+Runs as an embedded panel within the Career Path Navigator and as a standalone view in the candidate interface
+Invoked whenever the user requests salary detail, or implicitly when surfacing a next-move node in the landscape
+Module Interactions
+Draws aggregates from the Range-of-Outcomes Aggregation Module
+References calibration anchors maintained alongside the trajectory corpus
+Shares salary context with the Smart Talent Matching Module on the employer surface
+Reports usage to the System Analytics and Monitoring Module
+8. Smart Talent Matching Module
+Core Functions
+Match candidates to roles on the basis of trajectory direction rather than keyword overlap
+Surface adjacent candidates whose trajectory is one reasonable bridge away from the role being filled
+Provide honest explanations of why each candidate matches, drawn from cohort evidence
+Reduce hiring noise by replacing surface lexical matching with shape-based retrieval
+Internal Flow
+1. Role Intake
+Receives a role description from the employer interface, including required and preferred attributes
+Normalises the role description against ESCO occupations and a standardised skill identifier list
+2. Inverse Retrieval
+Constructs a target shape representing the inflow into the role from the trajectory corpus
+Calls the Trajectory Retrieval Module to find candidates whose shape matches the target inflow
+Surfaces adjacent candidates whose shape is one reasonable bridge from the target inflow
+3. Match Explanation
+Calls the AI Explanation Module to produce an honest match explanation for each candidate, citing cohort evidence
+Surfaces the skill bridges that would be needed for adjacent candidates, with realistic time estimates
+4. Employer Presentation
+Presents matches in a ranked list with cohort context, match rationale, and adjacent-candidate suggestions
+Avoids displaying a single deterministic match score; presents the cohort evidence and lets the employer judge
+How It Runs in the Application
+Runs as one of the three modules demonstrated in depth at the Intent Form stage on the employer surface
+Operates as an interactive query interface backed by the shared engine
+Module Interactions
+Invokes the Career Twin Engine through the Trajectory Retrieval Module
+Receives match narratives from the AI Explanation Module
+Shares signal with the Talent Retention Signals Module about candidate inflow patterns
+References anonymisation safeguards enforced by the Security, Privacy, and Access Control Module
+9. Talent Retention Signals Module
+Core Functions
+Detect when an employee’s career pattern suggests imminent disengagement, before a resignation letter arrives
+Surface trajectory-based retention risk indicators with explicit cohort context and honest hedging
+Open earlier opportunities for retention conversations than conventional systems allow
+Avoid black-box scoring by presenting the evidence behind every retention signal
+Internal Flow
+1. Employee Shape Refresh
+Refreshes the trajectory shape of the employer’s current employees, with consent and within privacy constraints
+2. Pattern Comparison
+Compares each employee’s shape and tenure against cohorts of employees with similar shapes at the same tenure point
+Identifies cases where the employee’s tenure or progression deviates meaningfully from the cohort norm
+3. Risk Surfacing
+Surfaces retention risk indicators with cohort context, including how many comparable employees have departed at this stage and the typical signal that preceded those departures
+Avoids producing a single deterministic risk score; presents the cohort evidence and lets the manager judge
+4. Conversation Prompts
+Suggests honest conversation prompts the manager can use to open a constructive retention conversation, drawing on the cohort evidence
+How It Runs in the Application
+Runs as a periodic refresh on the employer surface, with cohort comparison results presented in a dashboard view
+Designed to support honest early conversations rather than surveillance or predictive scoring
+Module Interactions
+Draws on shape data from the User Profile and Trajectory Shape Module under employer consent flows
+Invokes the Career Twin Engine through the Trajectory Retrieval Module
+Receives cohort narratives from the AI Explanation Module
+Reports usage to the System Analytics and Monitoring Module
+10. Onboarding Success Predictor Module
+Core Functions
+Surface the realistic range of onboarding outcomes for new hires based on cohort evidence
+Identify which new hires are likely to thrive in their first six months and which may need additional support
+Provide honest hedged narratives that explain the cohort evidence behind every onboarding signal
+Help managers focus support resources where they are most likely to make a difference
+Internal Flow
+1. New Hire Shape Intake
+Receives the shape of a recently hired employee from the employer interface
+Loads the target role description for which the employee was hired
+2. Cohort Comparison
+Retrieves a cohort of comparable past hires whose shape and role match the new hire and the target role
+Computes the distribution of onboarding outcomes within the cohort, including tenure ranges and progression patterns
+3. Onboarding Signal
+Surfaces the realistic range of outcomes for the new hire, with explicit cohort context
+Identifies specific support interventions that have been associated with positive outcomes in the cohort, when sufficient evidence is available
+4. Manager Briefing
+Produces a brief, evidence-grounded onboarding plan that surfaces the realistic range and the recommended support interventions
+How It Runs in the Application
+Runs on demand when a new hire is added to the employer’s roster
+Refreshes periodically as the new hire’s shape evolves over the first six months
+Module Interactions
+Draws on shape data from the User Profile and Trajectory Shape Module
+Invokes the Career Twin Engine through the Trajectory Retrieval Module
+Receives cohort narratives from the AI Explanation Module
+Shares signal with the Smart Talent Matching Module about onboarding patterns that succeed
+11. Lifelong Outcome Loop Module
+Core Functions
+Track where graduates of specific university programmes end up over years and decades rather than only their first job
+Aggregate programme-level trajectory outcomes with appropriate privacy safeguards
+Surface honest cohort evidence about where each programme’s graduates actually land
+Provide a long-term feedback loop between university programmes and the labour market they prepare students for
+Internal Flow
+1. Programme Cohort Construction
+Identifies graduates of a given programme who have consented to inclusion in the platform
+Constructs a programme-level cohort by aggregating their anonymised trajectories
+2. Outcome Aggregation
+Aggregates the cohort’s outcomes over multiple time horizons, including first job, five-year position, and ten-year position where data permits
+Computes the distribution of destinations, salary outcomes, and trajectory patterns within the cohort
+3. Programme Insight Surfacing
+Surfaces honest evidence to programme administrators about where their graduates actually land over time
+Compares programme outcomes against peer programmes within the consortium when consortium agreements permit
+4. Curriculum Feedback Handoff
+Provides the cohort outcome data to the Future-State Curriculum Engine Module for downstream curriculum recommendations
+How It Runs in the Application
+Runs as one of the three modules demonstrated in depth at the Intent Form stage on the university surface
+Refreshes periodically as graduate trajectories evolve
+Module Interactions
+Draws anonymised shape data from the User Profile and Trajectory Shape Module under consent constraints
+Invokes the Career Twin Engine through the Trajectory Retrieval Module for cohort assembly
+Receives cohort narratives from the AI Explanation Module
+Feeds outcome signal to the Future-State Curriculum Engine Module
+12. Future-State Curriculum Engine Module
+Core Functions
+Translate employer demand signal and graduate outcome data into actionable curriculum recommendations
+Surface emerging skill demand that the current curriculum does not address
+Highlight skill clusters that have become less relevant in the labour market
+Provide honest, cohort-grounded recommendations rather than top-down prescriptions
+Internal Flow
+1. Demand Signal Intake
+Aggregates employer-side demand patterns from the Smart Talent Matching Module across the platform’s consenting employers
+Aggregates outcome data from the Lifelong Outcome Loop Module for the programmes within scope
+2. Gap Identification
+Identifies gaps between the skills the labour market is rewarding and the skills the current curriculum delivers
+Identifies emerging skills whose demand is increasing across the corpus
+3. Recommendation Construction
+Translates the gap analysis into a structured set of curriculum recommendations with explicit cohort evidence
+Surfaces the trade-offs implied by each recommendation, including the lead time required to implement curriculum change
+4. Faculty Presentation
+Presents recommendations to programme administrators with the supporting cohort evidence and explicit hedging
+How It Runs in the Application
+Runs on a scheduled cadence appropriate to academic planning cycles, such as semesterly or annually
+Can be invoked ad hoc by programme administrators in response to specific curriculum review questions
+Module Interactions
+Receives demand signal from the Smart Talent Matching Module
+Receives outcome signal from the Lifelong Outcome Loop Module
+Receives cohort narratives from the AI Explanation Module
+Shares emerging-skill signals with the Adaptive Readiness Profile Module
+13. Adaptive Readiness Profile Module
+Core Functions
+Provide a dynamic, capability-based alternative to the static degree certificate
+Represent a student’s genuine capabilities at a moment in time, drawn from their trajectory shape and learning history
+Surface a readiness picture that prospective employers and the student themselves can interrogate
+Update continuously as the student acquires new skills, completes new learning, and adds new experience
+Internal Flow
+1. Profile Construction
+Loads the student’s shape from the User Profile and Trajectory Shape Module
+Integrates learning history from connected university and external learning providers, with consent
+2. Capability Mapping
+Maps the integrated profile against ESCO and O*NET skill taxonomies to produce a capability landscape
+Identifies areas of strength and areas where the student is below the readiness threshold for desired destinations
+3. Readiness Surfacing
+Presents the capability landscape and readiness picture to the student in an interactive view
+Allows the student to share a snapshot with prospective employers under explicit consent
+4. Continuous Refresh
+Updates the profile as new skills, learning events, and experiences are added
+How It Runs in the Application
+Runs as an always-available view in the student-facing surface
+Refreshes incrementally as the student’s shape evolves, without requiring explicit user action
+Module Interactions
+Draws on shape data from the User Profile and Trajectory Shape Module
+References emerging-skill signals from the Future-State Curriculum Engine Module
+Shares readiness snapshots with the Smart Talent Matching Module under explicit consent
+Operates under strict consent and access controls enforced by the Security, Privacy, and Access Control Module
+14. Feedback and Reflection Module
+Core Functions
+Capture user feedback on engine outputs, including narratives, matches, and retention signals
+Support a reflection surface in which users can revisit past sessions, decisions, and outcomes
+Feed signal back into the trajectory corpus and prompt quality review processes
+Build trust by closing the loop between user decisions and the platform’s evidence base
+Internal Flow
+1. Feedback Capture
+Surfaces lightweight feedback affordances at the point of each engine output
+Captures structured feedback such as accuracy ratings, freshness ratings, and free-text reflections
+2. Reflection Surface
+Provides a dedicated surface in which users can revisit recent engine outputs and the decisions they led to
+Supports private notes that the user can keep without surfacing to other audiences
+3. Corpus Improvement Handoff
+Feeds structured feedback into a curation queue that informs corpus updates and prompt quality review
+How It Runs in the Application
+Runs as an always-available surface across all three audience experiences
+Captures feedback opportunistically rather than imposing it on users
+Module Interactions
+Receives feedback from all audience modules
+Provides reflection state to the User Profile and Trajectory Shape Module
+Reports feedback patterns to the System Analytics and Monitoring Module
+15. System Analytics and Monitoring Module
+Core Functions
+Capture usage and performance telemetry across the platform
+Monitor language model invocation patterns, retrieval latency, and aggregation correctness
+Surface prompt quality metrics and validation rejection patterns to maintain honesty over time
+Support cost monitoring and capacity planning for the underlying AI services
+Internal Flow
+1. Telemetry Capture
+Records structured events across module interactions, AI invocations, and user sessions
+2. Quality Monitoring
+Aggregates validation rejection rates from the AI Explanation Module
+Aggregates feedback signal from the Feedback and Reflection Module
+3. Operational Dashboards
+Surfaces operational dashboards for the engineering team, including latency, error rate, and AI cost
+4. Capacity Planning Input
+Provides input to the Cost Optimisation processes documented in the Operational and Deployment Components section
+How It Runs in the Application
+Runs continuously in the background across all platform operations
+Does not surface analytics to end users; remains an internal operations surface
+Module Interactions
+Receives telemetry from all platform modules
+Reports operational state to the engineering team
+Operates under privacy safeguards enforced by the Security, Privacy, and Access Control Module
+16. Security, Privacy, and Access Control Module
+Core Functions
+Enforce authentication and authorisation across the platform
+Enforce row-level security in the data layer so that users only see data they are entitled to see
+Manage consent flows for sensitive operations, including programme-level outcome aggregation and employee shape access
+Maintain anonymisation safeguards across the trajectory corpus
+Internal Flow
+1. Authentication
+Authenticates users through the platform’s identity provider with secure session handling
+2. Authorisation
+Enforces audience-appropriate permissions across all modules
+3. Row-Level Security
+Applies row-level security policies in Postgres so that users cannot access rows they do not own or have not been granted access to
+4. Consent Management
+Manages consent flows for sensitive operations, with explicit user-facing consent screens and revocable consent state
+5. Anonymisation Maintenance
+Ensures that the trajectory corpus contains no identifying information and that aggregation queries cannot be used to re-identify individuals
+How It Runs in the Application
+Runs as a foundational layer that all other modules depend on
+Operates as both an application-layer middleware and a database-layer policy enforcement
+Module Interactions
+Enforces controls on every other module in the platform
+Reports security events to the System Analytics and Monitoring Module
+Overall System Execution Summary
+This section describes how the platform behaves end-to-end across a typical lifecycle of interaction. The summary is organised around the major operational stages a user moves through, from initial application launch to long-term reflection. The intent is to give a clear, sequential picture of how the modules described in the previous section work together to deliver the navigation experience the platform promises.
+Application Launch and System Initialisation
+When a user opens the application, the platform initialises by loading the user’s authenticated session, resolving the user’s audience role, and warming the caches that the Career Twin Engine relies on. The Security, Privacy, and Access Control Module verifies the session and authorises the user to access only the modules and data appropriate to their role. The User Profile and Trajectory Shape Module loads the user’s current shape into the session context. The user is then presented with the surface appropriate to their audience role, which is either the candidate surface, the employer surface, or the university surface.
+User Onboarding and Baseline Shape Formation
+For new users, the platform initiates an onboarding flow appropriate to their role. Candidates are guided through a structured intake that captures their education, prior roles, current focus, and life stage. Employers are guided through an intake that captures the roles they hire for and the organisation context relevant to retention and onboarding decisions. University representatives are guided through an intake that identifies the programmes they administer and the consortium agreements they participate in. The User Profile and Trajectory Shape Module normalises the intake against ESCO occupations and skill identifiers, constructs the initial embedding, and stores the structured profile alongside the embedding for future retrieval.
+Continuous Shape Monitoring and Update
+After onboarding, the platform maintains the user’s shape continuously rather than treating it as a one-time snapshot. User-initiated updates such as new roles, completed learning events, or refined goals update both the structured profile and the embedding. System-derived inferences, such as the implication that a user who has taken on certain responsibilities has likely acquired adjacent skills, are flagged for explicit user confirmation before being committed. The shape is therefore always recent, always accurate, and always controlled by the user rather than by the system.
+Decision Trigger Evaluation
+When the user takes an action that requires engine evaluation, such as opening the Career Path Navigator or running a Smart Talent Matching query, the platform evaluates whether the existing cached engine output is sufficient to serve the request. If it is, the cached output is surfaced immediately. If it is not, the platform invokes the Career Twin Engine through the Trajectory Retrieval Module. Decision triggers are designed to be explicit rather than ambient, so the user always knows when the engine is being invoked on their behalf.
+Trajectory Retrieval and Cohort Assembly
+The Trajectory Retrieval Module receives the structured request and the user’s shape embedding. It queries the pgvector HNSW index over the trajectory corpus, retrieves the top-k nearest trajectories, and applies the audience-appropriate filters such as life stage, geography, and sector. If the resulting cohort meets the minimum size threshold, it is handed off to the Range-of-Outcomes Aggregation Module. If it does not, a cohort-too-small signal is returned to the calling module, which surfaces an honest message to the user explaining why the requested analysis cannot be performed with confidence at this time.
+Deterministic Aggregation and Trade-Off Surfacing
+The Range-of-Outcomes Aggregation Module computes the deterministic distribution of outcomes within the retrieved cohort. It produces the next-role distribution, the salary percentiles by next role, the median time-in-role, the common skill bridges, and the trade-offs between paths. The aggregation runs as a pure function over the cohort and the calibration anchors, so the numerical claims it produces are reproducible and auditable. The aggregation output is then handed to the AI Explanation and Honest Narrative Module along with the audience-appropriate explanation context.
+Structured Context Preparation and AI Invocation
+The AI Explanation Module constructs an audience-appropriate prompt that injects the structured aggregates, the cohort size, and the trade-off summary. The prompt applies the standard honesty constraints, including the prohibition on predictive verbs, the requirement to surface cohort size, and the requirement to present outcomes as ranges rather than single points. The module then invokes the configured language model through the provider abstraction layer, using structured output or tool-use formatting to enforce schema compliance.
+Recommendation Validation and Quality Control
+The output of the language model is parsed and validated against the expected schema. The validator checks for the presence of cohort size and range disclosure, the absence of predictive language, and overall structural compliance. Outputs that fail validation are retried with a more constrained prompt, and persistent failures are logged for prompt quality review. This validation step is what guarantees that the user never sees an explanation that overstates what the evidence supports, regardless of the underlying model’s behaviour on any single invocation.
+Recommendation Delivery and User Interaction
+The validated narrative, together with the structured aggregates it explains, is returned to the calling audience module and surfaced to the user. The user interface presents the cohort size, the range, and the narrative together, never any one in isolation. The user can interrogate the explanation, adjust their shape, drill into specific nodes, or open a conversational follow-up through the AI Career Coach. At no point does the system present a single deterministic destination, a black-box score, or a confidence figure detached from its evidence.
+User Feedback and Reflection
+After a session, the user can leave feedback on the engine outputs through the Feedback and Reflection Module, including structured accuracy ratings and free-text reflections. The reflection surface allows users to revisit past sessions, see how their shape has evolved, and observe how the engine’s outputs have shifted with their shape. Feedback signal is fed back into a curation queue that informs corpus updates and prompt quality review, closing the loop between user experience and platform improvement.
+Adaptive System Adjustment
+Over time, the platform adapts in two ways. First, the trajectory corpus is curated and extended based on aggregated feedback, new outcome data, and updated calibration anchors. Second, the prompt templates and validation criteria are reviewed and tightened based on the patterns observed in the Analytics and Monitoring Module. Neither form of adaptation is fully automated. Both involve explicit human review by the engineering team to maintain the honesty and quality standards the platform commits to.
+Overall System Behaviour Summary
+Taken together, these stages describe a platform that runs honestly, deterministically where it matters, and adaptively where it should. Numerical claims come from aggregation. Explanations come from a validated language model. User shape comes from explicit user input and confirmation. Feedback closes the loop. Every interaction is auditable end-to-end, which is the foundation of the trust the platform needs to earn from candidates, employers, and universities alike.
+System Architecture
+This section documents the architecture of the platform as a structured catalogue of components organised by layer. The architecture is designed around one shared Career Twin Engine that serves three audience surfaces, with supporting layers for data, AI integration, backend services, and operations. The catalogue identifies each component, its role within the architecture, and the relationships it maintains with other components. The intent is to give judges and integrators a clear, navigable map of the system that aligns with the modular descriptions in the previous section and the technology stack described in the next section.
+A. Frontend Layer
+The frontend layer is implemented as a single Next.js application that serves three audience surfaces, namely the candidate surface, the employer surface, and the university surface. The application uses the App Router and renders interactive views with React. The branching trajectory visualisation in the Career Path Navigator is the most distinctive frontend component and is implemented with react-force-graph or React Flow with a directional layout, depending on which library proves more performant in the build phase. The frontend communicates with the backend through typed API routes within the same Next.js application, with no separate frontend hosting required.
+Frontend Components
+Candidate Surface View
+Employer Surface View
+University Surface View
+Authentication and Onboarding Flow
+Career Path Navigator Visualisation
+AI Career Coach Conversational Panel
+Fair Pay Engine Detail Panel
+Smart Talent Matching Query Interface
+Talent Retention Signals Dashboard
+Onboarding Success Predictor Briefing View
+Lifelong Outcome Loop Programme View
+Future-State Curriculum Engine Faculty View
+Adaptive Readiness Profile Student View
+Feedback and Reflection Surface
+B. Core Functional Modules
+The core functional modules are the sixteen modules described in the previous section, organised into the engine layer, the audience layer, and the support layer. Each module is implemented as a distinct module within the Next.js API surface, with its own typed contract and its own tests, while sharing the underlying engine infrastructure.
+Engine Layer Modules
+User Profile and Trajectory Shape Module
+Career Twin Engine — Trajectory Retrieval Module
+Range-of-Outcomes Aggregation Module
+AI Explanation and Honest Narrative Module
+Audience Layer Modules
+Career Path Navigator Module (Candidate)
+AI Career Coach Module (Candidate)
+Fair Pay Engine Module (Candidate)
+Smart Talent Matching Module (Employer)
+Talent Retention Signals Module (Employer)
+Onboarding Success Predictor Module (Employer)
+Lifelong Outcome Loop Module (University)
+Future-State Curriculum Engine Module (University)
+Adaptive Readiness Profile Module (University)
+Support Layer Modules
+Feedback and Reflection Module
+System Analytics and Monitoring Module
+Security, Privacy, and Access Control Module
+C. Data Layer Components
+The data layer is implemented in Postgres through Supabase, with the pgvector extension providing vector similarity search. Trajectory and salary data are stored in the same database as relational data, eliminating the operational complexity of running a separate vector store at hackathon scale. Row-level security is enforced in the database itself, so authorisation cannot be accidentally bypassed at the application layer.
+Data Layer Components
+Postgres database (Supabase managed instance)
+pgvector extension with HNSW index for similarity search
+Trajectory corpus tables (occupations, skills, trajectories, transitions)
+Salary anchor tables (DOSM, recruiter guide calibration, MyCOL flags)
+User shape and embedding tables
+Feedback and reflection state tables
+Audit log tables for sensitive operations
+Row-level security policies
+Supabase Authentication
+Supabase Storage for occasional file assets
+D. AI Integration Components
+The AI integration layer wraps both hosted and locally executed providers through a thin abstraction so that the underlying provider can be swapped without changing calling code. The default hosted provider is Google Gemini, accessed through Google AI Studio during development and Vertex AI in production, with Google’s text-embedding-004 model handling dense vector embedding. Locally hosted open-weight models are available through the HuggingFace Transformers runtime as alternative providers for both embedding and language model operations, enabling privacy-sensitive, cost-controlled, or air-gapped operation where the deployment context requires it. The language model is constrained to explanation only and is invoked through structured output or tool-use formatting to enforce schema compliance.
+AI Integration Components
+Embedding provider abstraction (default: Google text-embedding-004; local alternative: HuggingFace sentence-transformer such as BAAI/bge-m3)
+Language model provider abstraction (default: Google Gemini 2.5 Pro or Flash via Vertex AI; local alternative: HuggingFace open-weight model such as Llama, Mistral, or Qwen)
+Google AI Studio integration for development-time Gemini access
+Vertex AI integration for production Gemini access with enterprise controls
+HuggingFace Transformers runtime for locally hosted inference
+Prompt template registry with versioning
+Structured output schema validators
+Validation rejection retry policy
+Provider cost and latency monitoring hooks
+Synthetic trajectory generation pipeline (offline)
+E. Backend Services
+Backend services run as Next.js API routes within the same deployment unit as the frontend. This co-location simplifies operations and reduces latency between the frontend and the engine, which is particularly important for the interactive navigator. Where heavier processing is required, such as offline synthetic trajectory generation or scheduled cohort refreshes, the work is performed by separate scheduled jobs.
+Backend Service Components
+Next.js API route handlers (typed, versioned)
+OpenAPI specification published alongside the API
+Engine orchestration layer (retrieval, aggregation, explanation)
+Caching layer for repeated retrievals within a session
+Scheduled job runner for corpus refresh and curriculum cadence
+Health-check and readiness endpoints
+Structured logging and tracing hooks
+F. Operational and Deployment Components
+The operational and deployment layer ensures that the platform is observable, resilient, and cost-controlled in production. The application is hosted on Vercel for the frontend and Next.js runtime, and on Supabase for the database and authentication. Continuous deployment is wired from a single Git repository, with environment-specific configuration managed through Vercel and Supabase environment variables. Observability is provided through structured logs and basic metrics dashboards.
+Operational Components
+Vercel project for Next.js hosting and edge deployment
+Supabase project for database, authentication, and storage
+Continuous deployment from main branch
+Environment variable management for secrets
+Structured logging across the platform
+Metrics dashboards for latency, error rate, and AI cost
+Error reporting and alerting
+Backup and recovery for the trajectory corpus
+Documentation site with architecture diagrams and API references
+OpenAPI-driven SDK or thin client for integration partners
+Technology Stack
+This section documents the technology stack chosen for each major layer of the platform. The selection prioritises feasibility within the twenty-eight day build window, production-readiness as defined in the hackathon brief, and direct integrability with Talentbank’s existing Career OS infrastructure. Where the choice involves a trade-off, the trade-off is explicitly documented so that the engineering team reviewing the submission can evaluate the reasoning. The headline choice is a Next.js application backed by Supabase Postgres with the pgvector extension, with embedding and language model providers reached through a thin abstraction.
+Overall Stack Choice
+The platform is implemented as a Next.js application using the App Router, deployed on Vercel with continuous deployment from a single repository. The data layer is Postgres provided by Supabase, with the pgvector extension enabled for vector similarity search. Authentication is provided by Supabase Authentication. The language model integration is centred on Google Gemini, accessed through Google AI Studio during development and Vertex AI in production, and reached through a thin provider abstraction that also supports locally hosted open-weight models served through the HuggingFace Transformers ecosystem. The embedding provider is Google’s text-embedding-004 as the default for hosted operation, with a HuggingFace sentence-transformer model available as a locally hosted alternative where privacy, cost, or air-gapped operation make local inference preferable.
+The decision to consolidate vector and relational data in a single Postgres instance, rather than introducing a dedicated vector database such as Pinecone, Weaviate, or Neo4j, is taken deliberately. At the scale of this platform during the build phase, pgvector with an HNSW index provides production-grade similarity search inside the same database that holds the relational data, which reduces operational complexity and makes the system directly integrable in line with the hackathon’s definition of production-ready. The trade-off is that very large-scale graph traversal queries would be more efficient in a dedicated graph database, but those queries are not central to the engine’s behaviour at the scale this submission targets.
+The decision to use Next.js, rather than Angular, is taken in the knowledge that Talentbank’s production platform runs on Angular and that adoption involves re-implementation. Next.js is chosen because it offers the fastest path to a polished, deployable application with a live URL within the twenty-eight day window, which is the primary completeness requirement of the hackathon. The architecture is deliberately structured so that the engine is independently callable through a documented OpenAPI surface, which makes the integration into an Angular front end straightforward and low-risk.
+Technology Usage — Frontend Layer
+Technology
+Role in Development
+Justification
+Next.js (App Router)
+Application framework
+Provides fast development of React-based applications with server-side rendering, edge deployment, and a single hosting target for frontend and backend code.
+React
+UI rendering and component model
+Industry-standard view layer that integrates cleanly with Next.js and supports the interactive components the platform requires.
+TypeScript
+Type safety across the codebase
+Catches errors at build time and provides documentation through types, which is critical for a multi-module platform under time pressure.
+Tailwind CSS
+Utility-first styling system
+Enables rapid construction of a consistent visual language across the three audience surfaces.
+react-force-graph or React Flow
+Branching trajectory visualisation
+Provides the directed-graph rendering required by the Career Path Navigator with reasonable defaults and good performance.
+Lucide React
+Iconography
+Lightweight, consistent icon set that integrates with React and Tailwind.
+Technology Usage — Backend and API Layer
+Technology
+Role in Development
+Justification
+Next.js API Routes
+Backend service hosting
+Co-located with the frontend in a single Next.js application, reducing latency and operational complexity.
+OpenAPI specification
+API contract definition
+Provides a typed, language-agnostic contract that makes the engine integrable into Talentbank’s production platform regardless of framework.
+Zod
+Input and output validation
+Validates request and response shapes at runtime, enforcing the schema discipline the platform requires.
+Vercel Edge or Node runtime
+Service execution environment
+Provides scalable, low-latency execution of the API routes with simple deployment.
+Sentry or equivalent
+Error reporting and tracing
+Captures backend exceptions and surfaces them to the engineering team for triage.
+Technology Usage — Data Layer
+Technology
+Role in Development
+Justification
+Supabase Postgres
+Primary relational data store
+Provides a managed Postgres instance with authentication, storage, and row-level security in a single coherent platform.
+pgvector extension
+Vector similarity search
+Enables dense vector retrieval inside Postgres, removing the need for a separate vector database at hackathon scale.
+HNSW index
+Approximate nearest neighbour index
+Provides production-grade similarity search performance within pgvector.
+Row-Level Security policies
+Authorisation enforcement
+Enforces access controls at the database layer so that authorisation cannot be accidentally bypassed at the application layer.
+Supabase Storage
+File asset storage
+Provides storage for occasional file assets such as exported reports.
+Technology Usage — AI Integration Layer
+Technology
+Role in Development
+Justification
+Google Gemini (2.5 Pro / Flash)
+Language model for honest explanation
+Default explanation provider, chosen for strong analytical writing, multilingual support relevant to Asia, and competitive pricing through Google AI Studio and Vertex AI in the Malaysian market.
+Google text-embedding-004
+Dense vector embedding
+Default embedding model that integrates with the Gemini family and supports the dimensionality required by pgvector for similarity search.
+Google AI Studio / Vertex AI
+Gemini access and orchestration
+Provides the hosted environment for Gemini access, with AI Studio used during development and Vertex AI used for production deployment with enterprise controls.
+HuggingFace Transformers (local)
+Locally hosted model runtime
+Provides a local inference runtime for open-weight models in scenarios where privacy, cost, or air-gapped operation make local inference preferable to a hosted API call.
+HuggingFace sentence-transformers (e.g. BAAI/bge-m3)
+Local embedding alternative
+Open-weight multilingual embedding model that can be served locally for sensitive data paths or as a fallback when hosted embedding services are unavailable.
+HuggingFace open-weight LLMs (Llama, Mistral, Qwen family)
+Local language model alternative
+Provides locally hosted explanation generation when the platform must operate without external API dependencies or for sensitive operations that should not leave the deployment environment.
+Provider abstraction layer
+AI provider isolation
+Allows the underlying provider to be swapped between Google hosted services and HuggingFace local models without changing calling code, supporting resilience and operational flexibility.
+Prompt template registry
+Prompt management
+Centralises prompt templates with versioning, schemas, and validation criteria across both hosted and local providers.
+Technology Usage — Operational Layer
+Technology
+Role in Development
+Justification
+Vercel
+Application hosting
+Provides simple, reliable hosting for the Next.js application with continuous deployment and a public live URL.
+GitHub
+Source control and continuous integration
+Hosts the codebase and triggers Vercel deployments on main branch updates.
+Supabase managed environment
+Database hosting
+Provides the managed Postgres environment with built-in observability.
+Structured logging
+Operational observability
+Captures structured events across module interactions and AI invocations.
+Documentation site
+Architecture and API documentation
+Publishes architecture diagrams, API references, and operational runbooks for integration partners.
+Data Strategy
+This section describes the data strategy that underpins the Career Twin Engine. The strategy is designed to be feasible within the twenty-eight day build window, to be defensible from a licensing perspective, to be calibrated to Malaysian labour realities, and to be honest about its limitations. The strategy combines open occupation and skill taxonomies, open Malaysian salary data, open trajectory datasets, and synthetic-but-calibrated trajectory generation. Every source is licensed for the use it is put to, and every limitation is documented in this proposal and surfaced to users where appropriate.
+Open Occupation and Skill Taxonomies
+The platform uses O*NET and ESCO as the backbone taxonomies for occupations and skills. O*NET is published by the United States Department of Labor under a Creative Commons Attribution 4.0 license and provides a comprehensive structured taxonomy of occupations together with skills, knowledge areas, abilities, education profiles, and related-occupation links. ESCO is published by the European Commission for free reuse under Commission Decision 2011/833/EU and provides a multilingual taxonomy of occupations and skills with explicit mappings to ISCO. Both taxonomies are downloaded as structured files and loaded into Postgres at the start of the build phase. The combination of the two provides the platform with a rigorous, internationally validated foundation for representing user shapes and trajectory nodes.
+Open Malaysian Labour Data
+The platform calibrates salary anchors against the open datasets published by the Department of Statistics Malaysia (DOSM), accessible through the OpenDOSM portal and the data.gov.my API under a Creative Commons Attribution 4.0 license. The principal anchors used by the platform are the Salaries and Wages Survey Report and the Graduates Statistics, both of which provide salary data by skill category, MASCO occupational group, sector, state, and education level. These datasets do not provide job-title-level granularity, but they provide authoritative anchors for the broader salary distributions that the platform aggregates. Additional context is drawn from the TalentCorp MyMahir Critical Occupations List, which identifies roles of strategic national importance and supplies sector and demand signal that the platform surfaces in the user interface where appropriate.
+Recruiter Salary Guide Calibration
+Role-level salary realism is calibrated against publicly available headline figures from recruiter salary guides, including those published by Michael Page Malaysia, Hays Asia, Robert Walters Malaysia, and Randstad Malaysia. These guides are copyrighted marketing publications and the platform does not reproduce their tables. Instead, the platform uses publicly cited headline figures as calibration anchors for the synthetic trajectory generation pipeline, with explicit attribution to the named sources in the user interface where appropriate. This approach captures the role-level realism the guides provide while respecting their licensing.
+Open Trajectory Datasets
+The platform draws on publicly available research-grade trajectory datasets to seed the structural patterns of how careers move. Karrierewege and Karrierewege+, published through the COLING 2025 industry track and accessible through Hugging Face and GitHub, provide several hundred thousand career paths normalised to ESCO. OpenResume, published through Zenodo in association with IEEE BigData 2024, provides anonymised and synthetic resumes normalised to ESCO with differential privacy treatment. JobHop, published in 2025, provides approximately 1.67 million ESCO occupation transitions derived from a large Flemish resume corpus. These datasets are used to inform the structural patterns of trajectory transitions in the platform’s synthetic corpus. The cultural and geographic biases of these European-origin datasets are explicitly recognised and corrected through Malaysia-specific calibration.
+Synthetic Trajectory Generation, Calibrated to Malaysia
+Because no large Malaysian career trajectory dataset exists publicly, the platform generates a calibrated synthetic corpus that combines the structural patterns of the open trajectory datasets with the salary realism of the Malaysian open data and recruiter calibration anchors. The generation pipeline takes the ESCO and O*NET structure as the spine, uses transition probabilities derived from the open trajectory datasets, calibrates salary nodes to the DOSM skill-category, sector, and education anchors and the role-level recruiter guide figures, and uses a language model to expand each path into realistic Malaysian-context narratives. The synthetic nature of the corpus is disclosed in the user interface as modelled trajectories calibrated to Malaysian labour data, and no claim is made that the corpus contains real Malaysian individual career histories.
+Privacy, Anonymisation, and Consent
+The platform is designed to handle real user shape data with strong privacy safeguards. User shapes are stored under row-level security policies that prevent cross-user access. Trajectory cohort aggregation queries are constrained to operate only on cohorts above a minimum size threshold to prevent re-identification. Sensitive operations such as employer-side employee shape access and university-side programme-level outcome aggregation require explicit consent flows that are documented in the user interface and revocable by the affected users. The platform does not handle special-category personal data unless explicitly required for a stated purpose with explicit consent.
+Alignment with the Five Judging Criteria
+The Talentbank Tech Hackathon evaluates submissions across five weighted criteria, namely Product and UX Thinking at thirty per cent, System Design and Integration at twenty-five per cent, Completeness at twenty per cent, AI Craft at fifteen per cent, and Code Quality at ten per cent. This section maps the design of PathWiser onto each criterion explicitly, identifying the deliberate choices that have been made to score strongly on each. The intent is to make it straightforward for judges to see, at a glance, how the platform addresses every criterion the brief identifies.
+Criterion 1 — Product and UX Thinking (30%)
+The product and UX thinking of PathWiser is built around a single defensible idea: that a Career OS should help users see the realistic landscape of paths available to them, with honest hedging and explicit cohort disclosure, rather than predicting a single destination. This idea expresses itself across every surface of the platform, from the navigator’s branching landscape with probability-weighted nodes, to the side panel that surfaces cohort size and salary ranges, to the AI Career Coach that converses with explicit reference to the cohort and the aggregates. The platform deliberately avoids black-box scores, false precision, and predictive language. Every screen preserves user agency by allowing the user to adjust their shape and re-explore the landscape. The visual signature of the platform, namely the branching trajectory visualisation, is designed to demonstrate the value of evidence-based navigation in a single glance.
+Criterion 2 — System Design and Integration (25%)
+The system design of PathWiser is the Career Signal Loop architecture: one shared Career Twin Engine that serves three audience surfaces, with deliberate separation of retrieval, aggregation, and explanation into distinct layers. This architecture is the centrepiece of the system design narrative. It demonstrates that the platform is one product rather than nine isolated features, and it makes the integration story explicit. The engine is exposed as an independently callable API surface documented through OpenAPI, which means it can be integrated into Talentbank’s Angular production platform without significant rework regardless of the React-based frontend used in this submission. The consolidation of vector and relational data in a single Postgres instance is taken as a deliberate, production-pragmatic choice, with the trade-offs documented explicitly. A clean architecture diagram and a documented data flow are included in the repository to make the design legible to integrators.
+Criterion 3 — Completeness (20%)
+Completeness in the hackathon brief is defined as a submission that works end-to-end, is directly integrable without significant rework, and has a live demo URL. PathWiser meets this bar by deploying a working application to Vercel from the early days of the build phase, with Supabase as the data backend, and by maintaining a continuously green live URL throughout the build. All three demo modules at the Intent Form stage are end-to-end functional on a seeded synthetic corpus, with the remaining six modules surfaced as clear concept screens that communicate purpose and engine relationship. The repository includes a one-command local setup, a seed script, an environment-variable example file, an OpenAPI specification, a README that surfaces the architecture and the AI tools declaration, and basic tests over the aggregation math that the platform must not lie about.
+Criterion 4 — AI Craft (15%)
+The AI craft of PathWiser is expressed through the hybrid architecture that separates numerical claims from language model output. Embeddings are used for retrieval. Deterministic aggregation produces all numerical claims. The language model is constrained to explanation only, through structured output schemas, prompt-level honesty constraints, and a validator that rejects any output that violates those constraints. The prompts themselves are shipped in the repository with versioning, schemas, and few-shot examples so that the AI craft can be inspected directly. The choice of Google Gemini as the default explanation provider, accessed through Google AI Studio and Vertex AI, with HuggingFace open-weight models available as locally hosted alternatives behind a provider abstraction, is documented with its reasoning. The AI build tools used during the development process, including Cursor, Claude, and any other tools used, are declared at submission as required by the brief.
+Criterion 5 — Code Quality (10%)
+The code quality of PathWiser is supported by a TypeScript-first codebase, clear module boundaries between the engine, the API, the UI, and the data layer, and consistent naming and conventional commit messages. Security is supported through Supabase row-level security, secrets management through environment variables, input validation through Zod schemas, and rate limiting on AI endpoints. Tests are concentrated on the aggregation math, which is the part of the system that must not lie, with integration tests covering the retrieval API. Documentation is thorough, including a README, an architecture document, a data licensing and attribution page covering the O*NET, ESCO, and DOSM acknowledgements, and an AI tools declaration. The codebase is structured so that an engineer who did not write it can read it cleanly, which is the bar the hackathon brief explicitly sets.
+Summary of Criteria Alignment
+Taken together, the design choices documented in this proposal are deliberate, weighted in line with the criteria, and traceable to specific implementation decisions in the repository. The strongest signal a judge can look for is the consistency between the proposal’s claims and the platform that has been built. PathWiser is designed for that consistency to hold from front page to final commit.
+Twenty-Eight-Day Build Timeline
+This section sets out a phased build timeline that maps the work required to deliver PathWiser onto the twenty-eight day build window of the Talentbank Tech Hackathon. The timeline is structured around the three written checkpoints expected at approximately day ten, day twenty, and day thirty, with each phase delivering specific milestones that build cumulatively toward the production-ready submission. The plan is calibrated for a small team and assumes the use of AI build tools throughout the development process as expected by the brief.
+Days 1 to 5 — Foundation
+The first phase establishes the technical foundation of the platform. The repository is created with a Next.js application scaffold, TypeScript configuration, Tailwind CSS, and a Supabase project for database and authentication. The O*NET and ESCO taxonomies are downloaded and loaded into Postgres. The DOSM open data anchors are imported and the recruiter calibration headlines are recorded as constants. The trajectory schema and the salary anchor schema are defined and migrated into the database. A live URL is established on Vercel from day three, even if the application surface at that point is a placeholder, so that the completeness criterion has a green signal from the earliest possible point.
+Days 6 to 10 — Engine v1 and First Checkpoint
+The second phase delivers the first working version of the Career Twin Engine. The synthetic trajectory generation pipeline is built and executed, producing a calibrated corpus of trajectories that draw on the open trajectory datasets for structure and the Malaysian anchors for salary realism. Embeddings are generated for the corpus and indexed in pgvector using HNSW. The Trajectory Retrieval Module is implemented and tested end-to-end. The Range-of-Outcomes Aggregation Module is implemented as a pure function with unit tests covering the aggregation math. A basic AI Explanation Module is wired up using the provider abstraction, with the standard honesty constraints in place. The first written checkpoint is submitted, covering the architecture and differentiation.
+Days 11 to 17 — Candidate Module and Visualisation
+The third phase builds out the candidate-facing surface in depth. The Career Path Navigator Module is implemented with the branching trajectory visualisation, the honest side panel, and the shape adjustment loop. The AI Career Coach Module is implemented with the conversation context handling and the language model invocation. The Fair Pay Engine Module is implemented as an embedded panel within the navigator and as a standalone view. The candidate surface is polished to demonstration quality, with attention to the honest cohort disclosure throughout the user interface. The candidate surface is the most visible audience surface in the hackathon demo and is therefore prioritised in this phase.
+Days 18 to 20 — Employer and University Modules and Second Checkpoint
+The fourth phase builds out the employer and university surfaces by reusing the engine that has been validated on the candidate surface. The Smart Talent Matching Module, the Talent Retention Signals Module, and the Onboarding Success Predictor Module are implemented on the employer surface. The Lifelong Outcome Loop Module, the Future-State Curriculum Engine Module, and the Adaptive Readiness Profile Module are implemented on the university surface. Authentication and audience-role routing are completed end-to-end. Row-level security policies are tightened. The second written checkpoint is submitted, covering the system design and the AI craft.
+Days 21 to 25 — Hardening
+The fifth phase hardens the platform for production readiness. Tests are extended to cover the aggregation math thoroughly, the retrieval API, and the validation behaviour of the AI Explanation Module. The README is finalised with the architecture diagram, the data licensing and attribution page, the AI tools declaration, and the one-command local setup instructions. The OpenAPI specification is published. Security is audited, with attention to environment variable management, row-level security, input validation, and rate limiting on AI endpoints. A polished demo dataset is seeded that exercises every module on the live URL.
+Days 26 to 28 — Polish and Final Checkpoint
+The sixth phase delivers the final polish. Performance is reviewed across the platform, with particular attention to the navigator visualisation and the AI invocation latency. Empty states, error states, and edge-case messages are reviewed and tightened. A demo script and a recorded walkthrough are produced. The live URL is verified one final time and any regressions are addressed. The third written checkpoint is submitted, covering the completeness, code quality, and final integration story.
+Milestone Summary
+Phase
+Key Deliverables
+Days 1 to 5 — Foundation
+Repository, Next.js scaffold, Supabase project, taxonomies loaded, schema migrated, live URL established
+Days 6 to 10 — Engine v1
+Synthetic corpus, embeddings, retrieval, aggregation, basic explanation, first checkpoint submitted
+Days 11 to 17 — Candidate Surface
+Navigator with branching visualisation, AI Career Coach, Fair Pay Engine
+Days 18 to 20 — Employer and University Surfaces
+All six remaining audience modules, authentication, second checkpoint submitted
+Days 21 to 25 — Hardening
+Tests, documentation, OpenAPI, security audit, demo dataset
+Days 26 to 28 — Polish
+Performance, edge cases, demo script, final checkpoint submitted
+Risks and Caveats
+This section documents the risks and caveats associated with the PathWiser proposal in the interest of transparency. The platform is designed around an honest framing, and the proposal itself follows the same principle. Identifying the risks early allows the engineering team to address them deliberately during the build phase and gives judges a realistic picture of the limits of what the platform can claim.
+Data Limitations
+The most significant limitation is that no large Malaysian career trajectory dataset exists publicly. The platform addresses this through a synthetic-but-calibrated corpus, which is disclosed in the user interface and in this proposal as modelled trajectories calibrated to Malaysian labour data. This approach is defensible for a hackathon demonstration and provides a credible foundation for cohort-based navigation, but it is a real limitation compared to a production system trained on a large corpus of real Malaysian trajectories. Subsequent production deployment would benefit from collaboration with Talentbank to incorporate the real trajectory data that Talentbank’s ecosystem position would make available.
+Data Source Licensing
+The platform relies on open data sources, namely O*NET under Creative Commons Attribution 4.0, ESCO under European Commission Decision 2011/833/EU, and DOSM open datasets under Creative Commons Attribution 4.0, with explicit acknowledgement in the user interface and in the documentation. The platform does not reproduce recruiter salary guide tables, which are copyrighted, and instead uses publicly cited headline figures as calibration anchors with attribution. The open trajectory datasets are research-grade and the licensing terms are respected, with OpenResume in particular used in line with its research-only licensing. The licensing strategy is conservative and defensible, but it does limit the data sources the platform can draw on.
+AI Provider Risk
+The platform depends on a combination of hosted and locally executed AI providers. The hosted default is Google Gemini, accessed through Google AI Studio during development and Vertex AI in production, which introduces external dependencies on rate limits, latency, and pricing that can affect demo reliability and ongoing operating costs. The platform mitigates this through the provider abstraction layer, which allows the underlying provider to be swapped between Google hosted services and locally hosted HuggingFace open-weight models without changing calling code. The local alternatives can be invoked for privacy-sensitive operations or as a fallback when the hosted services are unavailable, providing structural resilience against any single provider outage. The build phase includes capacity testing under realistic demo load to verify the fallback path and to confirm that local inference can sustain the demonstration workload if required.
+Re-Identification Risk
+Trajectory cohort aggregation queries can in principle introduce re-identification risk if the cohort size is small or if the aggregation reveals attributes that distinguish individuals. The platform addresses this by enforcing a minimum cohort size threshold before any aggregation is surfaced, by disclosing the cohort size in every output, and by aggregating outcomes rather than surfacing individual trajectories. This risk is real but manageable, and the safeguards are documented in the user interface and in the codebase.
+Integration and Framework Mismatch
+The platform is implemented in Next.js, while Talentbank’s production platform runs on Angular. The hackathon brief notes that Talentbank handles re-implementation where needed. The platform mitigates this through the engine’s OpenAPI-documented surface, which is independently callable and framework-agnostic. The trade-off, which the proposal acknowledges, is that the candidate-facing surface would be re-implemented on adoption, but the engine and data layer would integrate directly.
+Intellectual Property Transfer
+The hackathon brief states that full intellectual property transfers to Talentbank on adoption. The platform is designed and named with this in mind. PathWiser is positioned as a contribution to Talentbank’s Career OS rather than as a competing brand. The naming and positioning are intentionally compatible with absorption into the Career OS umbrella. The team understands and accepts this term as a condition of participation.
+Honest Framing as a Continuous Discipline
+The hardest risk is that, despite the architectural separation of numbers from language, the explanations the platform surfaces could still be read by users as predictions if the language is not consistently disciplined. The platform mitigates this through prompt-level honesty constraints, schema validation, cohort-size disclosure throughout the user interface, and explicit framing of the platform as a navigation tool. Nonetheless, maintaining this discipline is a continuous practice rather than a one-time setting, and the engineering team commits to reviewing prompt outputs and user feedback on an ongoing basis.
+Conclusion
+PathWiser is proposed as a Career OS navigation platform that helps candidates, employers, and universities across Asia see the realistic landscape of career paths and make wiser, better-informed decisions. The platform is built around three integrated layers, namely the Career Signal Loop architecture that connects three audiences through one shared data engine, the Career Twin Engine that retrieves and aggregates anonymised trajectory cohorts to surface realistic ranges of outcomes, and the nine-module functional map that delivers tailored views to each audience while drawing on a single underlying intelligence layer. The platform is positioned as a faithful contribution to the Career OS vision articulated by Talentbank in the hackathon brief, and is designed for direct integration with Talentbank’s production platform on adoption.
+The proposal has set out the motivation for the platform, the community impact and contribution it seeks to deliver, the explicit alignment with each pillar of the Career OS brief, the problems it addresses, the objectives it pursues, the conceptual architecture, the detailed functional design of each module, the overall system execution flow, the system architecture, the technology stack with per-layer justifications, the data strategy with Malaysian calibration, the alignment with each of the five judging criteria, the twenty-eight day build timeline, and the risks and caveats associated with the proposed design. Taken together, the proposal is intended to give judges and integrators a clear and honest picture of what the platform is, what it does, what it does not claim to do, and how it would be built and integrated.
+The deeper case for PathWiser is that the most consequential decisions in a working life deserve to be supported by evidence rather than guesswork, and that AI is finally in a position to provide that support if the system is designed honestly. The platform is built to demonstrate that an evidence-based Career OS layer can be both technically rigorous and rhetorically honest, that one shared engine can serve three audiences without compromise, and that a small team can ship a production-ready system in twenty-eight days when the architecture, the data strategy, and the discipline are correct from day one. PathWiser is the system this team would want to use, would want a younger version of themselves to have had access to, and would want to leave behind as a contribution to the Career OS that Talentbank is building for Asia.

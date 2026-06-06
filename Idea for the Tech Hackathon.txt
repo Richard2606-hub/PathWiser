@@ -1,0 +1,15 @@
+This is the whole concept stacked into one picture — three audience columns, each with three modules, all sitting on top of the single shared engine that makes it work.
+Reading the map: each column is one audience, each row is one capability — Navigation (top), Intelligence (middle), Valuation (bottom). Every box is a real module from the hackathon's own list, and all nine sit on the single Career Twin Engine, which is what makes this one product instead of nine.
+So the three layers we landed on:
+Layer 1 — Career Signal Loop (the architecture): the arrows. One engine powering three audience views, with data flowing back down so each side informs the others. Candidates generate trajectory data, employer demand reveals what the market values, and universities close the loop back to curriculum.
+Layer 2 — Career Twin Engine (the differentiator): the grey base. Instead of generic recommendations, it matches your trajectory shape against real anonymized paths and shows the realistic range of where similar people went — framed as navigation, not prediction, which is exactly what Talentbank asked for.
+Layer 3 — The 9 modules (the feature set): the grid. Three capabilities × three audiences, all mapped to problem statements straight off the hackathon site.
+For your Intent Form prototype, the plan is to make the full grid visible but go deep on one box per column — Career Path Navigator, Smart Talent Matching, and Lifelong Outcome Loop — since those are the most visual and the easiest to demo.
+I've also got a detailed research report finished (in the panel) covering the realistic data sources for Malaysia, the recommended tech stack, a day-by-day 28-day timeline, and how each piece maps to the five judging criteria.
+PathWiser it is. Good call — it keeps the clear meaning ("wiser about your path") while losing the clunky "-way-" middle, and the capital W makes the two halves read cleanly. It says the product out loud: this is the thing that helps you make wiser career path decisions.
+Here's how it locks into everything we've built:
+PathWiser — the product (what users open, what judges remember)
+Career Signal Loop — the architecture underneath (one engine, three audiences)
+Career Twin Engine — the AI that powers it (matches your trajectory shape to real paths)
+And a tagline candidate that fits the navigation-not-prediction frame: "PathWiser — see where paths like yours have led. Decide wiser."
+Or shorter: "Navigate your career, wiser."
