@@ -1811,18 +1811,53 @@ textarea:focus-visible {
     .sidebar {
         position: fixed; top: 0; left: 0; bottom: 0;
         width: 320px; max-width: 88vw;
-        background: var(--bg-surface); backdrop-filter: blur(20px);
+        /* Fully opaque drawer so it sits cleanly above the backdrop dim,
+           not blended with it. No transparency, no blur on the panel itself. */
+        background: #0d141d;
         border-right: 1px solid var(--border-strong);
         z-index: 120;
         overflow-y: auto; padding: 18px 14px 90px;
         transform: translateX(-100%); transition: transform 0.32s var(--ease);
-        box-shadow: 12px 0 40px rgba(0,0,0,0.5);
+        box-shadow: 16px 0 48px rgba(0,0,0,0.6);
         display: flex; flex-direction: column; gap: 12px;
     }
     body.sidebar-open .sidebar { transform: translateX(0); }
-    body.sidebar-open::after {
-        content: ''; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-        backdrop-filter: blur(2px); z-index: 110;
+    /* Backdrop only covers the area NOT taken by the drawer.
+       Use left:320px so the drawer panel itself doesn't sit on top of dim. */
+    body.sidebar-open .app-container::after {
+        content: ''; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+        z-index: 110;
+        animation: fadeBackdrop 0.32s var(--ease);
+    }
+    @keyframes fadeBackdrop {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    /* Boost contrast on drawer content so cards read crisply against the dark drawer */
+    body.sidebar-open .sidebar .card {
+        background: #1a2230; border-color: rgba(255,255,255,0.10);
+    }
+    body.sidebar-open .sidebar .card-title { color: var(--text-1); }
+    body.sidebar-open .sidebar .cap-row {
+        background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06);
+    }
+    body.sidebar-open .sidebar .cap-row:hover { background: rgba(255,255,255,0.08); }
+    body.sidebar-open .sidebar .cap-mod-name { color: var(--text-1); }
+    body.sidebar-open .sidebar .cap-mod-hint { color: var(--text-2); }
+    body.sidebar-open .sidebar .mini-card {
+        background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06);
+    }
+    body.sidebar-open .sidebar .mini-card-name { color: var(--text-2); }
+    body.sidebar-open .sidebar .mini-card-abbr { color: var(--text-1); }
+    body.sidebar-open .sidebar .mini-card:hover {
+        background: rgba(255,255,255,0.08); border-color: var(--accent);
+    }
+    /* The Architecture & Vision card stays its gradient self, but on a stronger backplate */
+    body.sidebar-open .sidebar .mini-card-wide {
+        background: linear-gradient(135deg, rgba(250,204,21,0.10), rgba(45,212,191,0.08)) !important;
+        border-color: rgba(255,255,255,0.14) !important;
     }
     /* Mobile menu button visible when sidebar is hidden */
     .menu-toggle { display: flex !important; }
@@ -2035,6 +2070,7 @@ textarea:focus-visible {
     border-radius: var(--r-sm); cursor: pointer; padding: 8px 9px;
     transition: all 0.2s var(--ease);
     flex-shrink: 0;
+    position: relative; z-index: 130;
 }
 .menu-toggle:hover { border-color: var(--accent); }
 .menu-toggle .menu-icon {
