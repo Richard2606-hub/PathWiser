@@ -509,6 +509,28 @@ function onPersonaCardHeadClick(p) {
   switchPersona(p);
 }
 
+// Mobile sidebar drawer toggle — sidebar slides in from the left on narrow viewports.
+function toggleSidebar() {
+  document.body.classList.toggle('sidebar-open');
+}
+function closeSidebar() {
+  document.body.classList.remove('sidebar-open');
+}
+
+// Close the drawer on:
+// (a) selecting a module from inside the drawer (with a small delay so the navigation lands)
+// (b) clicking outside the drawer and menu-toggle (backdrop / page content)
+document.addEventListener('click', (e) => {
+  if (!document.body.classList.contains('sidebar-open')) return;
+  if (e.target.closest('.cap-row, .mini-card')) {
+    setTimeout(closeSidebar, 180);
+    return;
+  }
+  if (!e.target.closest('.sidebar, .menu-toggle')) {
+    closeSidebar();
+  }
+});
+
 // Click on the identity pill — in locked mode, opens a small explainer.
 function onIdentityClick() {
   if (state.judgeMode) return;
