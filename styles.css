@@ -1501,6 +1501,375 @@ body.judge-mode-on .persona-card { display: block; }
    RESPONSIVE
    ═══════════════════════════════════════════ */
 /* ═══════════════════════════════════════════
+   COMPARE PATHS · Career Path Navigator innovation
+   ═══════════════════════════════════════════ */
+.cp-toolbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 14px; background: var(--bg-glass);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    margin-bottom: 10px;
+}
+.cp-hint {
+    font-size: 11px; color: var(--text-2); font-style: italic;
+}
+.cp-selected {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    margin-left: auto;
+}
+.cp-picked-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; background: var(--teal-glow);
+    border: 1px solid var(--teal); border-radius: 999px;
+    font-size: 11px; color: var(--teal); cursor: pointer;
+    transition: all 0.18s var(--ease);
+}
+.cp-picked-chip:hover { background: rgba(45,212,191,0.25); }
+.cp-picked-x { font-weight: 800; opacity: 0.7; }
+.cp-empty { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+
+.cp-panel {
+    margin-top: 12px; padding: 16px;
+    background: var(--bg-glass); border: 1px solid var(--teal);
+    border-radius: var(--r-md);
+    animation: cpIn 0.32s var(--spring);
+}
+@keyframes cpIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.cp-panel-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px;
+}
+.cp-table-wrap { overflow-x: auto; }
+.cp-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+    min-width: 480px;
+}
+.cp-table th, .cp-table td {
+    padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.cp-table th {
+    background: var(--bg-elevated); vertical-align: top;
+    font-weight: 700;
+}
+.cp-col-title { display: block; font-size: 13px; color: var(--text-1); }
+.cp-col-sub {
+    display: block; font-size: 9px; color: var(--text-3); font-family: var(--mono);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
+}
+.cp-row-label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em;
+    width: 180px;
+}
+.cp-table tbody tr:last-child td { border-bottom: none; }
+.cp-table tbody tr:hover td { background: var(--bg-glass); }
+.cp-verdict {
+    margin-top: 12px; padding: 12px 14px;
+    background: rgba(45,212,191,0.06);
+    border-left: 3px solid var(--teal);
+    border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+    .cp-selected { margin-left: 0; }
+    .cp-row-label { width: 120px; font-size: 9px; }
+}
+
+/* ═══════════════════════════════════════════
+   NEUTRAL ADVERTISING SLOT · sustainability signal
+   (Kick-Off: "leave neutral advertising space so the product could sustain itself")
+   ═══════════════════════════════════════════ */
+.ad-slot {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px; background: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.015),
+        rgba(255,255,255,0.015) 6px,
+        transparent 6px,
+        transparent 12px
+    );
+    border: 1px dashed var(--border-strong); border-radius: var(--r-sm);
+    transition: all 0.22s var(--ease);
+}
+.ad-slot:hover { border-color: var(--accent); }
+.ad-slot-label {
+    font-family: var(--mono); font-size: 8px; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    align-self: flex-start; padding: 2px 6px;
+    background: var(--bg-elevated); border-radius: 3px;
+}
+.ad-slot-body { display: flex; align-items: center; gap: 10px; }
+.ad-slot-icon { font-size: 22px; }
+.ad-slot-text { display: flex; flex-direction: column; gap: 2px; }
+.ad-slot-title { font-size: 12px; font-weight: 700; color: var(--text-1); }
+.ad-slot-sub { font-size: 10px; color: var(--text-2); }
+.ad-slot-note {
+    font-size: 9px; color: var(--text-3); font-style: italic;
+    font-family: var(--mono); letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════
+   MARKETPLACE · Job Listings + Company Directory
+   ═══════════════════════════════════════════ */
+.jobs-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; background: var(--bg-glass);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    margin-top: 14px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.jobs-toolbar .form-select { padding: 6px 10px; font-size: 12px; }
+.jobs-list, .companies-list {
+    display: flex; flex-direction: column; gap: 10px;
+}
+.job-card {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 16px; background: var(--bg-glass);
+    border: 1px solid var(--border); border-radius: var(--r-md);
+    cursor: pointer; transition: all 0.22s var(--ease);
+}
+.job-card:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-glass-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+.job-card.job-strong { border-left: 3px solid var(--yellow); }
+.job-card-head {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;
+}
+.job-card-title-group { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.job-card-title { font-size: 16px; font-weight: 700; color: var(--text-1); letter-spacing: -0.01em; }
+.job-card-company { font-size: 12px; color: var(--text-2); }
+.job-card-sector { font-size: 10px; color: var(--text-3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.job-card-fit { flex-shrink: 0; }
+.job-fit-circle {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: conic-gradient(var(--yellow) calc(var(--fit) * 1%), var(--bg-elevated) 0);
+    position: relative;
+}
+.job-fit-circle::before {
+    content: ''; position: absolute; inset: 4px;
+    background: var(--bg-base); border-radius: 50%;
+}
+.job-fit-num, .job-fit-label { position: relative; z-index: 1; }
+.job-fit-num { font-family: var(--mono); font-size: 18px; font-weight: 800; color: var(--yellow); }
+.job-fit-label { font-family: var(--mono); font-size: 8px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.job-card-body { display: flex; flex-direction: column; gap: 8px; }
+.job-card-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.job-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 4px 8px; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    font-size: 10px; color: var(--text-2); font-family: var(--mono);
+    letter-spacing: 0.02em;
+}
+.job-chip-mycol { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-glow); }
+.job-chip-time { color: var(--text-3); }
+.job-card-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+.job-card-bridge {
+    padding: 8px 10px; background: var(--bg-elevated);
+    border-left: 3px solid var(--teal); border-radius: 4px;
+    display: flex; gap: 8px; font-size: 11px;
+}
+.job-bridge-label { color: var(--text-3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: 9px; }
+.job-bridge-text { color: var(--teal); font-weight: 600; }
+
+/* Company cards */
+.company-card {
+    display: flex; gap: 16px; padding: 16px;
+    background: var(--bg-glass); border: 1px solid var(--border);
+    border-radius: var(--r-md); cursor: pointer;
+    transition: all 0.22s var(--ease);
+}
+.company-card:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-glass-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+.company-logo {
+    font-size: 40px; width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-elevated); border-radius: var(--r-sm);
+    flex-shrink: 0;
+}
+.company-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.company-name { font-size: 16px; font-weight: 700; color: var(--text-1); letter-spacing: -0.01em; }
+.company-sector { font-size: 10px; color: var(--text-3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.company-meta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px; }
+.company-meta { display: flex; flex-direction: column; gap: 1px; }
+.cm-label { font-size: 8px; font-family: var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.cm-val { font-size: 13px; font-weight: 700; color: var(--text-1); }
+.company-culture, .company-flow {
+    padding: 8px 10px; background: var(--bg-elevated); border-radius: 4px;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.company-culture-label, .company-flow-label {
+    font-size: 9px; font-family: var(--mono); color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+.company-culture-text { font-size: 12px; color: var(--text-2); }
+.company-flow-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+
+@media (max-width: 640px) {
+    .job-card-head { flex-direction: column; align-items: stretch; }
+    .job-fit-circle { align-self: flex-start; }
+    .company-card { flex-direction: column; }
+    .company-logo { align-self: flex-start; }
+}
+
+/* ═══════════════════════════════════════════
+   UN SDG BADGES · sustainability mapping
+   ═══════════════════════════════════════════ */
+.sdg-strip {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 10px; flex-wrap: wrap;
+}
+.sdg-strip-label {
+    font-family: var(--mono); font-size: 9px; font-weight: 700;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em;
+    margin-right: 4px;
+}
+.sdg-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-family: var(--mono); font-size: 11px; font-weight: 800;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: all 0.18s var(--ease);
+    cursor: help;
+}
+.sdg-chip:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* ═══════════════════════════════════════════
+   WORK ANIMAL QUIZ · Menagerie Method onboarding step
+   ═══════════════════════════════════════════ */
+.wa-quiz-wrap { display: flex; flex-direction: column; gap: 14px; }
+
+/* Intro card */
+.wa-quiz-intro {
+    display: flex; flex-direction: column; gap: 10px;
+    animation: waIn 0.35s var(--spring);
+}
+.wa-quiz-intro .btn { align-self: flex-start; }
+.wa-quiz-intro .btn-ghost { align-self: flex-start; }
+
+/* Questions view */
+.wa-quiz-questions {
+    display: flex; flex-direction: column; gap: 14px;
+    animation: waIn 0.35s var(--spring);
+}
+.wa-quiz-progress { display: flex; flex-direction: column; gap: 6px; }
+.wa-quiz-count {
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+}
+.wa-quiz-bar {
+    height: 4px; background: var(--bg-elevated); border-radius: 99px; overflow: hidden;
+}
+.wa-quiz-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--yellow), var(--teal));
+    transition: width 0.5s var(--spring); width: 0%;
+}
+.wa-question {
+    font-size: 18px; font-weight: 700; color: var(--text-1); line-height: 1.4;
+    letter-spacing: -0.01em;
+    animation: waIn 0.32s var(--spring);
+}
+.wa-options {
+    display: flex; flex-direction: column; gap: 8px;
+}
+.wa-option {
+    padding: 14px 16px; background: var(--bg-glass);
+    border: 1px solid var(--border); border-radius: var(--r-md);
+    font-family: var(--sans); color: var(--text-1); font-size: 14px;
+    text-align: left; cursor: pointer;
+    transition: all 0.18s var(--ease);
+    display: flex; align-items: center; gap: 10px;
+}
+.wa-option:hover {
+    background: var(--bg-glass-strong);
+    border-color: var(--accent);
+    transform: translateX(2px);
+}
+.wa-option.picked {
+    background: var(--accent-glow); border-color: var(--accent);
+    transform: scale(0.98);
+}
+.wa-option-text { flex: 1; }
+
+/* Result view */
+.wa-quiz-result { animation: waIn 0.4s var(--spring); }
+.wa-result-hero {
+    display: flex; gap: 16px; align-items: center;
+    padding: 18px; border: 1px solid var(--border);
+    border-radius: var(--r-lg); background: var(--bg-glass);
+    margin-bottom: 12px;
+}
+.wa-result-emoji {
+    font-size: 44px; width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.wa-result-title { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.wa-result-tag {
+    font-family: var(--mono); font-size: 9px; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+}
+.wa-result-name {
+    font-size: 22px; font-weight: 800; color: var(--text-1);
+    letter-spacing: -0.02em;
+}
+.wa-result-tagline { color: var(--text-2); font-weight: 500; font-size: 16px; }
+.wa-result-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; margin-top: 2px; }
+.wa-result-split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;
+}
+.wa-result-col { padding: 12px; background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.wa-secondary-note {
+    padding: 12px; background: var(--bg-glass); border: 1px solid var(--border);
+    border-radius: var(--r-sm); margin-bottom: 12px;
+}
+.wa-result-actions { display: flex; flex-direction: column; gap: 6px; }
+.wa-result-actions .btn { align-self: flex-start; margin-top: 8px; }
+.wa-scores { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.wa-score-row {
+    display: grid; grid-template-columns: 100px 1fr 40px; gap: 8px;
+    align-items: center; padding: 3px 0;
+}
+.wa-score-name { font-size: 11px; font-weight: 600; color: var(--text-2); }
+.wa-score-track {
+    height: 6px; background: var(--bg-elevated); border-radius: 99px; overflow: hidden;
+}
+.wa-score-fill { height: 100%; border-radius: 99px; transition: width 0.6s var(--spring); }
+.wa-score-pct { font-family: var(--mono); font-size: 10px; color: var(--text-3); text-align: right; }
+
+@keyframes waIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile: stack columns */
+@media (max-width: 640px) {
+    .wa-result-hero { flex-direction: column; text-align: center; }
+    .wa-result-split { grid-template-columns: 1fr; }
+    .wa-score-row { grid-template-columns: 72px 1fr 34px; }
+    .wa-score-name { font-size: 10px; }
+    .wa-question { font-size: 16px; }
+    .wa-option { font-size: 13px; padding: 12px 14px; }
+    .wa-result-name { font-size: 18px; }
+    .wa-result-emoji { font-size: 36px; width: 60px; height: 60px; }
+}
+
+/* ═══════════════════════════════════════════
    POLISH PASS · interaction & visual refinement
    (Additive layer — no structural or functional changes)
    ═══════════════════════════════════════════ */

@@ -16,11 +16,372 @@ const state = {
   judgeMode: false,
   // Identity shown in the locked-mode pill (set by quickLaunch or onboarding).
   identity: { name: 'You', role: 'Candidate' },
-  demoPersona: null
+  demoPersona: null,
+  // Work Animal — Menagerie Method personality result (candidate onboarding step 3)
+  // Set to null if user skipped the quiz. Otherwise: { key, name, tagline, description, strengths, careerFit }
+  workAnimal: null,
+  waQuizIdx: 0,
+  waScores: null
 };
+
+// ─── WORK ANIMAL · Menagerie Method (aligned with Talentbank's yourworkanimal.com) ─
+const WORK_ANIMALS = {
+  owl:     { key: 'owl',     emoji: '🦉', name: 'Owl',     tagline: 'The Strategist',
+             description: 'Analytical, deep thinker who plans before acting. Thrives on complex problems and evidence over hunches.',
+             strengths: ['Analytical thinking', 'Long-form focus', 'Pattern recognition', 'Written communication'],
+             careerFit: ['Research', 'Strategy', 'Data Science', 'Product Analytics', 'Consulting'],
+             color: 'var(--sky)' },
+  fox:     { key: 'fox',     emoji: '🦊', name: 'Fox',     tagline: 'The Adapter',
+             description: 'Resourceful, quick to learn, comfortable with ambiguity. Connects dots across domains.',
+             strengths: ['Adaptability', 'Rapid learning', 'Cross-domain synthesis', 'Comfort with ambiguity'],
+             careerFit: ['Product Management', 'Entrepreneurship', 'Growth', 'Consulting', 'Innovation'],
+             color: 'var(--amber)' },
+  bear:    { key: 'bear',    emoji: '🐻', name: 'Bear',    tagline: 'The Steward',
+             description: 'Steady, dependable, protective of quality and team wellbeing. Builds durable systems.',
+             strengths: ['Reliability', 'Composure under pressure', 'System thinking', 'Team stewardship'],
+             careerFit: ['Operations', 'Engineering Leadership', 'People / HR', 'Project Management', 'Reliability'],
+             color: 'var(--emerald)' },
+  dolphin: { key: 'dolphin', emoji: '🐬', name: 'Dolphin', tagline: 'The Connector',
+             description: 'Socially intelligent, empathetic, gets teams aligned. Energizes people and unlocks collaboration.',
+             strengths: ['Empathy', 'Group alignment', 'Storytelling', 'Relationship building'],
+             careerFit: ['Sales', 'Marketing', 'Community', 'People Leadership', 'Customer Success'],
+             color: 'var(--teal)' },
+  eagle:   { key: 'eagle',   emoji: '🦅', name: 'Eagle',   tagline: 'The Visionary',
+             description: 'Ambitious, decisive, sees the big picture. Sets direction and pushes for outcomes.',
+             strengths: ['Vision', 'Decisiveness', 'Bias to action', 'Comfort with high stakes'],
+             careerFit: ['Executive Leadership', 'Founder', 'Business Development', 'Strategy', 'Turnaround'],
+             color: 'var(--yellow)' },
+  ant:     { key: 'ant',     emoji: '🐜', name: 'Ant',     tagline: 'The Craftsperson',
+             description: 'Meticulous, systematic, values quality and precision. Steady incremental progress.',
+             strengths: ['Attention to detail', 'Process discipline', 'Deep expertise', 'Quality obsession'],
+             careerFit: ['Software Engineering', 'Finance', 'Quality Assurance', 'Actuarial', 'Research Engineering'],
+             color: 'var(--violet)' }
+};
+
+// 8 questions, each option contributes points to 1-2 animals
+const WA_QUESTIONS = [
+  { q: 'You start a new project. What comes first?',
+    options: [
+      { text: '📋 Map the full plan before touching anything',           scores: { owl: 2, ant: 1 } },
+      { text: '💬 Talk to everyone involved',                            scores: { dolphin: 2, eagle: 1 } },
+      { text: '⚡ Jump in — I learn best by doing',                       scores: { fox: 2 } },
+      { text: '🎯 Set the goal and delegate the steps',                  scores: { eagle: 2, bear: 1 } }
+    ]
+  },
+  { q: 'A messy, undefined problem lands on your desk. Your instinct?',
+    options: [
+      { text: '🔍 Break it into components and analyze',                 scores: { owl: 2, ant: 1 } },
+      { text: '🤝 Rally the team to work it out together',               scores: { dolphin: 2 } },
+      { text: '🧪 Try three quick approaches, keep what works',           scores: { fox: 2 } },
+      { text: '🧭 Step back, think it through, then decide',              scores: { owl: 1, bear: 2 } }
+    ]
+  },
+  { q: 'Which working environment energizes you most?',
+    options: [
+      { text: '📚 Quiet, focused, deep-work',                             scores: { owl: 2, ant: 1 } },
+      { text: '🎨 Bustling, collaborative, cross-functional',             scores: { dolphin: 2, fox: 1 } },
+      { text: '🏗️ Structured, predictable, well-run',                     scores: { bear: 2, ant: 1 } },
+      { text: '🚀 Fast-paced, high-stakes, always shipping',              scores: { eagle: 2, fox: 1 } }
+    ]
+  },
+  { q: 'Your team is stuck on something important. You...',
+    options: [
+      { text: '🔬 Diagnose the root cause first',                          scores: { owl: 2 } },
+      { text: '☕ Bring them together to talk it through',                 scores: { dolphin: 2 } },
+      { text: '⚡ Make a decision and drive forward',                      scores: { eagle: 2 } },
+      { text: '🌀 Try a completely different angle',                       scores: { fox: 2 } },
+      { text: '⚓ Keep the ship steady while we figure it out',            scores: { bear: 2 } }
+    ]
+  },
+  { q: 'You feel most fulfilled at work when...',
+    options: [
+      { text: '🎛️ A system you built runs smoothly for years',            scores: { bear: 2, ant: 1 } },
+      { text: '🧩 You crack a genuinely hard puzzle',                     scores: { owl: 2 } },
+      { text: '🚢 You launch something entirely new',                     scores: { fox: 1, eagle: 2 } },
+      { text: '❤️ People tell you that you helped them',                  scores: { dolphin: 2 } },
+      { text: '🧠 Your work becomes the standard others follow',          scores: { eagle: 1, ant: 2 } }
+    ]
+  },
+  { q: 'When you disagree with a group decision, you...',
+    options: [
+      { text: '📊 Present the evidence and let it argue itself',          scores: { owl: 2 } },
+      { text: '💬 Talk it through 1-on-1 with people first',              scores: { dolphin: 2 } },
+      { text: '🧪 Try the alternative in parallel as a proof',            scores: { fox: 2 } },
+      { text: '🗣️ Push back publicly, clearly',                           scores: { eagle: 2 } },
+      { text: '⚙️ Ask that the process include your view',                scores: { bear: 2 } }
+    ]
+  },
+  { q: 'Your best week at work looks like...',
+    options: [
+      { text: '🧮 Solved a tough analytical problem',                     scores: { owl: 2 } },
+      { text: '🛠️ Built something end-to-end that shipped',              scores: { ant: 1, fox: 2 } },
+      { text: '🤝 Aligned a team on what happens next',                   scores: { dolphin: 2, eagle: 1 } },
+      { text: '💥 Shipped a bold new thing that mattered',                scores: { eagle: 2 } },
+      { text: '🛡️ Kept operations stable through a rough patch',         scores: { bear: 2 } }
+    ]
+  },
+  { q: 'A wild career pivot to a totally new field. Your reaction?',
+    options: [
+      { text: '🎢 Exciting — new domain to master',                       scores: { fox: 2 } },
+      { text: '📈 Fine, if it\'s the right strategic move',                scores: { eagle: 2 } },
+      { text: '🧪 Risky — I prefer depth over breadth',                    scores: { ant: 2, owl: 1 } },
+      { text: '👥 Worth it if my team is coming with me',                  scores: { dolphin: 2 } },
+      { text: '🧭 I want to think it through carefully first',             scores: { owl: 1, bear: 2 } }
+    ]
+  }
+];
 
 const ROLE_LABEL = { candidate: 'Candidate', employer: 'Employer', university: 'University' };
 const ROLE_ICON  = { candidate: '👤', employer: '🏢', university: '🎓' };
+
+// ─── UN SDG FRAMEWORK MAPPING ────────────────────────────────
+// Kick-Off encouraged sustainability alignment (SDG framework). Every audience-facing
+// module is anchored to one or more SDGs — signals impact orientation to judges.
+const SDG_META = {
+  4:  { num: 4,  name: 'Quality Education',                         short: 'Quality Ed.',       color: '#C5192D' },
+  5:  { num: 5,  name: 'Gender Equality',                            short: 'Gender Eq.',        color: '#FF3A21' },
+  8:  { num: 8,  name: 'Decent Work & Economic Growth',              short: 'Decent Work',       color: '#A21942' },
+  9:  { num: 9,  name: 'Industry, Innovation & Infrastructure',      short: 'Innovation',        color: '#FD6925' },
+  10: { num: 10, name: 'Reduced Inequalities',                       short: 'Reduced Ineq.',     color: '#DD1367' },
+  17: { num: 17, name: 'Partnerships for the Goals',                 short: 'Partnerships',      color: '#19486A' }
+};
+const MODULE_SDGS = {
+  // Candidate surface
+  path_navigator:       [8, 4, 10],
+  ai_coach:             [8, 10, 4],
+  fair_pay:             [8, 10, 5],
+  // Employer surface
+  talent_matching:      [8, 10, 5],
+  retention_signals:    [8, 10],
+  onboarding_predictor: [8, 4],
+  // University surface
+  outcome_loop:         [4, 8],
+  curriculum_engine:    [4, 9, 8],
+  readiness_profile:    [4, 10, 8],
+  // Support layer
+  feedback:             [17],
+  security:             [10, 17],
+  analytics:            [17],
+  // Marketplace
+  job_listings:         [8, 4, 10],
+  company_directory:    [8, 17],
+  // Overview
+  architecture:         [4, 8, 9, 10, 17]
+};
+
+// ─── MARKETPLACE DATA · Job Listings + Company Directory ────
+// Realistic Malaysian openings and companies for the functional core.
+const JOB_LISTINGS = [
+  { id: 1, title: 'Senior Data Scientist', company: 'Grab MY', location: 'KL', sector: 'Tech · Ride-hailing',
+    salary: 'RM 12,000 – 18,000/m', exp: '4–7 yrs', fit: 92, mycol: true, remote: 'Hybrid',
+    skills: ['Python', 'ML', 'SQL', 'A/B Testing'], posted: '2 days ago',
+    bridge: 'Python, MLOps' },
+  { id: 2, title: 'ML Engineer', company: 'AirAsia', location: 'Sepang', sector: 'Tech · Airlines',
+    salary: 'RM 9,500 – 14,000/m', exp: '3–5 yrs', fit: 88, mycol: true, remote: 'Hybrid',
+    skills: ['TensorFlow', 'Kubernetes', 'Airflow'], posted: '5 days ago',
+    bridge: 'MLOps, Deep Learning' },
+  { id: 3, title: 'Product Analyst — Fintech', company: 'CIMB Digital', location: 'KL Sentral', sector: 'Finance · Digital',
+    salary: 'RM 7,500 – 11,000/m', exp: '2–4 yrs', fit: 84, mycol: false, remote: 'Onsite',
+    skills: ['SQL', 'Tableau', 'A/B Testing', 'Stakeholder Mgmt'], posted: '1 week ago',
+    bridge: 'Product analytics' },
+  { id: 4, title: 'Analytics Engineer', company: 'Shopee MY', location: 'Bangsar', sector: 'Tech · E-commerce',
+    salary: 'RM 10,000 – 15,000/m', exp: '3–5 yrs', fit: 81, mycol: true, remote: 'Hybrid',
+    skills: ['dbt', 'SQL', 'Python', 'Snowflake'], posted: '3 days ago',
+    bridge: 'Data engineering, dbt' },
+  { id: 5, title: 'Lead Data Scientist', company: 'Petronas Digital', location: 'KLCC', sector: 'Energy · Digital',
+    salary: 'RM 16,000 – 24,000/m', exp: '6–10 yrs', fit: 76, mycol: true, remote: 'Onsite',
+    skills: ['ML', 'People Mgmt', 'Domain Knowledge'], posted: '2 weeks ago',
+    bridge: 'Leadership skills' },
+  { id: 6, title: 'Business Intelligence Analyst', company: 'Astro', location: 'Bukit Jalil', sector: 'Media · Broadcasting',
+    salary: 'RM 6,000 – 9,000/m', exp: '2–4 yrs', fit: 74, mycol: false, remote: 'Hybrid',
+    skills: ['Power BI', 'DAX', 'SQL'], posted: '4 days ago',
+    bridge: 'Storytelling, BI tools' },
+  { id: 7, title: 'Data Engineering Manager', company: 'Maybank', location: 'Menara Maybank', sector: 'Finance · Banking',
+    salary: 'RM 18,000 – 26,000/m', exp: '7+ yrs', fit: 68, mycol: true, remote: 'Onsite',
+    skills: ['People Mgmt', 'Data Platform', 'Cloud'], posted: '1 week ago',
+    bridge: 'Management transition' },
+  { id: 8, title: 'AI Research Scientist', company: 'MIMOS Berhad', location: 'Bukit Jalil', sector: 'Research · Government-linked',
+    salary: 'RM 11,000 – 16,000/m', exp: '5+ yrs · PhD preferred', fit: 62, mycol: true, remote: 'Onsite',
+    skills: ['Deep Learning', 'Publication track', 'Research'], posted: '3 weeks ago',
+    bridge: 'Research pivot' }
+];
+
+const COMPANIES = [
+  { id: 1, name: 'Grab MY', logo: '🚗', sector: 'Tech · Ride-hailing', headcount: '2,400+',
+    hires: '~120/yr in tech', retention: 87, culture: 'Fast-paced · Data-driven · Ownership',
+    hiringShape: 'Senior ICs + strong PMs', mycolRoles: 12,
+    nextDestinations: ['ByteDance', 'Shopee', 'Own startup'], sdgs: [8, 9, 10] },
+  { id: 2, name: 'AirAsia', logo: '✈️', sector: 'Tech · Airlines', headcount: '18,000+',
+    hires: '~80/yr in tech', retention: 78, culture: 'Bold · Frugal · Adventurous',
+    hiringShape: 'Multi-disciplinary generalists', mycolRoles: 8,
+    nextDestinations: ['Grab', 'Fintech', 'Consulting'], sdgs: [8, 9] },
+  { id: 3, name: 'CIMB Digital', logo: '🏦', sector: 'Finance · Digital', headcount: '32,000+ (group)',
+    hires: '~40/yr digital', retention: 82, culture: 'Regulated · Steady · Digital-first',
+    hiringShape: 'Fintech converts + domain veterans', mycolRoles: 6,
+    nextDestinations: ['Maybank', 'BigTech', 'Fintech founders'], sdgs: [8, 5] },
+  { id: 4, name: 'Petronas Digital', logo: '⛽', sector: 'Energy · Digital', headcount: '48,000+',
+    hires: '~60/yr digital', retention: 91, culture: 'Long-tenure · High trust · Deep domain',
+    hiringShape: 'Domain-first engineers', mycolRoles: 15,
+    nextDestinations: ['Aramco', 'Shell', 'Consulting'], sdgs: [8, 9] },
+  { id: 5, name: 'Shopee MY', logo: '🛒', sector: 'Tech · E-commerce', headcount: '2,800+',
+    hires: '~140/yr', retention: 71, culture: 'Fast · Intense · Merit-based',
+    hiringShape: 'Ex-startup + junior high-potential', mycolRoles: 10,
+    nextDestinations: ['Grab', 'Google', 'Founders'], sdgs: [8, 10] },
+  { id: 6, name: 'Astro', logo: '📺', sector: 'Media · Broadcasting', headcount: '4,200+',
+    hires: '~35/yr in data', retention: 85, culture: 'Creative · Analytics-forward · Family-friendly',
+    hiringShape: 'BI/marketing analysts', mycolRoles: 4,
+    nextDestinations: ['Grab', 'Streaming co', 'MarTech'], sdgs: [8, 4] },
+  { id: 7, name: 'Maybank', logo: '🏛️', sector: 'Finance · Banking', headcount: '43,000+',
+    hires: '~55/yr digital', retention: 88, culture: 'Prestigious · Structured · High-integrity',
+    hiringShape: 'Senior leaders + graduate scheme', mycolRoles: 11,
+    nextDestinations: ['Government', 'Consulting', 'Board roles'], sdgs: [8, 5] },
+  { id: 8, name: 'MIMOS Berhad', logo: '🔬', sector: 'Research · Government-linked', headcount: '900+',
+    hires: '~20/yr', retention: 89, culture: 'Research-first · Publish · Long-form focus',
+    hiringShape: 'PhDs + deep specialists', mycolRoles: 8,
+    nextDestinations: ['Universities', 'BigTech AI labs', 'Consulting'], sdgs: [4, 9] }
+];
+
+function renderJobListings() {
+  document.getElementById('jobs-stats').innerHTML = statCards([
+    { label: 'Open Roles (24h)', val: '2,847' },
+    { label: 'Your Fit ≥ 80%', val: '148' },
+    { label: 'MyCOL Critical', val: '312' },
+    { label: 'Avg. Response', val: '3 days' }
+  ]);
+  const list = document.getElementById('jobs-list');
+  list.innerHTML = JOB_LISTINGS.map(j => `
+    <div class="job-card ${j.fit >= 85 ? 'job-strong' : ''}" onclick="openJobDetail(${j.id})">
+      <div class="job-card-head">
+        <div class="job-card-title-group">
+          <span class="job-card-title">${j.title}</span>
+          <span class="job-card-company">${j.company} · ${j.location} · ${j.remote}</span>
+          <span class="job-card-sector">${j.sector}</span>
+        </div>
+        <div class="job-card-fit">
+          <div class="job-fit-circle" style="--fit:${j.fit};">
+            <span class="job-fit-num">${j.fit}</span>
+            <span class="job-fit-label">fit</span>
+          </div>
+        </div>
+      </div>
+      <div class="job-card-body">
+        <div class="job-card-meta">
+          <span class="job-chip">💰 ${j.salary}</span>
+          <span class="job-chip">📅 ${j.exp}</span>
+          ${j.mycol ? '<span class="job-chip job-chip-mycol">⭐ MyCOL Critical</span>' : ''}
+          <span class="job-chip job-chip-time">Posted ${j.posted}</span>
+        </div>
+        <div class="job-card-skills">
+          ${j.skills.map(s => `<span class="pill">${s}</span>`).join('')}
+        </div>
+        <div class="job-card-bridge">
+          <span class="job-bridge-label">Skill bridge from your shape:</span>
+          <span class="job-bridge-text">${j.bridge}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openJobDetail(id) {
+  const j = JOB_LISTINGS.find(x => x.id === id);
+  if (!j) return;
+  openModal('job');
+  document.getElementById('modal-title').textContent = j.title;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="callout" style="border-color:var(--yellow);"><strong>${j.company} · ${j.location}</strong>
+      <p style="margin-top:4px;color:var(--text-2);">Salary ${j.salary} · ${j.exp}</p></div>
+    <div class="detail">
+      <div class="detail-header"><span class="detail-tag">Trajectory Fit Analysis</span><h3 class="detail-heading">${j.fit}% match to your shape</h3></div>
+      <div class="metrics">
+        <div class="metric"><span class="metric-label">Cohort of Hires (last year)</span><span class="metric-val">~120 into this role</span></div>
+        <div class="metric"><span class="metric-label">Typical Time in Role</span><span class="metric-val">2.4 yrs</span></div>
+        <div class="metric"><span class="metric-label">Next-Step Destinations</span><span class="metric-val">ByteDance · Shopee · Startup</span></div>
+      </div>
+    </div>
+    <div class="callout callout-teal" style="margin-top:12px;"><strong>Honest note:</strong> This ${j.fit}% is a cohort-level trajectory fit, not a prediction of your individual success. ${j.mycol ? 'This role is on Malaysia\'s Critical Occupations List — high national demand.' : ''}</div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn">Apply via Talentbank</button>
+      <button class="btn btn-ghost">Save for later</button>
+    </div>
+  `;
+}
+
+function renderCompanyDirectory() {
+  document.getElementById('companies-stats').innerHTML = statCards([
+    { label: 'Employer Network', val: '10,400+' },
+    { label: 'MyCOL Employers', val: '842' },
+    { label: 'Actively Hiring', val: '3,120' },
+    { label: 'Coverage', val: 'MY + SG + ID' }
+  ]);
+  const list = document.getElementById('companies-list');
+  list.innerHTML = COMPANIES.map(c => `
+    <div class="company-card" onclick="openCompanyDetail(${c.id})">
+      <div class="company-logo">${c.logo}</div>
+      <div class="company-info">
+        <span class="company-name">${c.name}</span>
+        <span class="company-sector">${c.sector}</span>
+        <div class="company-meta-row">
+          <span class="company-meta"><span class="cm-label">Headcount</span><span class="cm-val">${c.headcount}</span></span>
+          <span class="company-meta"><span class="cm-label">Hires/yr</span><span class="cm-val">${c.hires}</span></span>
+          <span class="company-meta"><span class="cm-label">Retention</span><span class="cm-val" style="color:${c.retention >= 85 ? 'var(--emerald)' : c.retention >= 75 ? 'var(--yellow)' : 'var(--rose)'};">${c.retention}%</span></span>
+          <span class="company-meta"><span class="cm-label">MyCOL Roles</span><span class="cm-val">${c.mycolRoles}</span></span>
+        </div>
+        <div class="company-culture">
+          <span class="company-culture-label">Culture read</span>
+          <span class="company-culture-text">${c.culture}</span>
+        </div>
+        <div class="company-flow">
+          <span class="company-flow-label">People here often go on to:</span>
+          <div class="company-flow-pills">
+            ${c.nextDestinations.map(d => `<span class="pill">→ ${d}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCompanyDetail(id) {
+  const c = COMPANIES.find(x => x.id === id);
+  if (!c) return;
+  openModal('company');
+  document.getElementById('modal-title').textContent = c.name;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail">
+      <div class="detail-header">
+        <div style="font-size:44px;">${c.logo}</div>
+        <div><span class="detail-tag">${c.sector}</span><h3 class="detail-heading">${c.name}</h3><span style="font-size:11px;color:var(--text-3);">${c.headcount} employees</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="metric-label">Hires per year</span><span class="metric-val">${c.hires}</span></div>
+        <div class="metric"><span class="metric-label">Retention</span><span class="metric-val">${c.retention}%</span></div>
+        <div class="metric"><span class="metric-label">MyCOL Roles</span><span class="metric-val">${c.mycolRoles}</span></div>
+      </div>
+      <div style="margin-top:10px;"><span class="detail-tag">Hiring shape</span><p style="font-size:12px;color:var(--text-2);margin-top:4px;">${c.hiringShape}</p></div>
+      <div style="margin-top:10px;"><span class="detail-tag">Culture (glass-door style read)</span><p style="font-size:12px;color:var(--text-2);margin-top:4px;">${c.culture}</p></div>
+      <div style="margin-top:10px;"><span class="detail-tag">Common next destinations</span>
+        <div class="pills" style="margin-top:4px;">${c.nextDestinations.map(d => `<span class="pill bridge">${d} ⟶</span>`).join('')}</div>
+      </div>
+      <div style="margin-top:10px;"><span class="detail-tag">SDG alignment</span>
+        <div style="display:flex;gap:6px;margin-top:6px;">${c.sdgs.map(n => { const s = SDG_META[n]; return `<span class="sdg-chip" style="background:${s.color};" title="SDG ${s.num} — ${s.name}">${s.num}</span>`; }).join('')}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSdgBadges(moduleKey) {
+  const sdgs = MODULE_SDGS[moduleKey];
+  if (!sdgs || !sdgs.length) return '';
+  return `
+    <div class="sdg-strip" title="UN Sustainable Development Goals this module contributes to">
+      <span class="sdg-strip-label">UN SDG</span>
+      ${sdgs.map(n => {
+        const s = SDG_META[n];
+        return `<span class="sdg-chip" style="background:${s.color};" title="SDG ${s.num} — ${s.name}">${s.num}</span>`;
+      }).join('')}
+    </div>`;
+}
 
 // ─── MODULE REGISTRY ─────────────────────────────────────────
 // `desc` answers "what decision does this help the user make?" — not "what tech does it use?"
@@ -84,6 +445,14 @@ const MODULES = {
   security:             { title: 'Security, Privacy & Access',      abbr: 'SPA', badge: 'Support · Trust',     cap: 'Support', persona: 'all', layer: 'support',
     desc: 'Row-level security in Postgres, revocable consent flows, k-anonymity (k≥5) enforced before any cohort surfaces. The trust layer underneath everything.',
     purpose: 'How the system stays trustworthy.' },
+
+  // ─ Marketplace ─ (functional core per Kick-Off — homepage/listings/directory/dashboard)
+  job_listings:         { title: 'Job Listings',                    abbr: '💼', badge: 'Marketplace · Openings', cap: 'Marketplace', persona: 'all', layer: 'marketplace',
+    desc: 'Live openings across Malaysia\'s employer network — each ranked by how well the role\'s inflow trajectory fits your shape. MyCOL Critical Occupations tagged.',
+    purpose: 'Real openings, ranked by trajectory fit — not keyword match.' },
+  company_directory:    { title: 'Company Directory',               abbr: '🏢', badge: 'Marketplace · Employers', cap: 'Marketplace', persona: 'all', layer: 'marketplace',
+    desc: 'Employers in the network with their hiring shape — what kind of trajectory they hire, where their people go next, retention signal, glass-door style culture read.',
+    purpose: 'See who employers actually hire — and where their people go.' },
 
   // ─ Meta / Overview ─
   architecture:         { title: 'Architecture & Vision',           abbr: '🏗️', badge: 'System Overview',     cap: 'Overview', persona: 'all', layer: 'meta',
@@ -268,38 +637,47 @@ function renderOnboardStep() {
   steps.forEach((s,i) => s.classList.toggle('active', i === state.onboardStep));
   document.getElementById('onboard-back').style.visibility = state.onboardStep > 0 ? 'visible' : 'hidden';
   document.getElementById('onboard-next').style.visibility = state.onboardStep === 0 && !state.onboardRole ? 'hidden' : 'visible';
-  document.getElementById('onboard-step-label').textContent = `Step ${state.onboardStep+1} of 4`;
+  document.getElementById('onboard-step-label').textContent = `Step ${state.onboardStep+1} of ${TOTAL_ONBOARD_STEPS}`;
 
-  let titles = ['Welcome to PathWiser','Profile Intake','ESCO Normalization','Your Career Shape'];
-  let subs = ['Select your audience role.','Tell us about your career.','Standardizing your profile.','Your career profile is ready.'];
+  // Candidate flow: 5 steps · Role → Profile → Work Animal → ESCO → Shape
+  let titles = ['Welcome to PathWiser','Profile Intake','Your Work Animal','ESCO Normalization','Your Career Shape'];
+  let subs = ['Select your audience role.','Tell us about your career.','A short read on how you work best.','Standardizing your profile.','Your career profile is ready.'];
 
   if (state.onboardRole === 'employer') {
-    titles = ['Welcome to PathWiser', 'Organization Intake', 'ISIC/ESCO Normalization', 'Your Talent Demand Shape'];
-    subs = ['Select your audience role.', 'Tell us about your hiring needs.', 'Standardizing your target profile.', 'Your talent demand profile is ready.'];
+    titles = ['Welcome to PathWiser', 'Organization Intake', '—', 'ISIC/ESCO Normalization', 'Your Talent Demand Shape'];
+    subs = ['Select your audience role.', 'Tell us about your hiring needs.', '—', 'Standardizing your target profile.', 'Your talent demand profile is ready.'];
   } else if (state.onboardRole === 'university') {
-    titles = ['Welcome to PathWiser', 'Programme Intake', 'ISCED Normalization', 'Your Curriculum Shape'];
-    subs = ['Select your audience role.', 'Tell us about your degree programme.', 'Standardizing your curriculum.', 'Your curriculum capability profile is ready.'];
+    titles = ['Welcome to PathWiser', 'Programme Intake', '—', 'ISCED Normalization', 'Your Curriculum Shape'];
+    subs = ['Select your audience role.', 'Tell us about your degree programme.', '—', 'Standardizing your curriculum.', 'Your curriculum capability profile is ready.'];
   }
 
   document.getElementById('onboard-title').textContent = titles[state.onboardStep];
   document.getElementById('onboard-subtitle').textContent = subs[state.onboardStep];
 
   if (state.onboardStep === 1) renderIntakeForm();
-  if (state.onboardStep === 2) renderEscoPreview();
-  if (state.onboardStep === 3) { renderShapeRadar(); renderShapeMetrics(); document.getElementById('onboard-next').textContent = 'Launch Dashboard →'; }
-  else { 
+  if (state.onboardStep === 2) resetWorkAnimalQuiz();
+  if (state.onboardStep === 3) renderEscoPreview();
+  if (state.onboardStep === 4) { renderShapeRadar(); renderShapeMetrics(); document.getElementById('onboard-next').textContent = 'Launch Dashboard →'; }
+  else {
     if (state.onboardStep === 0 && (state.onboardRole === 'employer' || state.onboardRole === 'university')) {
       document.getElementById('onboard-next').textContent = 'Launch Dashboard →';
+    } else if (state.onboardStep === 2 && state.workAnimal === null && !state.waStarted) {
+      // Hide Next while the quiz intro is showing — the quiz has its own Begin button
+      document.getElementById('onboard-next').style.visibility = 'hidden';
+      document.getElementById('onboard-next').textContent = 'Next →';
     } else {
-      document.getElementById('onboard-next').textContent = 'Next →'; 
+      document.getElementById('onboard-next').textContent = 'Next →';
     }
   }
 
-  // Step dots
+  // Step dots — candidates see 5; employer/university's short-circuit at step 0
   let dots = '';
-  for (let i=0;i<4;i++) dots += `<span class="step-dot ${i===state.onboardStep?'active':''} ${i<state.onboardStep?'done':''}"></span>`;
+  for (let i=0;i<TOTAL_ONBOARD_STEPS;i++) dots += `<span class="step-dot ${i===state.onboardStep?'active':''} ${i<state.onboardStep?'done':''}"></span>`;
   document.getElementById('step-dots').innerHTML = dots;
 }
+
+// Candidate onboarding has 5 steps; employer/university short-circuit at step 0
+const TOTAL_ONBOARD_STEPS = 5;
 
 function renderIntakeForm() {
   const container = document.getElementById('onboard-step-1');
@@ -361,8 +739,10 @@ function onboardNext() {
     return;
   }
 
-  if (state.onboardStep < 3) { state.onboardStep++; renderOnboardStep(); }
-  else {
+  if (state.onboardStep < TOTAL_ONBOARD_STEPS - 1) {
+    state.onboardStep++;
+    renderOnboardStep();
+  } else {
     // Capture the chosen role + entered title; land in locked production view for that audience.
     const titleInput = document.getElementById('onboard-role');
     const enteredTitle = titleInput?.value?.trim() || ROLE_LABEL[role];
@@ -378,6 +758,153 @@ function onboardNext() {
   }
 }
 function onboardBack() { if (state.onboardStep > 0) { state.onboardStep--; renderOnboardStep(); } }
+
+// ─── WORK ANIMAL QUIZ ────────────────────────────────────────
+function resetWorkAnimalQuiz() {
+  // If user already has a Work Animal from a previous run, show the result
+  const intro = document.getElementById('wa-quiz-intro');
+  const qs = document.getElementById('wa-quiz-questions');
+  const rs = document.getElementById('wa-quiz-result');
+  if (!intro || !qs || !rs) return;
+  if (state.workAnimal) {
+    intro.style.display = 'none';
+    qs.style.display = 'none';
+    rs.style.display = 'block';
+    renderWorkAnimalResult();
+    document.getElementById('onboard-next').style.visibility = 'visible';
+  } else {
+    intro.style.display = 'flex';
+    qs.style.display = 'none';
+    rs.style.display = 'none';
+    state.waStarted = false;
+  }
+}
+
+function startWorkAnimalQuiz() {
+  state.waStarted = true;
+  state.waQuizIdx = 0;
+  state.waScores = { owl: 0, fox: 0, bear: 0, dolphin: 0, eagle: 0, ant: 0 };
+  document.getElementById('wa-quiz-intro').style.display = 'none';
+  document.getElementById('wa-quiz-questions').style.display = 'flex';
+  document.getElementById('wa-quiz-result').style.display = 'none';
+  document.getElementById('onboard-next').style.visibility = 'hidden';
+  renderWAQuestion();
+}
+
+function skipWorkAnimalQuiz() {
+  state.workAnimal = null;
+  state.waStarted = false;
+  // Advance to ESCO step immediately
+  state.onboardStep = 3;
+  renderOnboardStep();
+}
+
+function renderWAQuestion() {
+  const q = WA_QUESTIONS[state.waQuizIdx];
+  if (!q) return computeWAResult();
+  document.getElementById('wa-quiz-count').textContent = `Question ${state.waQuizIdx + 1} of ${WA_QUESTIONS.length}`;
+  document.getElementById('wa-quiz-bar-fill').style.width = ((state.waQuizIdx / WA_QUESTIONS.length) * 100) + '%';
+  document.getElementById('wa-question').textContent = q.q;
+  const opts = document.getElementById('wa-options');
+  opts.innerHTML = q.options.map((opt, i) => `
+    <button class="wa-option" onclick="selectWAOption(${i})">
+      <span class="wa-option-text">${opt.text}</span>
+    </button>
+  `).join('');
+}
+
+function selectWAOption(idx) {
+  const q = WA_QUESTIONS[state.waQuizIdx];
+  const opt = q.options[idx];
+  Object.entries(opt.scores).forEach(([animal, points]) => {
+    state.waScores[animal] = (state.waScores[animal] || 0) + points;
+  });
+  // Briefly highlight the choice
+  const btns = document.querySelectorAll('.wa-option');
+  btns[idx]?.classList.add('picked');
+  setTimeout(() => {
+    state.waQuizIdx++;
+    if (state.waQuizIdx >= WA_QUESTIONS.length) {
+      computeWAResult();
+    } else {
+      renderWAQuestion();
+    }
+  }, 260);
+}
+
+function computeWAResult() {
+  const sorted = Object.entries(state.waScores).sort((a, b) => b[1] - a[1]);
+  const winnerKey = sorted[0][0];
+  const winner = WORK_ANIMALS[winnerKey];
+  const runnerUp = WORK_ANIMALS[sorted[1][0]];
+  state.workAnimal = { ...winner, secondary: runnerUp.key, secondaryName: runnerUp.name, scoreMap: { ...state.waScores } };
+  document.getElementById('wa-quiz-bar-fill').style.width = '100%';
+  document.getElementById('wa-quiz-questions').style.display = 'none';
+  document.getElementById('wa-quiz-result').style.display = 'block';
+  document.getElementById('onboard-next').style.visibility = 'visible';
+  renderWorkAnimalResult();
+}
+
+function renderWorkAnimalResult() {
+  const w = state.workAnimal;
+  if (!w) return;
+  const secondaryAnimal = WORK_ANIMALS[w.secondary];
+  const rs = document.getElementById('wa-quiz-result');
+  const total = Object.values(w.scoreMap).reduce((s, n) => s + n, 0) || 1;
+  const bars = Object.entries(w.scoreMap)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, val]) => {
+      const a = WORK_ANIMALS[key];
+      const pct = Math.round((val / total) * 100);
+      return `
+        <div class="wa-score-row">
+          <span class="wa-score-name">${a.emoji} ${a.name}</span>
+          <div class="wa-score-track"><div class="wa-score-fill" style="width:${pct}%;background:${a.color};"></div></div>
+          <span class="wa-score-pct">${pct}%</span>
+        </div>`;
+    }).join('');
+  rs.innerHTML = `
+    <div class="wa-result-hero" style="border-color:${w.color};">
+      <div class="wa-result-emoji" style="background:${w.color}20;">${w.emoji}</div>
+      <div class="wa-result-title">
+        <span class="wa-result-tag">Your Work Animal</span>
+        <h3 class="wa-result-name">${w.name} <span class="wa-result-tagline">· ${w.tagline}</span></h3>
+        <p class="wa-result-desc">${w.description}</p>
+      </div>
+    </div>
+    <div class="wa-result-split">
+      <div class="wa-result-col">
+        <span class="detail-tag">Working Strengths</span>
+        <div class="pills" style="margin-top:6px;">
+          ${w.strengths.map(s => `<span class="pill acquired">${s}</span>`).join('')}
+        </div>
+      </div>
+      <div class="wa-result-col">
+        <span class="detail-tag">Career Fit · Where ${w.name}s tend to thrive</span>
+        <div class="pills" style="margin-top:6px;">
+          ${w.careerFit.map(s => `<span class="pill bridge">${s}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="wa-secondary-note">
+      <span class="detail-tag">Secondary trait</span>
+      <p style="font-size:12px;color:var(--text-2);margin-top:4px;">
+        You lean toward <strong style="color:${secondaryAnimal.color};">${secondaryAnimal.emoji} ${secondaryAnimal.name}</strong> as a secondary — a ${secondaryAnimal.tagline.toLowerCase()} edge. The Engine will factor this into your Path Navigator + AI Coach.
+      </p>
+    </div>
+    <div class="wa-result-actions">
+      <span class="detail-tag" style="margin-top:8px;">Full breakdown</span>
+      <div class="wa-scores">${bars}</div>
+      <button class="btn btn-ghost btn-sm" onclick="retakeWorkAnimalQuiz()">Retake quiz</button>
+    </div>
+  `;
+}
+
+function retakeWorkAnimalQuiz() {
+  state.workAnimal = null;
+  state.waStarted = false;
+  resetWorkAnimalQuiz();
+}
 
 function renderEscoPreview() {
   const role = document.getElementById('onboard-role')?.value || 'Junior Data Analyst';
@@ -463,11 +990,16 @@ function renderShapeMetrics() {
     cohortVal = '850';
   }
 
+  const wa = state.workAnimal;
+  const waMetric = wa
+    ? `<div class="metric"><span class="metric-label">Work Animal</span><span class="metric-val" style="color:${wa.color};">${wa.emoji} ${wa.name}</span></div>`
+    : `<div class="metric"><span class="metric-label">Match Accuracy</span><span class="metric-val">89%</span></div>`;
+
   document.getElementById('shape-metrics').innerHTML = `
     <div class="metric"><span class="metric-label">Profile Depth</span><span class="metric-val">768 Data Points</span></div>
     <div class="metric"><span class="metric-label">AI Engine</span><span class="metric-val">Google AI</span></div>
     <div class="metric"><span class="metric-label">${cohortLabel}</span><span class="metric-val">${cohortVal}</span></div>
-    <div class="metric"><span class="metric-label">Match Accuracy</span><span class="metric-val">89%</span></div>
+    ${waMetric}
   `;
 }
 
@@ -620,6 +1152,9 @@ function selectModule(mod) {
   // Update panel header
   document.getElementById('module-badge').textContent = m.badge;
   document.getElementById('module-title').textContent = m.title;
+  // SDG strip: render below the title if the module maps to any SDGs
+  const sdgHost = document.getElementById('module-sdg-host');
+  if (sdgHost) sdgHost.innerHTML = renderSdgBadges(mod);
   // Show purpose (user-value line) prominently above the technical description
   const subtitle = document.getElementById('module-desc');
   if (m.purpose) {
@@ -660,6 +1195,9 @@ function renderModule(mod) {
     case 'security': renderSecurity(); break;
     // Meta / Overview
     case 'architecture': renderArchSections(); break;
+    // Marketplace
+    case 'job_listings': renderJobListings(); break;
+    case 'company_directory': renderCompanyDirectory(); break;
   }
 }
 
@@ -811,6 +1349,7 @@ function drawPathGraph() {
     }
   });
   // Nodes
+  const compareSet = new Set(state.compareNodes || []);
   PATHS.forEach(p => {
     const nx = p.x * w/640, ny = p.y * h/380;
     const colors = { current: 'var(--yellow)', primary: 'var(--yellow)', adjacent: 'var(--text-3)' };
@@ -818,6 +1357,10 @@ function drawPathGraph() {
     // MyCOL critical-occupation ring — sky blue outer halo
     if (p.mycol) {
       html += `<circle cx="${nx}" cy="${ny}" r="${r + 5}" fill="none" stroke="var(--sky)" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.7" style="pointer-events:none;"><animate attributeName="stroke-dashoffset" values="0;-12" dur="3s" repeatCount="indefinite"/></circle>`;
+    }
+    // Compare-mode selection halo (teal)
+    if (compareSet.has(p.id)) {
+      html += `<circle cx="${nx}" cy="${ny}" r="${r + 9}" fill="none" stroke="var(--teal)" stroke-width="2.5" opacity="0.9" style="pointer-events:none;"/>`;
     }
     html += `<circle cx="${nx}" cy="${ny}" r="${r}" fill="${colors[p.type]||'var(--text-3)'}" opacity="${p.type==='adjacent'?0.4:0.85}" style="cursor:pointer;" onclick="selectPathNode('${p.id}')"/>`;
     html += `<text x="${nx}" y="${ny + r + 14}" fill="var(--text-2)" font-size="9" text-anchor="middle" font-family="var(--sans)" style="pointer-events:none;">${p.label}</text>`;
@@ -831,6 +1374,12 @@ function drawPathGraph() {
 }
 
 function selectPathNode(id) {
+  // Compare mode: clicking a node toggles it into the comparison set
+  if (state.compareMode) {
+    if (id === 'current') return; // don't compare against the current position
+    toggleCompareNode(id);
+    return;
+  }
   const p = PATHS.find(n=>n.id===id);
   if (!p) return;
   // Update header with MyCOL flag
@@ -866,6 +1415,120 @@ function selectPathNode(id) {
     tradeoff.style.display = 'block';
     tradeoff.innerHTML = `<strong>⚖️ Trade-off · ${tradeoffs[id].title}</strong><p style="margin-top:3px;">${tradeoffs[id].body}</p>`;
   } else { tradeoff.style.display = 'none'; }
+}
+
+// ─── COMPARE PATHS ───────────────────────────────────────────
+function toggleCompareMode() {
+  state.compareMode = !state.compareMode;
+  state.compareNodes = state.compareNodes || [];
+  const btn = document.getElementById('cp-toggle-btn');
+  const hint = document.getElementById('cp-hint');
+  const panel = document.getElementById('cp-panel');
+  if (btn) {
+    btn.textContent = state.compareMode ? '✕ Exit compare' : '⚖️ Compare paths';
+    btn.classList.toggle('btn-amber', state.compareMode);
+  }
+  if (hint) hint.style.display = state.compareMode ? 'inline' : 'none';
+  if (!state.compareMode) {
+    clearCompare();
+    if (panel) panel.style.display = 'none';
+  } else {
+    renderCompareSelected();
+  }
+}
+
+function toggleCompareNode(id) {
+  state.compareNodes = state.compareNodes || [];
+  const idx = state.compareNodes.indexOf(id);
+  if (idx >= 0) {
+    state.compareNodes.splice(idx, 1);
+  } else {
+    if (state.compareNodes.length >= 3) {
+      // remove oldest
+      state.compareNodes.shift();
+    }
+    state.compareNodes.push(id);
+  }
+  renderCompareSelected();
+  drawPathGraph(); // redraw so selected nodes get highlighted
+  renderCompareTable();
+}
+
+function clearCompare() {
+  state.compareNodes = [];
+  renderCompareSelected();
+  drawPathGraph();
+  const panel = document.getElementById('cp-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function renderCompareSelected() {
+  const el = document.getElementById('cp-selected');
+  if (!el) return;
+  const nodes = (state.compareNodes || []).map(id => PATHS.find(p => p.id === id)).filter(Boolean);
+  if (!nodes.length) {
+    el.innerHTML = state.compareMode
+      ? '<span class="cp-empty">No paths picked yet · click nodes above</span>'
+      : '';
+    return;
+  }
+  el.innerHTML = nodes.map(n =>
+    `<span class="cp-picked-chip" onclick="toggleCompareNode('${n.id}')" title="Remove from compare">
+      ${n.label} <span class="cp-picked-x">×</span>
+    </span>`
+  ).join('');
+}
+
+function renderCompareTable() {
+  const panel = document.getElementById('cp-panel');
+  const table = document.getElementById('cp-table');
+  const verdict = document.getElementById('cp-verdict');
+  if (!panel || !table) return;
+  const nodes = (state.compareNodes || []).map(id => PATHS.find(p => p.id === id)).filter(Boolean);
+  if (nodes.length < 2) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  // Build columns per node
+  const rows = [
+    { label: 'Median salary', get: n => n.salary },
+    { label: 'Cohort size',   get: n => n.cohort.toLocaleString() + ' people' },
+    { label: 'Median tenure', get: n => n.tenure },
+    { label: 'Probability from your shape', get: n => n.prob },
+    { label: 'MyCOL Critical', get: n => n.mycol ? '✅ Yes — national priority' : '—' },
+    { label: 'Skill bridge required', get: n => (SKILL_PILLS[n.id] || []).join(', ') || '—' }
+  ];
+  let html = '<thead><tr><th></th>';
+  nodes.forEach(n => {
+    html += `<th><span class="cp-col-title">${n.label}</span><span class="cp-col-sub">${n.type === 'primary' ? 'Primary' : 'Adjacent'}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr><td class="cp-row-label">${r.label}</td>`;
+    nodes.forEach(n => { html += `<td>${r.get(n)}</td>`; });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+
+  // Verdict — a light, honest recommendation based on the trade-offs
+  const salaries = nodes.map(n => parseInt(n.salary.replace(/[^0-9]/g, '')) || 0);
+  const cohorts = nodes.map(n => n.cohort);
+  const highestSalary = salaries.indexOf(Math.max(...salaries));
+  const largestCohort = cohorts.indexOf(Math.max(...cohorts));
+  const mycolCount = nodes.filter(n => n.mycol).length;
+  verdict.innerHTML = `
+    <span class="detail-tag">Honest trade-off read</span>
+    <p style="margin-top:6px;font-size:12px;color:var(--text-2);line-height:1.6;">
+      Among these ${nodes.length} paths, <strong style="color:var(--yellow);">${nodes[highestSalary].label}</strong> has the highest salary anchor.
+      <strong style="color:var(--teal);">${nodes[largestCohort].label}</strong> has the largest cohort — meaning the range estimate is tightest and most trustworthy.
+      ${mycolCount > 0 ? `${mycolCount} of these ${nodes.length === mycolCount ? 'all' : ''} are on Malaysia's Critical Occupations List — signalling national demand.` : ''}
+    </p>
+    <p style="margin-top:6px;font-size:11px;color:var(--text-3);font-style:italic;">
+      This is a decision aid, not a recommendation. The engine has no opinion about which path is right for you — it just shows the shape of the trade-offs so you can decide with evidence.
+    </p>
+  `;
 }
 
 function adjustShape(el) {

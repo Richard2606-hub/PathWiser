@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260614e">
+    <link rel="stylesheet" href="styles.css?v=20260705a">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230d1117'/><text x='50' y='62' font-family='monospace' font-size='48' font-weight='800' text-anchor='middle' fill='%23facc15'>[T]</text></svg>">
 </head>
 <body>
@@ -95,8 +95,30 @@
                 <div class="onboard-step" id="onboard-step-1">
                     <!-- Dynamic fields injected by renderIntakeForm() in app.js -->
                 </div>
-                <!-- Step 3: ESCO Normalization Preview -->
+                <!-- Step 3: Work Animal Quiz (candidates only; auto-skip otherwise) -->
                 <div class="onboard-step" id="onboard-step-2">
+                    <div class="wa-quiz-wrap">
+                        <div class="wa-quiz-intro" id="wa-quiz-intro">
+                            <div class="callout" style="border-color:var(--yellow);">
+                                <strong>🐾 Your Work Animal — the Menagerie Method</strong>
+                                <p style="margin-top:4px;">A short 8-question read on how you work best. We use Talentbank's Work Animal framework — not MBTI or DISC — to add a working-style dimension to your career shape. Your answers stay yours.</p>
+                            </div>
+                            <button class="btn" onclick="startWorkAnimalQuiz()">Begin the quiz →</button>
+                            <button class="btn btn-ghost btn-sm" onclick="skipWorkAnimalQuiz()">Skip for now</button>
+                        </div>
+                        <div class="wa-quiz-questions" id="wa-quiz-questions" style="display:none;">
+                            <div class="wa-quiz-progress">
+                                <span class="wa-quiz-count" id="wa-quiz-count">Question 1 of 8</span>
+                                <div class="wa-quiz-bar"><div class="wa-quiz-bar-fill" id="wa-quiz-bar-fill"></div></div>
+                            </div>
+                            <div class="wa-question" id="wa-question"></div>
+                            <div class="wa-options" id="wa-options"></div>
+                        </div>
+                        <div class="wa-quiz-result" id="wa-quiz-result" style="display:none;"></div>
+                    </div>
+                </div>
+                <!-- Step 4: ESCO Normalization Preview -->
+                <div class="onboard-step" id="onboard-step-3">
                     <div class="callout">
                         <strong>🔄 ESCO Normalization Engine</strong>
                         <p style="margin-top:4px;">Your profile is being normalized against ESCO occupation codes and O*NET skill identifiers for standardized trajectory matching.</p>
@@ -105,8 +127,8 @@
                         <!-- Filled by JS -->
                     </div>
                 </div>
-                <!-- Step 4: Shape Embedding Visualization -->
-                <div class="onboard-step" id="onboard-step-3">
+                <!-- Step 5: Shape Embedding Visualization -->
+                <div class="onboard-step" id="onboard-step-4">
                     <div class="callout callout-emerald">
                         <strong>✅ Profile Mapped Successfully</strong>
                         <p style="margin-top:4px;">We have analyzed your background and mapped it into a unique "Career Shape". The engine will now use this shape to find real, historically successful paths from people who look just like you on paper.</p>
@@ -190,6 +212,13 @@
                     <span class="card-title">System Overview</span>
                     <div class="support-grid">
                         <div class="mini-card mini-card-wide" data-module="architecture" onclick="selectModule('architecture')"><span class="mini-card-abbr">🏗️</span><span class="mini-card-name">Architecture & Vision</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <span class="card-title">Marketplace</span>
+                    <div class="support-grid">
+                        <div class="mini-card" data-module="job_listings" onclick="selectModule('job_listings')"><span class="mini-card-abbr">💼</span><span class="mini-card-name">Job Listings</span></div>
+                        <div class="mini-card" data-module="company_directory" onclick="selectModule('company_directory')"><span class="mini-card-abbr">🏢</span><span class="mini-card-name">Company Directory</span></div>
                     </div>
                 </div>
                 <div class="card">
@@ -289,6 +318,18 @@
                         <div class="mini-card" data-module="security" onclick="selectModule('security')"><span class="mini-card-abbr">SPA</span><span class="mini-card-name">Security</span></div>
                     </div>
                 </div>
+                <!-- Neutral advertising placeholder — signals product sustainability -->
+                <div class="ad-slot" title="Neutral advertising space — signals that the product can sustain itself. Talentbank keeps commercial control.">
+                    <span class="ad-slot-label">Sponsored</span>
+                    <div class="ad-slot-body">
+                        <span class="ad-slot-icon">📢</span>
+                        <div class="ad-slot-text">
+                            <span class="ad-slot-title">Career Booster · MBA</span>
+                            <span class="ad-slot-sub">Weekend programme · KL · Sept intake</span>
+                        </div>
+                    </div>
+                    <span class="ad-slot-note">Space reserved for Talentbank monetisation</span>
+                </div>
             </div>
 
             <!-- MAIN PANEL -->
@@ -298,6 +339,7 @@
                         <span class="panel-badge" id="module-badge">Navigation · Candidate</span>
                         <h1 class="panel-title" id="module-title">Career Path Navigator</h1>
                         <span class="panel-subtitle" id="module-desc">Map realistic trajectory branches anchored on Malaysian labor outcomes.</span>
+                        <div id="module-sdg-host"></div>
                     </div>
                     <div class="panel-actions">
                         <button class="btn btn-outline btn-sm" onclick="openFeedbackModal()">📝 Feedback</button>
@@ -461,6 +503,12 @@
                     <!-- ══════ M5: CAREER PATH NAVIGATOR ══════ -->
                     <div class="screen active" id="screen-path_navigator">
                         <div class="stats" id="nav-stats"></div>
+                        <!-- Compare Paths toolbar -->
+                        <div class="cp-toolbar" id="cp-toolbar">
+                            <button class="btn btn-sm" onclick="toggleCompareMode()" id="cp-toggle-btn">⚖️ Compare paths</button>
+                            <span class="cp-hint" id="cp-hint" style="display:none;">Click up to 3 destination nodes on the graph to compare them side-by-side.</span>
+                            <div class="cp-selected" id="cp-selected"></div>
+                        </div>
                         <!-- Shape Adjustment -->
                         <div class="detail" style="padding:12px 14px;">
                             <span class="detail-tag">Shape Adjustment Loop · Adjust and re-explore</span>
@@ -495,6 +543,18 @@
                                 <div class="callout" id="node-narrative"><strong>Honest Narrative:</strong><p style="margin-top:3px;">Outcomes represent cohort aggregates, not individual predictions.</p></div>
                                 <div class="callout callout-teal" id="node-tradeoff" style="display:none;"></div>
                             </div>
+                        </div>
+                        <!-- Compare Paths panel — appears when 2+ nodes selected -->
+                        <div class="cp-panel" id="cp-panel" style="display:none;">
+                            <div class="cp-panel-head">
+                                <div>
+                                    <span class="detail-tag">Compare Paths · Side-by-side trade-offs</span>
+                                    <h3 style="font-size:18px;font-weight:800;margin-top:4px;letter-spacing:-0.01em;" id="cp-panel-title">Comparing your chosen destinations</h3>
+                                </div>
+                                <button class="btn btn-ghost btn-sm" onclick="clearCompare()">Clear</button>
+                            </div>
+                            <div class="cp-table-wrap"><table class="cp-table" id="cp-table"></table></div>
+                            <div class="cp-verdict" id="cp-verdict"></div>
                         </div>
                     </div>
 
@@ -689,6 +749,52 @@
                         </div>
                     </div>
 
+                    <!-- ══════ MARKETPLACE · JOB LISTINGS ══════ -->
+                    <div class="screen" id="screen-job_listings">
+                        <div class="stats" id="jobs-stats"></div>
+                        <div class="jobs-toolbar">
+                            <span class="form-label">Filter:</span>
+                            <select class="form-select" style="max-width:200px;">
+                                <option>All sectors</option>
+                                <option>Tech</option>
+                                <option>Finance</option>
+                                <option>Energy</option>
+                                <option>Media</option>
+                            </select>
+                            <select class="form-select" style="max-width:160px;">
+                                <option>All locations</option>
+                                <option>KL</option>
+                                <option>Selangor</option>
+                                <option>Penang</option>
+                            </select>
+                            <span class="form-label" style="margin-left:auto;color:var(--text-3);">Ranked by trajectory fit, not keyword match</span>
+                        </div>
+                        <div class="jobs-list" id="jobs-list"></div>
+                    </div>
+
+                    <!-- ══════ MARKETPLACE · COMPANY DIRECTORY ══════ -->
+                    <div class="screen" id="screen-company_directory">
+                        <div class="stats" id="companies-stats"></div>
+                        <div class="jobs-toolbar">
+                            <span class="form-label">Filter:</span>
+                            <select class="form-select" style="max-width:200px;">
+                                <option>All sectors</option>
+                                <option>Tech</option>
+                                <option>Finance</option>
+                                <option>Energy</option>
+                                <option>Media</option>
+                            </select>
+                            <select class="form-select" style="max-width:160px;">
+                                <option>All sizes</option>
+                                <option>Enterprise (10k+)</option>
+                                <option>Mid (1–10k)</option>
+                                <option>Startup (&lt;1k)</option>
+                            </select>
+                            <span class="form-label" style="margin-left:auto;color:var(--text-3);">Each employer profile is a trajectory shape, not a job board listing</span>
+                        </div>
+                        <div class="companies-list" id="companies-list"></div>
+                    </div>
+
                     <!-- ══════ ARCHITECTURE & VISION (OVERVIEW SCREEN) ══════ -->
                     <div class="screen" id="screen-architecture">
                         <!-- Hero strip -->
@@ -864,6 +970,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260614b"></script>
+    <script src="app.js?v=20260705a"></script>
 </body>
 </html>
