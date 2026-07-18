@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════
+   PathWiser design tokens
+   Ported from the Stage 1 static prototype (see /legacy/styles.css).
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-base: #06090e;
+  --bg-surface: rgba(10, 15, 22, 0.85);
+  --bg-elevated: rgba(17, 24, 35, 0.9);
+  --bg-glass: rgba(255, 255, 255, 0.02);
+  --bg-glass-strong: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  --yellow: #facc15;
+  --yellow-glow: rgba(250, 204, 21, 0.12);
+  --teal: #2dd4bf;
+  --teal-glow: rgba(45, 212, 191, 0.12);
+  --violet: #a78bfa;
+  --violet-glow: rgba(167, 139, 250, 0.12);
+  --rose: #fb7185;
+  --emerald: #34d399;
+  --sky: #38bdf8;
+  --amber: #fbbf24;
+
+  --accent: var(--yellow);
+  --accent-glow: var(--yellow-glow);
+
+  --text-1: #f1f5f9;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ─── Base ─── */
+* {
+  box-sizing: border-box;
+}
+html, body {
+  background: var(--bg-base);
+  color: var(--text-1);
+  font-family: var(--sans);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  overflow-x: hidden;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ─── Focus rings ─── */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

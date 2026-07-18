@@ -1,0 +1,284 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAppStore } from '@/store/useAppStore';
+import { MODULES, modulesForPersona, engineModules, supportModules, marketplaceModules } from '@/lib/corpus/modules';
+import { cn } from '@/lib/utils';
+import type { Persona } from '@/types';
+
+const PERSONA_META: Record<Persona, { emoji: string; title: string; tagline: string; color: string }> = {
+  candidate:  { emoji: '👤', title: 'FOR CANDIDATES', tagline: '— decide your next move',       color: 'var(--yellow)' },
+  employer:   { emoji: '🏢', title: 'FOR EMPLOYERS',  tagline: '— find, keep, ramp talent',      color: 'var(--teal)' },
+  university: { emoji: '🎓', title: 'FOR UNIVERSITIES', tagline: '— close the curriculum loop',  color: 'var(--violet)' },
+};
+
+const CAP_LABELS: Record<string, string> = {
+  Navigation: 'NAVIGATION',
+  Intelligence: 'INTELLIGENCE',
+  Valuation: 'VALUATION',
+};
+
+const CAP_HINTS: Record<string, string> = {
+  path_navigator: 'your realistic next moves',
+  ai_coach: "the questions you can't ask",
+  fair_pay: "are you paid what you're worth?",
+  talent_matching: 'trajectory fit, not keywords',
+  retention_signals: 'before the letter arrives',
+  onboarding_predictor: "who needs support, who'll thrive",
+  outcome_loop: 'where graduates actually land',
+  curriculum_engine: 'teach what the market wants',
+  readiness_profile: 'a credential that stays alive',
+};
+
+/**
+ * Sidebar — filters modules by active persona in locked mode.
+ * In judge mode, all three persona surfaces are collapsible.
+ */
+export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const persona = useAppStore((s) => s.persona);
+  const judgeMode = useAppStore((s) => s.judgeMode);
+  const setPersona = useAppStore((s) => s.setPersona);
+  const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
+  const pathname = usePathname();
+
+  const isActive = (href: string) => pathname === href;
+
+  return (
+    <aside className="flex flex-col gap-3 p-3.5 h-full">
+      {/* System Overview */}
+      <SidebarCard title="SYSTEM OVERVIEW">
+        <ModuleTile
+          module={MODULES.architecture}
+          isActive={isActive}
+          onNavigate={onNavigate}
+          wide
+          gradient
+        />
+      </SidebarCard>
+
+      {/* Marketplace */}
+      <SidebarCard title="MARKETPLACE">
+        <div className="grid grid-cols-2 gap-1.5">
+          {marketplaceModules().map((m) => (
+            <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} />
+          ))}
+        </div>
+      </SidebarCard>
+
+      {/* Engine Layer */}
+      <SidebarCard title="ENGINE LAYER">
+        <div className="flex flex-col gap-1">
+          {engineModules().map((m) => (
+            <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} row />
+          ))}
+        </div>
+      </SidebarCard>
+
+      {/* Persona surfaces */}
+      {(['candidate', 'employer', 'university'] as const).map((p) => {
+        const meta = PERSONA_META[p];
+        const isActivePersona = persona === p;
+        const showBody = judgeMode ? true : isActivePersona;
+        const showCard = judgeMode ? true : isActivePersona;
+
+        if (!showCard) return null;
+
+        return (
+          <SidebarCard
+            key={p}
+            title={
+              <div
+                className={cn(
+                  'flex items-center gap-2 cursor-pointer',
+                  !isActivePersona && 'opacity-70 hover:opacity-100'
+                )}
+                onClick={() => {
+                  if (!judgeMode && !isActivePersona) {
+                    openLockedExplainer(p);
+                    return;
+                  }
+                  setPersona(p);
+                }}
+              >
+                <span className="text-base">{meta.emoji}</span>
+                <span style={{ color: isActivePersona ? meta.color : 'var(--text-2)' }}>
+                  {meta.title}
+                </span>
+                <span className="font-normal text-[10px] italic text-[color:var(--text-3)]">
+                  {meta.tagline}
+                </span>
+              </div>
+            }
+            highlightColor={isActivePersona ? meta.color : undefined}
+          >
+            {showBody && (
+              <div className="flex flex-col gap-1.5">
+                {modulesForPersona(p).map((m) => (
+                  <CapRow
+                    key={m.key}
+                    module={m}
+                    isActive={isActive}
+                    onNavigate={onNavigate}
+                    accentColor={meta.color}
+                  />
+                ))}
+              </div>
+            )}
+          </SidebarCard>
+        );
+      })}
+
+      {/* Support Layer */}
+      <SidebarCard title="SUPPORT LAYER">
+        <div className="grid grid-cols-3 gap-1.5">
+          {supportModules().map((m) => (
+            <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} />
+          ))}
+        </div>
+      </SidebarCard>
+
+      {/* Neutral sponsored slot */}
+      <div
+        title="Neutral advertising space — signals product sustainability. Talentbank keeps commercial control."
+        className="flex flex-col gap-2 p-3 rounded-md border border-dashed border-[color:var(--border-strong)]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px)',
+        }}
+      >
+        <span className="font-mono text-[8px] uppercase tracking-widest text-[color:var(--text-3)] self-start px-1.5 py-0.5 rounded bg-[color:var(--bg-elevated)]">
+          Sponsored
+        </span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">📢</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs font-bold">Career Booster · MBA</span>
+            <span className="text-[10px] text-[color:var(--text-2)]">Weekend programme · KL · Sept intake</span>
+          </div>
+        </div>
+        <span className="font-mono text-[9px] italic text-[color:var(--text-3)]">
+          Space reserved for Talentbank monetisation
+        </span>
+      </div>
+    </aside>
+  );
+}
+
+function SidebarCard({
+  title,
+  children,
+  highlightColor,
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  highlightColor?: string;
+}) {
+  return (
+    <div
+      className="rounded-md border p-3 flex flex-col gap-2.5"
+      style={{
+        background: highlightColor
+          ? `linear-gradient(180deg, ${highlightColor}0f, transparent 60%)`
+          : 'var(--bg-glass)',
+        borderColor: highlightColor || 'var(--border)',
+        boxShadow: highlightColor ? `0 0 0 1px ${highlightColor}22` : undefined,
+      }}
+    >
+      <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-[color:var(--text-2)]">
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ModuleTile({
+  module: m,
+  isActive,
+  onNavigate,
+  row,
+  wide,
+  gradient,
+}: {
+  module: (typeof MODULES)[string];
+  isActive: (href: string) => boolean;
+  onNavigate?: () => void;
+  row?: boolean;
+  wide?: boolean;
+  gradient?: boolean;
+}) {
+  const active = isActive(m.href);
+  return (
+    <Link
+      href={m.href}
+      onClick={onNavigate}
+      className={cn(
+        'block rounded-md border p-2.5 transition-all',
+        row
+          ? 'flex items-center gap-2 py-2 px-2.5'
+          : 'flex flex-col items-center text-center gap-1 py-2.5',
+        wide && 'p-3.5 items-start',
+        active
+          ? 'border-[color:var(--accent)] bg-[color:var(--accent-glow)]'
+          : 'border-transparent bg-[color:var(--bg-glass)] hover:bg-[color:var(--bg-glass-strong)] hover:border-[color:var(--border-strong)]',
+        gradient &&
+          'bg-[linear-gradient(135deg,rgba(250,204,21,0.06),rgba(45,212,191,0.06))] border-[color:var(--border-strong)] hover:border-[color:var(--accent)]'
+      )}
+    >
+      <span className={cn('font-mono font-extrabold', wide ? 'text-lg' : 'text-xs', active && 'text-[color:var(--accent)]')}>
+        {m.abbr}
+      </span>
+      <span className={cn(row ? 'flex-1 text-left' : '', 'text-[10px] font-semibold text-[color:var(--text-2)]', wide && 'text-xs text-[color:var(--text-1)]')}>
+        {m.title}
+      </span>
+    </Link>
+  );
+}
+
+function CapRow({
+  module: m,
+  isActive,
+  onNavigate,
+  accentColor,
+}: {
+  module: (typeof MODULES)[string];
+  isActive: (href: string) => boolean;
+  onNavigate?: () => void;
+  accentColor: string;
+}) {
+  const active = isActive(m.href);
+  const capLabel = CAP_LABELS[m.cap] || m.cap.toUpperCase();
+  const hint = CAP_HINTS[m.key] || '';
+
+  return (
+    <Link
+      href={m.href}
+      onClick={onNavigate}
+      className={cn(
+        'group grid gap-2 rounded-md px-2.5 py-2 border transition-all',
+        'grid-cols-[70px_1fr] items-baseline',
+        active
+          ? 'bg-[color:var(--bg-elevated)] border-transparent'
+          : 'bg-[color:var(--bg-glass)] border-transparent hover:bg-[color:var(--bg-glass-strong)] hover:border-[color:var(--border-strong)] hover:translate-x-[2px]'
+      )}
+      style={active ? { boxShadow: `inset 3px 0 0 ${accentColor}` } : undefined}
+    >
+      <span
+        className="font-mono text-[8px] font-extrabold uppercase tracking-widest"
+        style={{ color: active ? accentColor : 'var(--text-3)' }}
+      >
+        {capLabel}
+      </span>
+      <div className="flex flex-col leading-tight">
+        <span className="text-xs font-bold text-[color:var(--text-1)]">{m.title}</span>
+        {hint && (
+          <span className="text-[9px] italic text-[color:var(--text-3)] mt-0.5">
+            {hint}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}

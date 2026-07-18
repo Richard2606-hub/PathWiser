@@ -1,2 +1,57 @@
 Starter Kit*
+Final Kit*
+Kick-Off*
 .claude/
+
+# Reference materials — do not commit to repo
+*.pdf
+*.docx
+*.pptx
+*.mp4
+*.txt
+TUTORIAL.md
+!README.md
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage/
+.vitest/
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Vercel
+.vercel/
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Corpus artifacts (regenerated at build time — do not commit)
+scripts/output/

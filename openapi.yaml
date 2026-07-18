@@ -1,0 +1,219 @@
+openapi: 3.1.0
+info:
+  title: PathWiser · Career Twin Engine API
+  version: 0.1.0
+  description: |
+    The Career Twin Engine — one API that all 9 audience modules call.
+    Given a user shape, returns a cohort of similar anonymised trajectories,
+    a deterministic aggregation of that cohort's outcomes, and an honest
+    hedged narrative that explains the aggregate.
+
+    ## The three-layer architectural claim
+    1. **Retrieval** (pgvector cosine similarity over the trajectory corpus)
+    2. **Aggregation** (pure deterministic functions — numbers come from here)
+    3. **Explanation** (LLM only converts numbers into hedged language; validator rejects predictive verbs)
+
+    Numbers NEVER originate from the LLM. This separation is architectural,
+    not just a prompt-level constraint.
+
+    ## For Talentbank engineers (integration notes)
+    - Every AI call routes through `lib/ai/*` — swap by env var `AI_PROVIDER`
+    - Every DB call routes through `lib/supabase/*` — swap the client factory
+    - The engine (`lib/engine/*`) has no framework dependency — pure TypeScript
+    - Grep `adoption hook` in the source to find every integration seam
+  contact:
+    name: PathWiser · Talentbank Tech Hackathon 2026
+
+servers:
+  - url: https://path-wiser-sigma.vercel.app
+    description: Live demo deployment
+  - url: http://localhost:3000
+    description: Local dev
+
+paths:
+  /api/engine/navigate:
+    post:
+      summary: Run the Career Twin Engine end-to-end
+      description: |
+        Retrieval → Aggregation → Explanation. This is THE endpoint every
+        audience module calls. Framing differs by `shape.persona`.
+      operationId: navigate
+      tags: [Engine]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NavigateRequest'
+      responses:
+        '200':
+          description: |
+            Cohort found (possibly `cohort_too_small`) — safe to render honestly.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/NavigateResponse'
+                  - $ref: '#/components/schemas/CohortTooSmallResponse'
+        '400':
+          description: Invalid input (Zod schema violation)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Engine or provider failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UserShape:
+      type: object
+      required: [persona, role, education, years_experience, state, skills, life_stage]
+      properties:
+        userId:      { type: string, default: anon }
+        persona:     { type: string, enum: [candidate, employer, university] }
+        role:        { type: string, example: "Junior Data Analyst" }
+        esco_code:   { type: string, example: "2511.2" }
+        onet_code:   { type: string }
+        masco_code:  { type: string }
+        education:   { type: string, example: "Bachelor's in Computer Science" }
+        years_experience: { type: integer, minimum: 0, maximum: 60, example: 3 }
+        state:       { type: string, example: "Kuala Lumpur" }
+        skills:      { type: array, items: { type: string }, example: ["SQL", "Python", "Tableau"] }
+        life_stage:
+          type: string
+          enum: [student, young_adult, early_career, mid_career, senior_career, executive]
+        work_animal:
+          type: string
+          enum: [owl, fox, bear, dolphin, eagle, ant]
+          description: Optional Menagerie Method dimension. Feeds retrieval.
+
+    NavigateRequest:
+      type: object
+      required: [shape]
+      properties:
+        shape: { $ref: '#/components/schemas/UserShape' }
+        currentStepIndex: { type: integer, minimum: 0, maximum: 6, default: 0 }
+        filterByLifeStage: { type: boolean, default: false }
+        filterByState:     { type: boolean, default: false }
+        filterBySector:    { type: string }
+        k: { type: integer, minimum: 50, maximum: 2000, default: 1200 }
+
+    NavigateResponse:
+      type: object
+      required: [cohort, aggregate, explanation]
+      properties:
+        cohort:
+          type: object
+          properties:
+            size: { type: integer, example: 1240 }
+            similarity_stats:
+              type: object
+              properties:
+                mean:   { type: number, example: 0.87 }
+                stddev: { type: number, example: 0.05 }
+                min:    { type: number, example: 0.71 }
+                max:    { type: number, example: 0.98 }
+            filters_applied:
+              type: object
+              properties:
+                life_stage: { type: string }
+                state:      { type: string }
+                sector:     { type: string }
+        aggregate: { $ref: '#/components/schemas/Aggregate' }
+        explanation: { $ref: '#/components/schemas/Explanation' }
+        k_min: { type: integer, example: 50 }
+
+    Aggregate:
+      type: object
+      required: [cohort_size, next_role_distribution, salary_percentiles_by_role]
+      properties:
+        cohort_size: { type: integer }
+        next_role_distribution:
+          type: array
+          items:
+            type: object
+            properties:
+              role:               { type: string }
+              count:              { type: integer }
+              probability:        { type: number, minimum: 0, maximum: 1 }
+              esco_code:          { type: string }
+              is_mycol_critical:  { type: boolean }
+        salary_percentiles_by_role:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SalaryPercentiles'
+        median_time_in_role_months: { type: integer }
+        common_skill_bridges:
+          type: array
+          items:
+            type: object
+            properties:
+              skill: { type: string }
+              frequency: { type: number, minimum: 0, maximum: 1 }
+              esco_skill_id: { type: string }
+        trade_offs:
+          type: array
+          items:
+            type: object
+            properties:
+              path_a:      { type: string }
+              path_b:      { type: string }
+              dimension:   { type: string, enum: [salary_ceiling, time, skill_decay, cohort_confidence] }
+              description: { type: string }
+        calibration_anchors:
+          type: array
+          items:
+            type: object
+            properties:
+              source:    { type: string }
+              reference: { type: string }
+              license:   { type: string }
+
+    SalaryPercentiles:
+      type: object
+      properties:
+        p10:      { type: integer }
+        p25:      { type: integer }
+        median:   { type: integer }
+        p75:      { type: integer }
+        p90:      { type: integer }
+        currency: { type: string, enum: [MYR] }
+        monthly:  { type: boolean, const: true }
+
+    Explanation:
+      type: object
+      required: [narrative, cohort_size_disclosed, ranges_disclosed, passed_validation]
+      properties:
+        narrative:              { type: string }
+        cohort_size_disclosed:  { type: boolean }
+        ranges_disclosed:       { type: boolean }
+        passed_validation:      { type: boolean }
+        validator_notes:
+          type: array
+          items: { type: string }
+
+    CohortTooSmallResponse:
+      type: object
+      required: [cohort_too_small, cohort_size, k_min, message]
+      properties:
+        cohort_too_small: { type: boolean, const: true }
+        cohort_size:      { type: integer }
+        k_min:            { type: integer }
+        message:          { type: string }
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:   { type: string }
+        message: { type: string }
+        issues:  { type: array }
+
+tags:
+  - name: Engine
+    description: The Career Twin Engine — the single seam every module calls.
