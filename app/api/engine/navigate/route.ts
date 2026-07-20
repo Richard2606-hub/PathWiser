@@ -21,8 +21,9 @@ const ShapeSchema = z.object({
 
 const RequestSchema = z.object({
   shape: ShapeSchema,
-  currentStepIndex: z.number().min(0).max(6).default(0),
+  currentStepIndex: z.number().min(-1).max(6).default(0),
   filterByLifeStage: z.boolean().optional(),
+
   filterByState: z.boolean().optional(),
   filterBySector: z.string().optional(),
   k: z.number().min(50).max(2000).optional(),

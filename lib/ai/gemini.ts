@@ -28,7 +28,7 @@ export class GeminiProvider implements AIProvider {
       );
     }
     this.client = new GoogleGenerativeAI(apiKey);
-    this.embeddingModel = options?.embeddingModel || 'text-embedding-004';
+    this.embeddingModel = options?.embeddingModel || 'gemini-embedding-001';
     this.chatModel = options?.chatModel || 'gemini-1.5-flash';
   }
 

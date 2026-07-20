@@ -76,6 +76,7 @@ Based on 2,840 cohort trajectories. Median transition includes 2.3 months of act
 
 export function AICoachView() {
   const showToast = useAppStore((s) => s.showToast);
+  const shape = useAppStore((s) => s.shape);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -90,22 +91,32 @@ export function AICoachView() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, typing]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
-    setMessages((m) => [...m, { role: 'user', text }]);
+    const newMessages: Message[] = [...messages, { role: 'user', text }];
+    setMessages(newMessages);
     setInput('');
     setTyping(true);
-    const answer =
-      CANNED_ANSWERS.find((a) => a.pattern.test(text))?.answer ||
-      `Based on the Career Twin Engine analysis of similar trajectories, here's what the cohort shows:
-
-Your query touches on an interesting career consideration. Rather than predicting, I can show you the range of outcomes observed in cohorts with a shape similar to yours. Would you like to explore specific paths, salary benchmarks, or skill bridges?
-
-⚠️ *Honest note: All insights are cohort-level aggregates, not individual predictions.*`;
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch('/api/engine/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shape, message: text, history: messages.slice(-10) }),
+      });
+      if (!res.ok) {
+        throw new Error('API failed');
+      }
+      const data = await res.json();
+      setMessages((m) => [...m, { role: 'assistant', text: data.reply }]);
+    } catch (e) {
+      const answer = CANNED_ANSWERS.find((a) => a.pattern.test(text))?.answer ||
+        `Based on the Career Twin Engine analysis... (Fallback template as API failed)`;
       setMessages((m) => [...m, { role: 'assistant', text: answer }]);
+      showToast('API unavailable, falling back to templates.', 'error');
+    } finally {
       setTyping(false);
-    }, 700 + Math.random() * 500);
+    }
   };
 
   return (

@@ -1,26 +1,60 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Callout } from '@/components/common/Callout';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { formatMYR } from '@/lib/utils';
+import { navigate } from '@/lib/engine/client';
+import { useAppStore } from '@/store/useAppStore';
 
-const BENCHMARKS: Record<string, { p10: number; p25: number; median: number; p75: number; p90: number; name: string }> = {
-  se: { p10: 3500, p25: 4800, median: 6200, p75: 8500, p90: 12000, name: 'Software Engineer' },
-  da: { p10: 3000, p25: 4000, median: 5200, p75: 7200, p90: 10000, name: 'Data Analyst' },
-  ds: { p10: 7000, p25: 9500, median: 12500, p75: 16000, p90: 22000, name: 'Data Scientist' },
-  pm: { p10: 4000, p25: 5500, median: 7500, p75: 10500, p90: 15500, name: 'Product Manager' },
-};
-
+const ROLES = ['Software Engineer', 'Data Analyst', 'Data Scientist', 'Product Manager'];
 const LOCATIONS = ['Kuala Lumpur', 'Selangor', 'Penang', 'Johor'];
 
 export function FairPayView() {
-  const [role, setRole] = useState('se');
+  const showToast = useAppStore((s) => s.showToast);
+  const [role, setRole] = useState('Software Engineer');
   const [salary, setSalary] = useState(5500);
   const [location, setLocation] = useState('Kuala Lumpur');
   const [experience, setExperience] = useState(3);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const b = BENCHMARKS[role];
+  const [b, setB] = useState({ p10: 3500, p25: 4800, median: 6200, p75: 8500, p90: 12000, name: 'Software Engineer' });
+
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true);
+      try {
+        const res = await navigate({
+          userId: 'anon',
+          persona: 'candidate',
+          role: role,
+          education: "Bachelor's Degree",
+          years_experience: experience,
+          state: location,
+          skills: [],
+          life_stage: 'early_career',
+        }, { currentStepIndex: -1 });
+
+        if ('aggregate' in res && res.aggregate?.salary_percentiles_by_role && res.aggregate.salary_percentiles_by_role[role]) {
+          const stats = res.aggregate.salary_percentiles_by_role[role];
+          setB({
+            p10: stats.p10 || b.p10,
+            p25: stats.p25 || b.p25,
+            median: stats.median || b.median,
+            p75: stats.p75 || b.p75,
+            p90: stats.p90 || b.p90,
+            name: role,
+          });
+        }
+      } catch (err: any) {
+        console.error(err);
+        showToast(`Engine API Error: ${err.message || 'Failed to fetch salary data.'}`, 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    load();
+  }, [role, location, experience]);
 
   const pct = useMemo(() => {
     const range = b.p90 - b.p10;
@@ -53,16 +87,16 @@ export function FairPayView() {
       <StatGrid cols={4}>
         <StatBox label="Your Salary" value={formatMYR(salary, false)} />
         <StatBox label="Percentile" value={percentileLabel} />
-        <StatBox label="Market Median" value={formatMYR(b.median, false)} color="var(--teal)" />
-        <StatBox label="Gap to Median" value={`${salary >= b.median ? '+' : ''}${formatMYR(salary - b.median, false)}`} color={salary >= b.median ? 'var(--emerald)' : 'var(--rose)'} />
+        <StatBox label="Market Median" value={isLoading ? '...' : formatMYR(b.median, false)} color="var(--teal)" />
+        <StatBox label="Gap to Median" value={`${salary >= b.median ? '+' : ''}${isLoading ? '...' : formatMYR(salary - b.median, false)}`} color={salary >= b.median ? 'var(--emerald)' : 'var(--rose)'} />
       </StatGrid>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
         <div className="flex flex-col gap-3 p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
           <Field label="Occupation">
             <select value={role} onChange={(e) => setRole(e.target.value)} className="fp-input">
-              {Object.entries(BENCHMARKS).map(([k, v]) => (
-                <option key={k} value={k}>{v.name}</option>
+              {ROLES.map((r) => (
+                <option key={r} value={r}>{r}</option>
               ))}
             </select>
           </Field>

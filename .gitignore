@@ -55,3 +55,4 @@ supabase/.temp
 
 # Corpus artifacts (regenerated at build time — do not commit)
 scripts/output/
+scripts/corpus-raw.json

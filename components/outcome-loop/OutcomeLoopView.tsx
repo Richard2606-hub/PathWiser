@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/lib/utils';
+import { navigate } from '@/lib/engine/client';
+import { useAppStore } from '@/store/useAppStore';
 
 const OUTCOMES = {
   first: [
@@ -37,16 +39,63 @@ const HORIZONS = [
 ] as const;
 
 const PROGRAMMES = [
-  { key: 'cs', label: 'BSc Computer Science (AI/DS)' },
-  { key: 'it', label: 'BSc Information Technology' },
-  { key: 'biz', label: 'BSc Business Analytics' },
+  { key: 'cs', label: 'BSc Computer Science (AI/DS)', role: 'Software Engineer' },
+  { key: 'it', label: 'BSc Information Technology', role: 'IT Support' },
+  { key: 'biz', label: 'BSc Business Analytics', role: 'Data Analyst' },
 ];
 
 export function OutcomeLoopView() {
+  const showToast = useAppStore((s) => s.showToast);
   const [horizon, setHorizon] = useState<'first' | 'five' | 'ten'>('first');
   const [programme, setProgramme] = useState('cs');
-  const data = OUTCOMES[horizon];
-  const max = Math.max(...data.map((d) => d.pct));
+  
+  const [data, setData] = useState<{ role: string; pct: number }[]>(OUTCOMES['first']);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const progRole = PROGRAMMES.find(p => p.key === programme)?.role || 'Software Engineer';
+        const exp = horizon === 'first' ? 1 : horizon === 'five' ? 5 : 10;
+        
+        const res = await navigate({
+          userId: 'anon',
+          persona: 'university',
+          role: progRole,
+          education: "Bachelor's",
+          years_experience: exp,
+          state: 'Kuala Lumpur',
+          skills: [],
+          life_stage: exp < 3 ? 'young_adult' : 'mid_career',
+        });
+
+        if ('aggregate' in res && res.aggregate?.next_role_distribution) {
+          const mapped = res.aggregate.next_role_distribution.map(d => ({
+            role: d.role,
+            pct: Math.round(d.probability * 100),
+          })).sort((a, b) => b.pct - a.pct).slice(0, 5);
+          
+          if (mapped.length > 0) {
+            setData(mapped);
+          } else {
+            setData(OUTCOMES[horizon]);
+          }
+        } else {
+          setData(OUTCOMES[horizon]);
+        }
+      } catch (err: any) {
+        console.error(err);
+        setData(OUTCOMES[horizon]);
+        showToast(`Engine API Error: ${err.message || 'Failed to fetch outcome data.'}`, 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [horizon, programme]);
+
+  const max = data.length ? Math.max(...data.map((d) => d.pct)) : 100;
 
   return (
     <div className="flex flex-col gap-4">
@@ -54,7 +103,7 @@ export function OutcomeLoopView() {
         <StatBox label="Consortium Unis" value="18" />
         <StatBox label="Tracked Graduates" value="28,400" color="var(--teal)" />
         <StatBox label="Horizon" value={horizon === 'first' ? '1 Year' : horizon === 'five' ? '5 Year' : '10 Year'} color="var(--violet)" />
-        <StatBox label="Data Freshness" value="2024 Q4" color="var(--sky)" />
+        <StatBox label="Data Freshness" value={loading ? '...' : 'Real-time'} color="var(--sky)" />
       </StatGrid>
 
       <div className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
@@ -96,7 +145,7 @@ export function OutcomeLoopView() {
               <div className="h-2 rounded-full bg-[color:var(--bg-elevated)] overflow-hidden">
                 <div
                   className="h-full bg-[color:var(--violet)] transition-[width] duration-700"
-                  style={{ width: `${(d.pct / max) * 100}%` }}
+                  style={{ width: `${(d.pct / (max || 1)) * 100}%` }}
                 />
               </div>
               <span className="text-[11px] font-mono text-[color:var(--text-3)] text-right tabular-nums">
@@ -104,6 +153,9 @@ export function OutcomeLoopView() {
               </span>
             </div>
           ))}
+          {data.length === 0 && !loading && (
+            <div className="text-[color:var(--text-3)] text-sm py-4 text-center">No outcome data available for this configuration.</div>
+          )}
         </div>
       </div>
 

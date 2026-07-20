@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
+import { navigate } from '@/lib/engine/client';
 
 interface Hire {
   name: string;
@@ -15,28 +16,10 @@ interface Hire {
   similar: number;
 }
 
-const HIRES: Hire[] = [
-  { name: 'Ahmad Faizal', role: 'Full-Stack Developer', shapeMatch: 87, eta: '4.2 weeks', risk: 'Low',
-    interventions: [
-      { label: 'Buddy system', effectiveness: 85 },
-      { label: 'Code review pairing', effectiveness: 72 },
-      { label: 'Architecture walkthrough', effectiveness: 65 },
-    ],
-    similar: 145 },
-  { name: 'Siti Aminah', role: 'Data Analyst', shapeMatch: 72, eta: '6.8 weeks', risk: 'Medium',
-    interventions: [
-      { label: 'SQL bootcamp', effectiveness: 88 },
-      { label: 'Domain immersion', effectiveness: 74 },
-      { label: 'Stakeholder intro series', effectiveness: 62 },
-    ],
-    similar: 98 },
-  { name: 'Lee Mei Ling', role: 'Product Designer', shapeMatch: 64, eta: '8.1 weeks', risk: 'High',
-    interventions: [
-      { label: 'Design system onboarding', effectiveness: 82 },
-      { label: 'User research shadowing', effectiveness: 71 },
-      { label: 'Cross-functional sprint', effectiveness: 58 },
-    ],
-    similar: 62 },
+const INITIAL_HIRES: Hire[] = [
+  { name: 'Ahmad Faizal', role: 'Full-Stack Developer', shapeMatch: 87, eta: '4.2 weeks', risk: 'Low', interventions: [], similar: 0 },
+  { name: 'Siti Aminah', role: 'Data Analyst', shapeMatch: 72, eta: '6.8 weeks', risk: 'Medium', interventions: [], similar: 0 },
+  { name: 'Lee Mei Ling', role: 'Product Designer', shapeMatch: 64, eta: '8.1 weeks', risk: 'High', interventions: [], similar: 0 },
 ];
 
 const RISK_COLOR: Record<string, string> = {
@@ -47,7 +30,48 @@ const RISK_COLOR: Record<string, string> = {
 
 export function OnboardingPredictorView() {
   const [idx, setIdx] = useState(0);
-  const h = HIRES[idx];
+  const [hires, setHires] = useState<Hire[]>(INITIAL_HIRES);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const results = await Promise.all(INITIAL_HIRES.map(async (hire) => {
+        try {
+          const res = await navigate({
+            userId: 'anon',
+            persona: 'employer',
+            role: hire.role,
+            education: "Bachelor's",
+            years_experience: 1,
+            state: 'Kuala Lumpur',
+            skills: [],
+            life_stage: 'young_adult',
+          });
+
+          const similar = 'cohort' in res && res.cohort?.size ? res.cohort.size : hire.similar;
+          const bridges = 'aggregate' in res && res.aggregate?.common_skill_bridges ? res.aggregate.common_skill_bridges : [];
+          
+          const interventions = bridges.length > 0 ? bridges.slice(0, 3).map(b => ({
+            label: `Upskill: ${b.skill}`,
+            effectiveness: Math.round(b.frequency * 100)
+          })) : [
+            { label: 'Buddy system', effectiveness: 85 },
+            { label: 'Role-specific bootcamp', effectiveness: 74 },
+          ];
+
+          return { ...hire, similar, interventions };
+        } catch {
+          return { ...hire, interventions: [ { label: 'Fallback intervention', effectiveness: 50 } ] };
+        }
+      }));
+      setHires(results);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const h = hires[idx];
 
   return (
     <div className="flex flex-col gap-4">
@@ -55,7 +79,7 @@ export function OnboardingPredictorView() {
         <StatBox label="Shape Match" value={`${h.shapeMatch}%`} />
         <StatBox label="Predicted ETA" value={h.eta} color="var(--sky)" />
         <StatBox label="Risk Level" value={h.risk} color={RISK_COLOR[h.risk]} />
-        <StatBox label="Similar Onboards" value={h.similar} color="var(--teal)" />
+        <StatBox label="Similar Onboards" value={loading ? '...' : h.similar} color="var(--teal)" />
       </StatGrid>
 
       <div className="p-3.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
@@ -63,7 +87,7 @@ export function OnboardingPredictorView() {
           New Hire
         </span>
         <div className="flex gap-2 flex-wrap">
-          {HIRES.map((hire, i) => (
+          {hires.map((hire, i) => (
             <Button
               key={i}
               variant={i === idx ? 'primary' : 'outline'}
@@ -83,8 +107,8 @@ export function OnboardingPredictorView() {
           </span>
           <h3 className="text-base font-extrabold mt-0.5 mb-3">{h.name} · {h.role}</h3>
           <div className="flex flex-col gap-2">
-            {h.interventions.map((iv) => (
-              <div key={iv.label} className="grid grid-cols-[1fr_140px_50px] items-center gap-2.5 py-1">
+            {h.interventions.map((iv, i) => (
+              <div key={i} className="grid grid-cols-[1fr_140px_50px] items-center gap-2.5 py-1">
                 <span className="text-xs text-[color:var(--text-2)]">{iv.label}</span>
                 <div className="h-2 rounded-full bg-[color:var(--bg-elevated)] overflow-hidden">
                   <div className="h-full bg-[color:var(--teal)] transition-[width] duration-700"
@@ -102,7 +126,7 @@ export function OnboardingPredictorView() {
           <Callout tone="teal">
             <strong>Cohort Insight</strong>
             <p className="mt-1">
-              Based on <strong>{h.similar}</strong> similar onboarding trajectories, the recommended
+              Based on <strong>{loading ? '...' : h.similar}</strong> similar onboarding trajectories, the recommended
               intervention set has a{' '}
               <strong className="text-[color:var(--yellow)]">
                 {h.shapeMatch > 80 ? '78%' : h.shapeMatch > 70 ? '68%' : '52%'}

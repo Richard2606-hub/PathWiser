@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { Sidebar } from './Sidebar';
 import { cn } from '@/lib/utils';
+import { CloseButton } from '@/components/common/ClosableOverlay';
 
 /**
  * Mobile drawer wrapping the sidebar. Slides in from the left.
@@ -55,14 +56,7 @@ export function MobileDrawer() {
           <span className="font-mono text-xs font-bold uppercase tracking-widest text-[color:var(--text-2)]">
             Menu
           </span>
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close menu"
-            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-[color:var(--bg-glass-strong)] text-[color:var(--text-3)] hover:text-[color:var(--text-1)]"
-          >
-            ×
-          </button>
+          <CloseButton onClick={close} label="Close menu" className="relative top-0 right-0" />
         </div>
         <Sidebar onNavigate={close} />
       </aside>
