@@ -11,6 +11,7 @@ export interface ProfileFormValues {
   yearsExperience: number;
   state: string;
   skills: string[];
+  context: string;
 }
 
 const CANDIDATE_DEFAULT: ProfileFormValues = {
@@ -20,6 +21,7 @@ const CANDIDATE_DEFAULT: ProfileFormValues = {
   yearsExperience: 3,
   state: 'Kuala Lumpur',
   skills: ['SQL', 'Python', 'Tableau', 'Excel'],
+  context: 'Explore realistic next moves while balancing salary growth and learning time.',
 };
 const EMPLOYER_DEFAULT: ProfileFormValues = {
   name: 'BoldRise Sdn Bhd',
@@ -28,6 +30,7 @@ const EMPLOYER_DEFAULT: ProfileFormValues = {
   yearsExperience: 10,
   state: 'Kuala Lumpur',
   skills: ['Python', 'SQL', 'Machine Learning'],
+  context: 'Hiring for a growing data team; open to adjacent candidates with a practical bridge plan.',
 };
 const UNIVERSITY_DEFAULT: ProfileFormValues = {
   name: 'Universiti Teknologi Malaysia',
@@ -36,6 +39,7 @@ const UNIVERSITY_DEFAULT: ProfileFormValues = {
   yearsExperience: 18,
   state: 'Johor',
   skills: ['Java', 'Algorithms', 'Data Structures', 'SQL'],
+  context: 'Programme outcome review across consenting graduates and approved consortium comparisons.',
 };
 
 const EDUCATION_OPTIONS_CANDIDATE = [
@@ -130,6 +134,14 @@ export function ProfileIntake({
             setValues({ ...values, skills: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })
           }
           className="form-input"
+        />
+      </Field>
+      <Field label={persona === 'employer' ? 'Hiring and support context' : persona === 'university' ? 'Programme outcome and consortium context' : 'Career goal and decision context'}>
+        <textarea
+          value={values.context}
+          onChange={(event) => setValues({ ...values, context: event.target.value })}
+          className="form-input min-h-[78px] resize-y"
+          maxLength={800}
         />
       </Field>
 

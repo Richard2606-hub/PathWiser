@@ -1,213 +1,88 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Callout } from '@/components/common/Callout';
 import { Pill } from '@/components/common/Pill';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Button } from '@/components/common/Button';
-import { cn } from '@/lib/utils';
-import { navigate } from '@/lib/engine/client';
-
 import { useAppStore } from '@/store/useAppStore';
+import type { EvidenceProvenance, TalentCandidateMatch } from '@/types';
 
-interface Candidate {
-  name: string;
-  role: string;
-  match: number;
-  skills: string[];
-  exp: string;
-  flag?: 'retention_risk' | 'upskill_needed' | 'strong_fit';
-  adjacent?: boolean;
-  bridge?: string;
+interface MatchResponse {
+  candidates: TalentCandidateMatch[];
+  cohort_size: number;
+  data_scope: 'consented-community' | 'modelled-examples';
+  evidence: EvidenceProvenance;
+  common_bridges: Array<{ skill: string; frequency: number }>;
+  cohort_too_small?: boolean;
+  message?: string;
 }
 
-const FALLBACK_CANDIDATES: Candidate[] = [
-  { name: 'Nurul Aisyah', role: 'Data Engineer @ Grab MY', match: 94, skills: ['Python', 'Spark', 'Airflow', 'SQL'], exp: '4 yrs', flag: 'strong_fit' },
-  { name: 'Raj Vikram', role: 'ML Scientist @ AirAsia', match: 89, skills: ['TensorFlow', 'Python', 'Statistics', 'MLOps'], exp: '5 yrs', flag: 'retention_risk' },
-  { name: 'Chen Wei Lin', role: 'Analytics Lead @ Maybank', match: 82, skills: ['R', 'Tableau', 'SQL', 'Forecasting'], exp: '6 yrs' },
-  { name: 'Amirah Zainal', role: 'BI Analyst @ PETRONAS', match: 78, skills: ['Power BI', 'DAX', 'Azure', 'Python'], exp: '3 yrs', flag: 'upskill_needed', adjacent: true, bridge: 'ML fundamentals · 3 months' },
-  { name: 'Lee Jian Wei', role: 'Full-Stack Dev @ Shopee', match: 72, skills: ['TypeScript', 'React', 'Node.js'], exp: '4 yrs', adjacent: true, bridge: 'Python + Statistics · 4 months' },
-];
-
-const ROLE_OPTIONS = [
-  { value: 'Lead Data Scientist', label: 'Lead Data Scientist' },
-  { value: 'Machine Learning Engineer', label: 'ML Engineer (Senior)' },
-  { value: 'Data Analyst', label: 'Product Data Analyst' },
-];
-
 export function TalentMatchingView() {
-  const showToast = useAppStore((s) => s.showToast);
-  const [role, setRole] = useState('Lead Data Scientist');
-  const [skills, setSkills] = useState('Python, SQL, Machine Learning');
+  const shape = useAppStore((state) => state.shape);
+  const showToast = useAppStore((state) => state.showToast);
+  const [role, setRole] = useState('Data Analyst');
+  const [skills, setSkills] = useState(['SQL', 'Python', 'Tableau'].join(', '));
+  const [state, setState] = useState(shape?.state || 'Kuala Lumpur');
   const [showAdjacent, setShowAdjacent] = useState(true);
-  const [candidates, setCandidates] = useState<Candidate[]>(FALLBACK_CANDIDATES);
+  const [result, setResult] = useState<MatchResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [poolSize, setPoolSize] = useState(12480);
 
-  const handleSearch = async () => {
+  const search = async () => {
     setLoading(true);
     try {
-      const res = await navigate({
-        userId: 'anon',
-        persona: 'employer',
-        role: role,
-        education: "Bachelor's",
-        years_experience: 5,
-        state: 'Kuala Lumpur',
-        skills: skills.split(',').map(s => s.trim()).filter(Boolean),
-        life_stage: 'mid_career',
-      });
-
-      if ('cohort' in res && res.cohort?.size) {
-        setPoolSize(res.cohort.size * 142); // Mocking a larger candidate pool
-      }
-
-      if ('path' in res && Array.isArray(res.path) && res.path.length > 0) {
-        const bridges = 'aggregate' in res && res.aggregate?.common_skill_bridges ? res.aggregate.common_skill_bridges : [];
-        const dynamicCandidates = res.path.slice(0, 5).map((t, i) => {
-          const matchScore = Math.max(65, 95 - (i * Math.random() * 8));
-          const isAdjacent = matchScore < 80;
-          const bridgeSkill = isAdjacent && bridges.length > 0 ? bridges[0].skill : undefined;
-          
-          return {
-            name: `Candidate ${t.id.substring(0, 4)}`,
-            role: t.role,
-            match: Math.round(matchScore),
-            skills: t.skills || [],
-            exp: `${t.years_experience} yrs`,
-            flag: matchScore > 90 ? 'strong_fit' as const : isAdjacent ? 'upskill_needed' as const : undefined,
-            adjacent: isAdjacent,
-            bridge: bridgeSkill ? `${bridgeSkill} · 3 months` : undefined,
-          };
-        });
-        setCandidates(dynamicCandidates);
-      }
-    } catch (err: any) {
-      console.error(err);
-      setCandidates(FALLBACK_CANDIDATES);
-      showToast(`Engine API Error: ${err.message || 'Failed to fetch candidate matches.'}`, 'error');
-    } finally {
-      setLoading(false);
-    }
+      const response = await fetch('/api/talent/match', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role, state, skills: skills.split(',').map((item) => item.trim()).filter(Boolean), include_adjacent: showAdjacent }) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || 'Unable to retrieve candidates.');
+      setResult(body);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Unable to retrieve candidates.', 'error');
+    } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    handleSearch();
-  }, []);
-
-  const filtered = candidates.filter((c) => showAdjacent || !c.adjacent);
-  const avgMatch = filtered.length > 0 ? Math.round(filtered.reduce((sum, c) => sum + c.match, 0) / filtered.length) : 0;
+  useEffect(() => { void search(); /* initial query follows the saved demand shape */ /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   return (
     <div className="flex flex-col gap-4">
       <StatGrid cols={4}>
-        <StatBox label="Candidate Pool" value={loading ? '...' : poolSize.toLocaleString()} />
-        <StatBox label="Shape Matches" value={loading ? '...' : filtered.length.toString()} color="var(--teal)" />
-        <StatBox label="Avg Match Score" value={loading ? '...' : `${avgMatch}%`} />
-        <StatBox label="Retrieval Time" value={loading ? '...' : '120ms'} color="var(--sky)" />
+        <StatBox label="Candidate profiles" value={loading ? '…' : String(result?.candidates.length || 0)} />
+        <StatBox label="Evidence cohort" value={loading ? '…' : (result?.cohort_size || 0).toLocaleString()} color="var(--teal)" />
+        <StatBox label="Adjacent profiles" value={loading ? '…' : String(result?.candidates.filter((item) => item.adjacent).length || 0)} />
+        <StatBox label="Data scope" value={result?.data_scope === 'consented-community' ? 'Consented' : 'Modelled'} color="var(--sky)" />
       </StatGrid>
 
-      <div className="p-3.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)] block mb-2">
-          Declare Demand Vector
-        </span>
-        <div className="flex flex-wrap gap-2 items-center">
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="px-2.5 py-1.5 rounded-md bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-sm outline-none focus:border-[color:var(--accent)]"
-          >
-            {ROLE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <input
-            type="text"
-            value={skills}
-            onChange={(e) => setSkills(e.target.value)}
-            placeholder="Required skills"
-            className="flex-1 min-w-[220px] px-2.5 py-1.5 rounded-md bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-sm outline-none focus:border-[color:var(--accent)]"
-          />
-          <Button variant="primary" size="sm" onClick={handleSearch} disabled={loading}>
-            {loading ? 'Retrieving...' : 'Run Inverse Retrieval'}
-          </Button>
+      <section className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]" aria-labelledby="demand-title">
+        <h2 id="demand-title" className="font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-2)]">Declare the role demand shape</h2>
+        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_2fr_1fr_auto]">
+          <label className="text-xs">Target role<input className="community-input mt-1" value={role} onChange={(event) => setRole(event.target.value)} /></label>
+          <label className="text-xs">Required skills<input className="community-input mt-1" value={skills} onChange={(event) => setSkills(event.target.value)} /></label>
+          <label className="text-xs">State<input className="community-input mt-1" value={state} onChange={(event) => setState(event.target.value)} /></label>
+          <Button className="self-end" onClick={search} disabled={loading}>{loading ? 'Retrieving…' : 'Find candidates'}</Button>
         </div>
-        <label className="flex items-center gap-2 mt-3 text-xs text-[color:var(--text-2)]">
-          <input
-            type="checkbox"
-            checked={showAdjacent}
-            onChange={(e) => setShowAdjacent(e.target.checked)}
-          />
-          Include <strong className="text-[color:var(--yellow)]">adjacent</strong> candidates (one bridge away)
-        </label>
-      </div>
+        <label className="mt-3 flex items-center gap-2 text-xs text-[color:var(--text-2)]"><input type="checkbox" checked={showAdjacent} onChange={(event) => setShowAdjacent(event.target.checked)} />Include candidates who need a reasonable skill bridge</label>
+      </section>
 
-      <Callout tone="teal">
-        <strong>How this differs from a CV keyword search</strong>
-        <p className="mt-1">
-          Each candidate below is ranked by <em>trajectory-shape</em> similarity to the role&apos;s inflow —
-          not by keyword overlap with the JD. Adjacent candidates (one bridge away) are surfaced with
-          the specific skill bridge required. Each match shows reasoning, never a black-box score.
-        </p>
+      <Callout tone={result?.data_scope === 'consented-community' ? 'teal' : 'amber'}>
+        <strong>{result?.data_scope === 'consented-community' ? 'Consented community discovery' : 'Modelled profile preview'}</strong>
+        <p className="mt-1">{result?.data_scope === 'consented-community' ? 'Only candidates who opted into employer discovery are included. Consent is revocable.' : 'These are clearly labelled synthetic profiles for evaluating the workflow. Configure community accounts and employer membership to retrieve opted-in candidates.'} No single match score is shown; employers review evidence, bridges, and context.</p>
       </Callout>
 
-      <div className="flex flex-col gap-2.5">
-        {filtered.map((c) => (
-          <CandidateCard key={c.name} candidate={c} />
-        ))}
-        {filtered.length === 0 && !loading && (
-          <div className="text-center py-8 text-sm text-[color:var(--text-3)]">No candidates found matching the criteria.</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CandidateCard({ candidate: c }: { candidate: Candidate }) {
-  const matchColor = c.match >= 90 ? 'var(--emerald)' : c.match >= 80 ? 'var(--yellow)' : 'var(--text-2)';
-
-  return (
-    <div
-      className={cn(
-        'p-3.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]',
-        'hover:bg-[color:var(--bg-glass-strong)] hover:border-[color:var(--border-strong)] transition-all',
-        c.adjacent && 'border-l-[3px] border-l-[color:var(--yellow)]'
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-              {c.exp} experience
-            </span>
-            {c.flag === 'retention_risk' && <Pill variant="gap">⚠ retention risk</Pill>}
-            {c.flag === 'upskill_needed' && <Pill variant="bridge">upskill needed</Pill>}
-            {c.flag === 'strong_fit' && <Pill variant="acquired">strong fit</Pill>}
-            {c.adjacent && <Pill variant="bridge">Adjacent · 1 bridge</Pill>}
-          </div>
-          <h3 className="text-base font-extrabold">{c.name}</h3>
-          <div className="text-xs text-[color:var(--text-2)] mt-0.5">{c.role}</div>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {c.skills.map((s) => <Pill key={s} variant="acquired">{s}</Pill>)}
-          </div>
-          {c.bridge && (
-            <div className="mt-2 text-[11px] px-2.5 py-1.5 rounded bg-[color:var(--bg-elevated)] border-l-[3px] border-[color:var(--teal)]">
-              <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)] mr-2">
-                Bridge:
-              </span>
-              <span className="text-[color:var(--teal)] font-semibold">{c.bridge}</span>
+      <div className="flex flex-col gap-3" aria-live="polite">
+        {result?.candidates.map((candidate, index) => (
+          <article key={candidate.id} className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-4">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row">
+              <div>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-3)]">Evidence order {index + 1} · {candidate.consent_scope === 'synthetic-example' ? 'Synthetic' : 'Opted in'}</span>
+                <h3 className="mt-1 text-base font-extrabold">{candidate.display_name}</h3>
+                <p className="text-xs text-[color:var(--text-2)]">{candidate.current_role} · {candidate.state}</p>
+              </div>
+              {candidate.adjacent ? <Pill variant="bridge">Adjacent candidate</Pill> : <Pill variant="acquired">Direct requirements</Pill>}
             </div>
-          )}
-        </div>
-        <div className="flex flex-col items-end">
-          <div
-            className="text-4xl font-black tabular-nums leading-none"
-            style={{ color: matchColor }}
-          >
-            {c.match}%
-          </div>
-          <span className="font-mono text-[9px] text-[color:var(--text-3)] uppercase mt-1">
-            match
-          </span>
-        </div>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--text-2)]">{candidate.rationale}</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">{candidate.matched_skills.map((skill) => <Pill key={skill} variant="acquired">Aligned: {skill}</Pill>)}{candidate.skill_bridges.map((skill) => <Pill key={skill} variant="bridge">Assess bridge: {skill}</Pill>)}</div>
+          </article>
+        ))}
+        {!loading && result?.candidates.length === 0 && <Callout tone="amber"><strong>No safe match set</strong><p className="mt-1">Broaden the requirements or invite candidates to opt into discovery. PathWiser will not infer named matches from an insufficient cohort.</p></Callout>}
       </div>
     </div>
   );

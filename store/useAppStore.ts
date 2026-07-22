@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UserShape, WorkAnimalKey, Persona, LifeStage } from '@/types';
+import type { UserShape, WorkAnimalKey, Persona, ShapeDimensions } from '@/types';
 
 interface WorkAnimalResult {
   key: WorkAnimalKey;
@@ -23,7 +23,7 @@ interface AppState {
   setIdentity: (i: { name: string; role: string }) => void;
   shape: UserShape | null;
   setShape: (s: UserShape) => void;
-  updateShapeSlider: (key: string, value: number) => void;
+  updateShapeSlider: (key: keyof ShapeDimensions, value: number) => void;
 
   // Onboarding
   onboardStep: number;
@@ -89,19 +89,19 @@ export const useAppStore = create<AppState>()(
       setIdentity: (identity) => set({ identity }),
       shape: null,
       setShape: (shape) => set({ shape }),
-      updateShapeSlider: (key, value) =>
-        set((s) => {
-          const cur = s.shape;
-          if (!cur) return {};
-          return {
-            shape: {
-              ...cur,
-              // Store slider adjustments in a virtual field so retrieval can factor them in
-              // We keep the original UserShape typing clean; slider values live on the
-              // dashboard-local UI, not on the persisted shape.
+      updateShapeSlider: (key, value) => set((state) => {
+        if (!state.shape) return {};
+        return {
+          shape: {
+            ...state.shape,
+            dimensions: {
+              ...DEFAULT_SHAPE_SLIDERS,
+              ...state.shape.dimensions,
+              [key]: Math.max(0, Math.min(100, value)),
             },
-          };
-        }),
+          },
+        };
+      }),
 
       onboardStep: 0,
       onboardRole: null,

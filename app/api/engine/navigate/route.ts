@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { retrieveCohort, aggregate, explain } from '@/lib/engine';
 import { MIN_COHORT_SIZE } from '@/lib/engine/aggregate';
 import type { UserShape } from '@/types';
+import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
+import { recordEngineEvent } from '@/lib/observability';
+import { getEvidenceProvenance } from '@/lib/evidence';
 
 const ShapeSchema = z.object({
   userId: z.string().default('anon'),
@@ -17,6 +20,13 @@ const ShapeSchema = z.object({
   skills: z.array(z.string()),
   life_stage: z.enum(['student', 'young_adult', 'early_career', 'mid_career', 'senior_career', 'executive']),
   work_animal: z.enum(['owl', 'fox', 'bear', 'dolphin', 'eagle', 'ant']).optional(),
+  dimensions: z.object({
+    technical: z.number().min(0).max(100),
+    domain: z.number().min(0).max(100),
+    leadership: z.number().min(0).max(100),
+    analytics: z.number().min(0).max(100),
+    communication: z.number().min(0).max(100),
+  }).optional(),
 });
 
 const RequestSchema = z.object({
@@ -37,6 +47,11 @@ const RequestSchema = z.object({
  * claim made real.
  */
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'navigate', 40);
+  if (limited) return limited;
+  const invalidOrigin = requireSameOrigin(req);
+  if (invalidOrigin) return invalidOrigin;
+  const startedAt = Date.now();
   try {
     const body = await req.json();
     const { shape, currentStepIndex, filterByLifeStage, filterByState, filterBySector, k } =
@@ -51,12 +66,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (cohort.cohort_too_small) {
+      void recordEngineEvent({ module: 'navigate', userId: shape.userId, cohortSize: cohort.size, latencyMs: Date.now() - startedAt, outcome: 'too_small' });
       return NextResponse.json(
         {
           cohort_too_small: true,
           cohort_size: cohort.size,
           k_min: cohort.cohort_too_small.k_min,
           message: cohort.cohort_too_small.reason,
+          evidence: getEvidenceProvenance(),
         },
         { status: 200 }
       );
@@ -80,6 +97,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 4. Response
+    void recordEngineEvent({ module: 'navigate', userId: shape.userId, cohortSize: cohort.size, similarityMean: cohort.similarity_stats.mean, latencyMs: Date.now() - startedAt, validationPassed: explanation.passed_validation, outcome: 'success' });
     return NextResponse.json({
       cohort: {
         size: cohort.size,
@@ -89,11 +107,13 @@ export async function POST(req: NextRequest) {
       aggregate: agg,
       explanation,
       k_min: MIN_COHORT_SIZE,
+      evidence: getEvidenceProvenance(),
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'invalid_input', issues: err.issues }, { status: 400 });
     }
+    void recordEngineEvent({ module: 'navigate', latencyMs: Date.now() - startedAt, outcome: 'error' });
     return NextResponse.json(
       { error: 'internal_error', message: err instanceof Error ? err.message : String(err) },
       { status: 500 }

@@ -2,6 +2,8 @@
 
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
+import { AccountActions } from './AccountActions';
+import { useRouter } from 'next/navigation';
 
 const PERSONA_ICON: Record<string, string> = {
   candidate: '👤',
@@ -15,6 +17,8 @@ const PERSONA_LABEL: Record<string, string> = {
 };
 
 export function Header() {
+  const judgeEnabled = process.env.NEXT_PUBLIC_ENABLE_JUDGE_MODE === 'true';
+  const router = useRouter();
   const persona = useAppStore((s) => s.persona);
   const judgeMode = useAppStore((s) => s.judgeMode);
   const identity = useAppStore((s) => s.identity);
@@ -24,7 +28,7 @@ export function Header() {
   const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
 
   return (
-    <header className="sticky top-2.5 z-30 mx-2.5 mb-3.5 flex items-center justify-between gap-2 rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-surface)] backdrop-blur-xl px-4 py-3 sm:px-5 sm:py-3.5">
+    <header className="sticky top-0 z-30 flex min-h-[68px] items-center justify-between gap-3 border-b border-[color:var(--border)] bg-white/95 px-4 py-3 shadow-[0_1px_12px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:px-7">
       {/* Left · hamburger + brand */}
       <div className="flex items-center gap-3">
         <button
@@ -37,35 +41,36 @@ export function Header() {
           <span className="block w-4 h-0.5 rounded bg-[color:var(--text-1)]" />
           <span className="block w-4 h-0.5 rounded bg-[color:var(--text-1)]" />
         </button>
-        <a href="/" className="flex items-center gap-1.5">
-          <span className="font-mono text-lg font-extrabold text-[color:var(--yellow)]">[</span>
-          <span className="text-sm sm:text-base font-extrabold tracking-tight">
+        <a href="/" className="flex items-center gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[color:var(--yellow)] text-xs font-extrabold text-white shadow-[0_6px_16px_rgba(79,70,229,0.2)]">PW</span>
+          <span className="text-base sm:text-lg font-extrabold tracking-tight">
             Path<span className="text-[color:var(--yellow)]">Wiser</span>
           </span>
-          <span className="font-mono text-lg font-extrabold text-[color:var(--yellow)]">]</span>
         </a>
       </div>
 
       {/* Center · engine status */}
-      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
+      <div className="hidden md:flex items-center gap-2 rounded-full bg-[color:var(--bg-elevated)] px-3 py-1.5">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--yellow)] opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--yellow)]" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--emerald)] opacity-40" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--emerald)]" />
         </span>
-        <span className="font-mono text-[10px] text-[color:var(--text-2)]">
-          Engine calibrated · 1,500 trajectories
+        <span className="text-[11px] font-medium text-[color:var(--text-2)]">
+          Evidence service online
         </span>
       </div>
 
       {/* Right · identity + judge toggle */}
       <div className="flex items-center gap-2">
-        {!judgeMode ? (
+        <AccountActions />
+        {!(judgeEnabled && judgeMode) ? (
           <button
             type="button"
             onClick={() => openLockedExplainer(null)}
+            aria-label={`${PERSONA_LABEL[persona].toLowerCase()} workspace for ${identity.name}. Open persona information`}
             className={cn(
-              'flex items-center gap-2 px-3 py-1.5 rounded-full',
-              'border border-[color:var(--border-strong)] bg-[color:var(--bg-elevated)]',
+              'flex items-center gap-2 px-3 py-1.5 rounded-xl',
+              'border border-[color:var(--border)] bg-white shadow-sm',
               'hover:border-[color:var(--accent)] transition-colors'
             )}
           >
@@ -90,7 +95,9 @@ export function Header() {
               <button
                 key={p}
                 type="button"
-                onClick={() => setPersona(p)}
+                onClick={() => { setPersona(p); router.push(p === 'candidate' ? '/dashboard/candidate/path-navigator' : p === 'employer' ? '/dashboard/employer/talent-matching' : '/dashboard/university/outcome-loop'); }}
+                aria-label={`Switch to ${p} workspace`}
+                aria-pressed={persona === p}
                 className={cn(
                   'px-2.5 py-1.5 rounded-md text-[11px] font-semibold border transition-all',
                   persona === p
@@ -105,9 +112,11 @@ export function Header() {
           </div>
         )}
 
-        <button
+        {judgeEnabled && <button
           type="button"
           onClick={toggleJudgeMode}
+          aria-label={judgeMode ? 'Exit judge view and lock to one audience' : 'Enter judge view to compare all audiences'}
+          aria-pressed={judgeMode}
           className={cn(
             'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] sm:text-[11px] font-semibold border transition-all',
             judgeMode
@@ -124,7 +133,7 @@ export function Header() {
           <span className="hidden sm:inline">
             {judgeMode ? 'Lock to one view' : 'Judge view'}
           </span>
-        </button>
+        </button>}
       </div>
     </header>
   );

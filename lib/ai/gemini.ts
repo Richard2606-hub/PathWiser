@@ -8,8 +8,8 @@ import type { Aggregate, Explanation } from '@/types';
  * Uses free tier at aistudio.google.com/apikey.
  *
  * Cost profile:
- *   - Embeddings (text-embedding-004): free tier, 1500 requests/minute
- *   - Chat (gemini-1.5-flash): free tier, 15 requests/minute
+ *   - Embeddings (gemini-embedding-2): free tier, 1500 requests/minute
+ *   - Chat (gemini-3.5-flash-lite): free tier, 15 requests/minute
  *
  * For Talentbank adoption: swap this file with your internal AI implementation
  * of the AIProvider interface. Nothing else changes.
@@ -28,8 +28,8 @@ export class GeminiProvider implements AIProvider {
       );
     }
     this.client = new GoogleGenerativeAI(apiKey);
-    this.embeddingModel = options?.embeddingModel || 'gemini-embedding-001';
-    this.chatModel = options?.chatModel || 'gemini-1.5-flash';
+    this.embeddingModel = options?.embeddingModel || 'gemini-embedding-2';
+    this.chatModel = options?.chatModel || 'gemini-3.5-flash-lite';
   }
 
   async getEmbedding(text: string): Promise<number[]> {

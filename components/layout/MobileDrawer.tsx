@@ -28,6 +28,8 @@ export function MobileDrawer() {
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
+  if (!open) return null;
+
   return (
     <>
       {/* Backdrop */}
@@ -35,10 +37,10 @@ export function MobileDrawer() {
         className={cn(
           'fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden',
           'transition-opacity duration-300',
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          'opacity-100 pointer-events-auto'
         )}
         onClick={close}
-        aria-hidden={!open}
+        aria-hidden="true"
       />
       {/* Drawer */}
       <aside
@@ -47,10 +49,9 @@ export function MobileDrawer() {
           'bg-[#0d141d] border-r border-[color:var(--border-strong)]',
           'overflow-y-auto shadow-2xl',
           'transition-transform duration-300 ease-out',
-          open ? 'translate-x-0' : '-translate-x-full'
+          'translate-x-0'
         )}
         aria-label="Navigation"
-        aria-hidden={!open}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-[color:var(--border)]">
           <span className="font-mono text-xs font-bold uppercase tracking-widest text-[color:var(--text-2)]">

@@ -13,6 +13,8 @@ export default function AIExplanationPage() {
           </p>
         </Callout>
 
+        <Callout tone="amber"><strong>Illustrative engine-room payload</strong><p className="mt-1">The numbers below explain the contract and validator; they are not a live user result. Audience modules retrieve and disclose their own current cohort.</p></Callout>
+
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
             <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">

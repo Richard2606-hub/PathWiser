@@ -1,218 +1,59 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { DEMO_PERSONAS } from '@/lib/corpus/personas';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
 
-interface Message {
-  role: 'user' | 'assistant';
-  text: string;
-}
-
+interface Message { role: 'user' | 'assistant'; text: string; }
 const QUICK_TOPICS = [
-  { icon: '🔄', title: 'Career Pivot', prompt: 'What does a pivot from data analytics to product management look like?' },
-  { icon: '💰', title: 'Salary Insight', prompt: 'What salary can I expect as a Senior Data Scientist in KL?' },
-  { icon: '🎯', title: 'Skill Bridge', prompt: 'What skills should I learn to move into machine learning?' },
-  { icon: '⏱️', title: 'Timeline', prompt: 'How long does a mid-career transition typically take?' },
-  { icon: '⚖️', title: 'Trade-offs', prompt: 'Compare technical IC track vs management for a data scientist' },
-];
-
-const CANNED_ANSWERS: Array<{ pattern: RegExp; answer: string }> = [
-  {
-    pattern: /pivot|transition.*(product|pm)/i,
-    answer: `Based on ~1,240 cohort trajectories, **Analytics → PM transitions** typically take 18–24 months. Key bridging skills: stakeholder management, roadmap planning, and user research. 62% of successful pivots involved an internal lateral move first, rather than an external jump.
-
-⚠️ *Honest note: This reflects cohort aggregates, not a prediction of your individual outcome.*`,
-  },
-  {
-    pattern: /salary|pay|compensation/i,
-    answer: `For **Senior Data Scientists in Kuala Lumpur** (3–5 yrs exp), the DOSM-calibrated range is:
-
-• P25: RM 7,800/m
-• Median: RM 9,500/m
-• P75: RM 12,200/m
-
-Your current shape positions you near the **55th percentile** of the cohort. This role appears on Malaysia's Critical Occupations List (MyCOL 2024/25).
-
-📊 *Calibration: DOSM Salaries & Wages Survey 2024 + Michael Page MY headline anchors.*`,
-  },
-  {
-    pattern: /skill|learn|machine learning|ml/i,
-    answer: `For **machine learning** career paths, the top bridging skills observed in the cohort are:
-
-1. **Deep Learning Frameworks** (PyTorch/TensorFlow) — 89% of ML roles require this
-2. **MLOps & Model Serving** — Growing 34% YoY in Malaysian job postings
-3. **Statistical Modeling** — Foundation skill, 72% coverage needed
-
-Recommended learning path: 6–9 months of structured upskilling. Historical evidence, not a prediction.`,
-  },
-  {
-    pattern: /how long|timeline|duration/i,
-    answer: `Mid-career transitions in the Malaysian tech market typically follow this pattern:
-
-• **Lateral (same level, new domain):** 3–6 months
-• **Diagonal (level up + new domain):** 12–18 months
-• **Vertical (same domain, level up):** 6–12 months
-
-Based on 2,840 cohort trajectories. Median transition includes 2.3 months of active job searching.`,
-  },
-  {
-    pattern: /trade|compare|management.*ic|ic.*management/i,
-    answer: `**Technical IC vs. Management** — the classic fork:
-
-| Factor | Technical IC | Management |
-|--------|-------------|------------|
-| Salary ceiling (MY) | RM 18–25K/m | RM 20–35K/m |
-| Cohort size | Smaller (210) | Larger (980) |
-| Skill decay risk | Higher | Lower |
-| Autonomy | Higher | Lower |
-
-68% of cohort members who chose management reported satisfaction, vs 74% for IC path.
-
-⚖️ *Trade-off note: Management offers a higher salary ceiling but requires giving up deep technical work.*`,
-  },
+  { title: 'Career pivot', prompt: 'What cohort evidence should I consider before moving from data analytics into product management?' },
+  { title: 'Salary context', prompt: 'What salary ranges appear around the realistic next roles in my cohort?' },
+  { title: 'Skill bridge', prompt: 'Which skill bridges are most common for people moving toward machine learning?' },
+  { title: 'Trade-offs', prompt: 'Compare the trade-offs between a technical individual-contributor path and management.' },
 ];
 
 export function AICoachView() {
-  const showToast = useAppStore((s) => s.showToast);
-  const shape = useAppStore((s) => s.shape);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      text: `Welcome! I'm your evidence-grounded Career Coach. I reason over trajectory cohorts retrieved by the Career Twin Engine — I never make individual predictions. What would you like to explore?`,
-    },
-  ]);
+  const showToast = useAppStore((state) => state.showToast);
+  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', text: 'Welcome. I reason only over a retrieved trajectory cohort and never predict an individual outcome. What decision would you like to examine?' }]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [serviceState, setServiceState] = useState<'ready'|'unavailable'>('ready');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, typing]);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [messages, typing]);
 
   const send = async (text: string) => {
-    if (!text.trim()) return;
-    const newMessages: Message[] = [...messages, { role: 'user', text }];
-    setMessages(newMessages);
-    setInput('');
-    setTyping(true);
-    
+    const question = text.trim(); if (!question || typing) return;
+    const history = messages.slice(-10).map((item) => ({ role: item.role, content: item.text }));
+    setMessages((current) => [...current, { role: 'user', text: question }]); setInput(''); setTyping(true);
     try {
-      const res = await fetch('/api/engine/coach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shape, message: text, history: messages.slice(-10) }),
-      });
-      if (!res.ok) {
-        throw new Error('API failed');
-      }
-      const data = await res.json();
-      setMessages((m) => [...m, { role: 'assistant', text: data.reply }]);
-    } catch (e) {
-      const answer = CANNED_ANSWERS.find((a) => a.pattern.test(text))?.answer ||
-        `Based on the Career Twin Engine analysis... (Fallback template as API failed)`;
-      setMessages((m) => [...m, { role: 'assistant', text: answer }]);
-      showToast('API unavailable, falling back to templates.', 'error');
-    } finally {
-      setTyping(false);
-    }
+      const response = await fetch('/api/engine/coach', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ shape, message: question, history }) });
+      const body = await response.json(); if (!response.ok) throw new Error(body.message || 'Evidence service failed.');
+      setMessages((current) => [...current, { role: 'assistant', text: body.reply }]); setServiceState('ready');
+      if (body.fallback_reason === 'provider_unavailable') showToast('The AI provider was unavailable, so PathWiser used a deterministic evidence summary.', 'warn');
+      else if (body.fallback_reason === 'validation_failed') showToast('The generated answer failed honesty validation, so PathWiser used a deterministic evidence summary.', 'warn');
+    } catch (error) {
+      setMessages((current) => [...current, { role: 'assistant', text: 'I cannot retrieve a publishable trajectory cohort right now, so I will not generate advice or numbers from memory. Please try again when the evidence service is available.' }]);
+      setServiceState('unavailable'); showToast(error instanceof Error ? error.message : 'Evidence service unavailable.', 'error');
+    } finally { setTyping(false); }
   };
 
-  return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-      <div className="flex flex-col rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] overflow-hidden">
-        <div className="flex items-center gap-2 px-3.5 py-2 border-b border-[color:var(--border)]">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--emerald)] opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--emerald)]" />
-          </span>
-          <span className="text-xs font-semibold">Career Twin Coach · Online</span>
-          <span className="ml-auto text-[9px] font-mono uppercase tracking-widest text-[color:var(--text-3)]">
-            Honesty Constraints Active
-          </span>
-        </div>
-        <div ref={scrollRef} className="flex flex-col gap-3 p-3.5 max-h-[440px] min-h-[320px] overflow-y-auto">
-          {messages.map((m, i) => (
-            <MessageBubble key={i} message={m} />
-          ))}
-          {typing && <TypingIndicator />}
-        </div>
-        <div className="flex gap-2 p-2.5 border-t border-[color:var(--border)]">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && send(input)}
-            placeholder="Ask about pivots, skills, salary, transitions…"
-            className="flex-1 px-3 py-2 rounded-md bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-sm outline-none focus:border-[color:var(--accent)]"
-          />
-          <Button onClick={() => send(input)}>Send</Button>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-          Quick Topics
-        </span>
-        {QUICK_TOPICS.map((q) => (
-          <button
-            key={q.title}
-            onClick={() => send(q.prompt)}
-            className="text-left p-2.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] hover:bg-[color:var(--bg-glass-strong)] hover:border-[color:var(--accent)] transition-all"
-          >
-            <div className="text-sm font-bold">{q.icon} {q.title}</div>
-            <div className="text-[10px] text-[color:var(--text-3)] mt-0.5">{q.prompt.slice(0, 40)}…</div>
-          </button>
-        ))}
-        <Callout tone="teal" className="mt-2">
-          <strong>How this works</strong>
-          <p className="mt-1 text-[11px]">
-            When Gemini is configured, chat routes through <code>/api/engine/coach</code>. Without it,
-            responses fall back to template narratives that still respect the honesty constraints.
-          </p>
-        </Callout>
-      </div>
-    </div>
-  );
+  return <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+    <section className="flex flex-col overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]" aria-labelledby="coach-title">
+      <div className="flex items-center gap-2 border-b border-[color:var(--border)] px-3.5 py-2"><span className={`h-2 w-2 rounded-full ${serviceState === 'ready' ? 'bg-[color:var(--emerald)]' : 'bg-[color:var(--rose)]'}`} /><h2 id="coach-title" className="text-xs font-semibold">Career Twin Coach · {serviceState === 'ready' ? 'Evidence ready' : 'Evidence unavailable'}</h2><span className="ml-auto font-mono text-[9px] uppercase text-[color:var(--text-3)]">Honesty validation active</span></div>
+      <div ref={scrollRef} className="flex min-h-[340px] max-h-[480px] flex-col gap-3 overflow-y-auto p-3.5" aria-live="polite">{messages.map((message, index) => <MessageBubble key={`${message.role}-${index}`} message={message} />)}{typing && <div className="self-start rounded-2xl bg-[color:var(--bg-elevated)] px-3.5 py-2 text-xs">Retrieving and validating cohort evidence…</div>}</div>
+      <div className="flex gap-2 border-t border-[color:var(--border)] p-2.5"><label htmlFor="coach-question" className="sr-only">Question for the Career Twin Coach</label><input id="coach-question" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void send(input); }} maxLength={2000} placeholder="Ask about options, bridges, ranges, or trade-offs" className="community-input flex-1" /><Button onClick={() => void send(input)} disabled={typing || !input.trim()}>Send</Button></div>
+    </section>
+    <aside className="flex flex-col gap-2"><span className="font-mono text-[10px] uppercase text-[color:var(--text-2)]">Evidence questions</span>{QUICK_TOPICS.map((topic) => <button key={topic.title} type="button" onClick={() => void send(topic.prompt)} disabled={typing} className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-3 text-left transition hover:border-[color:var(--yellow)] disabled:opacity-50"><strong className="text-sm">{topic.title}</strong><span className="mt-1 block text-[11px] text-[color:var(--text-3)]">{topic.prompt}</span></button>)}<Callout tone="teal"><strong>How answers are controlled</strong><p className="mt-1">A fresh cohort is retrieved for the saved shape. Unknown numbers and predictive language are prohibited. A failed validation is replaced by a deterministic cohort summary.</p></Callout></aside>
+  </div>;
 }
 
 function MessageBubble({ message }: { message: Message }) {
-  const isUser = message.role === 'user';
-  return (
-    <div className={isUser ? 'self-end max-w-[80%]' : 'self-start max-w-[85%]'}>
-      <div
-        className={
-          isUser
-            ? 'px-3.5 py-2 rounded-2xl rounded-br-sm text-sm bg-[color:var(--accent-glow)] border border-[color:var(--yellow)] text-[color:var(--text-1)]'
-            : 'px-3.5 py-2 rounded-2xl rounded-bl-sm text-sm bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-[color:var(--text-1)] leading-relaxed'
-        }
-      >
-        {message.text.split('\n').map((line, i) => <p key={i} className={i > 0 ? 'mt-2' : ''}>{formatInline(line)}</p>)}
-      </div>
-    </div>
-  );
+  const user = message.role === 'user';
+  return <div className={user ? 'max-w-[82%] self-end' : 'max-w-[88%] self-start'}><div className={user ? 'rounded-2xl rounded-br-sm border border-[color:var(--yellow)] bg-[color:var(--accent-glow)] px-3.5 py-2 text-sm' : 'rounded-2xl rounded-bl-sm border border-[color:var(--border)] bg-[color:var(--bg-elevated)] px-3.5 py-2 text-sm leading-relaxed'}>{message.text.split('\n').map((line, index) => <p key={index} className={index ? 'mt-2' : ''}>{formatInline(line)}</p>)}</div></div>;
 }
 
-function TypingIndicator() {
-  return (
-    <div className="self-start px-3.5 py-2 rounded-2xl rounded-bl-sm bg-[color:var(--bg-elevated)] border border-[color:var(--border)] flex gap-1.5 items-center">
-      <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--text-2)] animate-bounce" style={{ animationDelay: '0ms' }} />
-      <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--text-2)] animate-bounce" style={{ animationDelay: '150ms' }} />
-      <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--text-2)] animate-bounce" style={{ animationDelay: '300ms' }} />
-    </div>
-  );
-}
-
-function formatInline(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
-  return parts.map((p, i) => {
-    if (p.startsWith('**') && p.endsWith('**')) {
-      return <strong key={i}>{p.slice(2, -2)}</strong>;
-    }
-    if (p.startsWith('*') && p.endsWith('*')) {
-      return <em key={i}>{p.slice(1, -1)}</em>;
-    }
-    return <span key={i}>{p}</span>;
-  });
-}
+function formatInline(text: string) { return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => part.startsWith('**') && part.endsWith('**') ? <strong key={index}>{part.slice(2,-2)}</strong> : part.startsWith('*') && part.endsWith('*') ? <em key={index}>{part.slice(1,-1)}</em> : <span key={index}>{part}</span>); }

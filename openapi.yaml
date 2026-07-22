@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: PathWiser · Career Twin Engine API
-  version: 0.1.0
+  version: 1.0.0
   description: |
     The Career Twin Engine — one API that all 9 audience modules call.
-    Given a user shape, returns a cohort of similar anonymised trajectories,
+    Given a user shape, returns a cohort of similar privacy-protected trajectories,
     a deterministic aggregation of that cohort's outcomes, and an honest
     hedged narrative that explains the aggregate.
 
@@ -31,6 +31,14 @@ servers:
     description: Local dev
 
 paths:
+  /api/health:
+    get:
+      summary: Readiness and evidence-mode status
+      tags: [Operations]
+      responses:
+        '200': { description: Ready }
+        '503': { description: Required community services are not configured }
+
   /api/engine/navigate:
     post:
       summary: Run the Career Twin Engine end-to-end
@@ -68,6 +76,65 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/engine/coach:
+    post:
+      summary: Ask a cohort-grounded career question
+      tags: [Engine]
+      responses:
+        '200': { description: Validated answer or deterministic safe fallback }
+        '400': { description: Invalid request }
+        '429': { description: Rate limited }
+
+  /api/talent/match:
+    post:
+      summary: Retrieve explainable employer matches
+      description: Returns consented candidate profiles in connected full mode, otherwise clearly labelled modelled profiles. Account IDs and individual prediction scores are never returned.
+      tags: [Employer]
+      responses:
+        '200': { description: Privacy-safe explainable matches }
+        '400': { description: Invalid demand shape }
+
+  /api/profile:
+    get:
+      summary: Read the authenticated user's shape
+      tags: [Account]
+      responses:
+        '200': { description: Profile returned }
+        '401': { description: Authentication required }
+    put:
+      summary: Save the authenticated user's shape
+      tags: [Account]
+      responses:
+        '200': { description: Profile saved }
+        '401': { description: Authentication required }
+        '403': { description: Audience role changes require support }
+
+  /api/consent:
+    get:
+      summary: Read revocable consent choices
+      tags: [Privacy]
+      responses:
+        '200': { description: Consent records returned }
+        '401': { description: Authentication required }
+    put:
+      summary: Grant or revoke a consent choice
+      tags: [Privacy]
+      responses:
+        '200': { description: Consent saved }
+        '401': { description: Authentication required }
+
+  /api/feedback:
+    get:
+      summary: Read feedback history
+      tags: [Support]
+      responses:
+        '200': { description: Feedback returned }
+    post:
+      summary: Store a reflection or experience rating
+      tags: [Support]
+      responses:
+        '201': { description: Feedback saved }
+
 components:
   schemas:
     UserShape:
@@ -91,6 +158,15 @@ components:
           type: string
           enum: [owl, fox, bear, dolphin, eagle, ant]
           description: Optional Menagerie Method dimension. Feeds retrieval.
+        dimensions:
+          type: object
+          description: User-adjustable capability emphasis used by retrieval.
+          properties:
+            technical: { type: number, minimum: 0, maximum: 100 }
+            domain: { type: number, minimum: 0, maximum: 100 }
+            leadership: { type: number, minimum: 0, maximum: 100 }
+            analytics: { type: number, minimum: 0, maximum: 100 }
+            communication: { type: number, minimum: 0, maximum: 100 }
 
     NavigateRequest:
       type: object
@@ -126,6 +202,13 @@ components:
                 sector:     { type: string }
         aggregate: { $ref: '#/components/schemas/Aggregate' }
         explanation: { $ref: '#/components/schemas/Explanation' }
+        evidence:
+          type: object
+          properties:
+            mode: { type: string, enum: [modelled, community] }
+            label: { type: string }
+            corpus_size: { type: integer }
+            synthetic: { type: boolean }
         k_min: { type: integer, example: 50 }
 
     Aggregate:

@@ -1,79 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useAppStore, DEFAULT_SHAPE_SLIDERS } from '@/store/useAppStore';
+import type { ShapeDimensions } from '@/types';
 
-const DIMS = [
-  { key: 'technical',     label: 'Technical' },
-  { key: 'domain',        label: 'Domain' },
-  { key: 'leadership',    label: 'Leadership' },
-  { key: 'analytics',     label: 'Analytics' },
+const DIMS: Array<{ key: keyof ShapeDimensions; label: string }> = [
+  { key: 'technical', label: 'Technical' },
+  { key: 'domain', label: 'Domain' },
+  { key: 'leadership', label: 'Leadership' },
+  { key: 'analytics', label: 'Analytics' },
   { key: 'communication', label: 'Communication' },
 ];
 
 export function ShapeAdjustment() {
-  const [values, setValues] = useState<Record<string, number>>({
-    technical: 65, domain: 50, leadership: 30, analytics: 75, communication: 45,
-  });
+  const shape = useAppStore((state) => state.shape);
+  const updateShapeSlider = useAppStore((state) => state.updateShapeSlider);
+  const values = { ...DEFAULT_SHAPE_SLIDERS, ...shape?.dimensions };
 
   return (
-    <div className="p-3.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
-      <div className="flex items-center justify-between mb-2.5">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-          Shape Adjustment Loop · Adjust and re-explore
-        </span>
-        <span className="text-[10px] italic text-[color:var(--text-3)]">
-          Sliders below feed back into your shape for future engine calls.
-        </span>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        {DIMS.map((d) => (
-          <div key={d.key} className="grid grid-cols-[100px_1fr_40px] items-center gap-2.5">
-            <label className="text-xs text-[color:var(--text-2)]">{d.label}</label>
+    <details className="group rounded-xl border border-[color:var(--border)] bg-white shadow-sm" aria-labelledby="shape-adjustment-title">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+        <span><strong id="shape-adjustment-title" className="text-sm">Adjust what matters to you</strong><span className="ml-2 hidden text-xs text-[color:var(--text-2)] sm:inline">Fine-tune the landscape using five capability dimensions.</span></span>
+        <span className="text-xs font-semibold text-[color:var(--yellow)] group-open:hidden">Adjust profile +</span><span className="hidden text-xs font-semibold text-[color:var(--yellow)] group-open:inline">Done</span>
+      </summary>
+      <div className="flex flex-col gap-2.5 border-t border-[color:var(--border)] px-4 py-4">
+        {DIMS.map((dimension) => (
+          <div key={dimension.key} className="grid grid-cols-[100px_1fr_48px] items-center gap-2.5">
+            <label htmlFor={`shape-${dimension.key}`} className="text-xs text-[color:var(--text-2)]">{dimension.label}</label>
             <input
+              id={`shape-${dimension.key}`}
               type="range"
               min={0}
               max={100}
-              value={values[d.key]}
-              onChange={(e) => setValues({ ...values, [d.key]: parseInt(e.target.value, 10) })}
+              value={values[dimension.key]}
+              aria-valuetext={`${values[dimension.key]} out of 100`}
+              onChange={(event) => updateShapeSlider(dimension.key, Number(event.target.value))}
               className="pw-slider"
             />
-            <span className="text-[10px] font-mono text-[color:var(--text-3)] text-right tabular-nums">
-              {values[d.key]}
-            </span>
+            <output htmlFor={`shape-${dimension.key}`} className="text-[11px] font-mono text-[color:var(--text-2)] text-right tabular-nums">
+              {values[dimension.key]}
+            </output>
           </div>
         ))}
       </div>
       <style jsx>{`
-        .pw-slider {
-          -webkit-appearance: none;
-          appearance: none;
-          height: 4px;
-          background: var(--bg-elevated);
-          border-radius: 99px;
-          cursor: pointer;
-          outline: none;
-        }
-        .pw-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          width: 16px; height: 16px;
-          border-radius: 50%;
-          background: var(--yellow);
-          box-shadow: 0 0 0 4px rgba(250,204,21,0.15);
-          cursor: pointer;
-          transition: transform 0.18s;
-        }
-        .pw-slider::-webkit-slider-thumb:hover {
-          transform: scale(1.15);
-        }
-        .pw-slider::-moz-range-thumb {
-          width: 16px; height: 16px;
-          border-radius: 50%;
-          background: var(--yellow);
-          border: none;
-          box-shadow: 0 0 0 4px rgba(250,204,21,0.15);
-          cursor: pointer;
-        }
+        .pw-slider { appearance: none; height: 5px; background: var(--bg-elevated); border-radius: 99px; cursor: pointer; outline: none; }
+        .pw-slider:focus-visible { box-shadow: 0 0 0 3px var(--accent-glow); }
+        .pw-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 4px rgba(79,70,229,0.12); }
+        .pw-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--yellow); border: none; box-shadow: 0 0 0 4px rgba(79,70,229,0.12); }
       `}</style>
-    </div>
+    </details>
   );
 }

@@ -17,15 +17,15 @@ export default function OutcomesAggregationPage() {
         </Callout>
 
         <StatGrid cols={3}>
-          <StatBox label="Retrieved Cohort" value="1,240" />
-          <StatBox label="Variance (σ)" value="Low" color="var(--emerald)" />
-          <StatBox label="Distribution" value="Normal" color="var(--sky)" />
+          <StatBox label="Illustrative Cohort" value="1,240" />
+          <StatBox label="Example Variance (σ)" value="Low" color="var(--emerald)" />
+          <StatBox label="Example Distribution" value="Normal" color="var(--sky)" />
         </StatGrid>
 
         <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
           <div className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
             <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-              Deterministic salary distribution
+              Illustrative deterministic salary distribution
             </span>
             <div className="mt-3 flex items-end gap-1 h-52 border-b border-[color:var(--border)] pb-1">
               {[10, 20, 45, 80, 100, 75, 40, 15, 5].map((h, i) => (

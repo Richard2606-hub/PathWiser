@@ -32,8 +32,27 @@ export async function retrieveCohort(
   shape: UserShape,
   opts: RetrieveOptions = {}
 ): Promise<Cohort> {
-  if (hasSupabaseConfig() && hasGeminiConfig()) {
-    return retrieveFullMode(shape, opts);
+  const canUseFullMode = hasSupabaseConfig() && hasGeminiConfig() && process.env.ALLOW_FULL_MODE === 'true';
+
+  // Local development defaults to the disclosed synthetic corpus even when a
+  // developer has production credentials in .env.local. This keeps the demo
+  // fast, deterministic, and usable offline; full-mode testing is explicit.
+  if (canUseFullMode) {
+    try {
+      return await retrieveFullMode(shape, opts);
+    } catch (err) {
+      // A developer's local credentials may be unavailable, expired, or blocked by
+      // their network. Keep the hackathon demo usable in that case, but never hide a
+      // production data-source failure behind synthetic evidence.
+      if (process.env.NODE_ENV === 'development' || process.env.ALLOW_DEMO_FALLBACK === 'true') {
+        console.warn(
+          '[PathWiser] Full retrieval unavailable; using the disclosed demo corpus:',
+          err instanceof Error ? err.message : err
+        );
+        return retrieveDemoMode(shape, opts);
+      }
+      throw err;
+    }
   }
   return retrieveDemoMode(shape, opts);
 }
@@ -53,6 +72,7 @@ async function retrieveDemoMode(shape: UserShape, opts: RetrieveOptions): Promis
     life_stage: shape.life_stage,
     skills: shape.skills,
     years_experience: shape.years_experience,
+    dimensions: shape.dimensions,
   });
 
   // 1. Filter by audience-appropriate constraints
@@ -218,6 +238,7 @@ export function shapeToText(shape: UserShape): string {
     shape.work_animal ? `Work Animal: ${shape.work_animal}` : '',
     shape.esco_code ? `ESCO: ${shape.esco_code}` : '',
     shape.masco_code ? `MASCO: ${shape.masco_code}` : '',
+    shape.dimensions ? `Capability emphasis: technical ${shape.dimensions.technical}, domain ${shape.dimensions.domain}, leadership ${shape.dimensions.leadership}, analytics ${shape.dimensions.analytics}, communication ${shape.dimensions.communication}` : '',
   ]
     .filter(Boolean)
     .join('\n');

@@ -39,7 +39,9 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
 
   return (
     <div className="w-full aspect-[16/9] max-h-[420px] overflow-visible">
-      <svg viewBox="0 0 760 420" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 760 420" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby="career-graph-title career-graph-desc">
+        <title id="career-graph-title">Career path destinations</title>
+        <desc id="career-graph-desc">Choose a destination role to inspect it. Each node announces its observed cohort share.</desc>
         <defs>
           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="4" result="blur" />
@@ -58,7 +60,7 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
             y1={you.y}
             x2={n.x}
             y2={n.y}
-            stroke="rgba(250,204,21,0.15)"
+            stroke="rgba(79,70,229,0.18)"
             strokeWidth="2"
             strokeDasharray="4 4"
           />
@@ -83,8 +85,18 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
           return (
             <g
               key={n.id}
-              className="cursor-pointer transition-transform"
+              className="path-graph-node cursor-pointer transition-transform outline-none"
+              role="button"
+              tabIndex={0}
+              aria-label={`${n.label}, ${Math.round(n.probability * 100)} percent cohort share${n.isMycol ? ', MyCOL priority role' : ''}`}
+              aria-pressed={isSelected || isInCompare}
               onClick={() => handleClick(n.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handleClick(n.id);
+                }
+              }}
               style={{ transformOrigin: `${n.x}px ${n.y}px`, transformBox: 'fill-box' }}
             >
               {/* MyCOL ring */}
@@ -177,6 +189,12 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
           );
         })}
       </svg>
+      <style jsx>{`
+        .path-graph-node:focus-visible circle:last-of-type {
+          stroke: var(--text-1);
+          stroke-width: 3px;
+        }
+      `}</style>
     </div>
   );
 }

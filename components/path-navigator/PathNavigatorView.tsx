@@ -93,22 +93,29 @@ export function PathNavigatorView() {
   return (
     <div className="flex flex-col gap-4">
       {/* Stats */}
-      <StatGrid cols={4}>
-        <StatBox label="Trajectory Corpus" value="1,500" />
+      <div className="order-5"><StatGrid cols={4}>
+        <StatBox label="Evidence corpus" value={result && 'aggregate' in result ? (result.evidence.corpus_size ? result.evidence.corpus_size.toLocaleString() : result.evidence.mode === 'community' ? 'Community' : 'Modelled') : '—'} />
         <StatBox label="Active Cohort" value={cohortSize?.toLocaleString() || '—'} />
         <StatBox label="Path Branches" value={nextRoles.length} />
         <StatBox
-          label="Median Confidence"
+          label="Mean Cohort Similarity"
           value={
             result && 'cohort' in result
               ? formatPct(result.cohort.similarity_stats.mean)
               : '—'
           }
         />
-      </StatGrid>
+      </StatGrid></div>
+
+      {result && 'aggregate' in result && (
+        <Callout className="order-6" tone={result.evidence.synthetic ? 'amber' : 'teal'}>
+          <strong>Evidence provenance</strong>
+          <p className="mt-1">{result.evidence.label}. Minimum publishable cohort: {result.evidence.minimum_cohort_size}. Calibration: {result.evidence.calibration_sources.join(', ')}.</p>
+        </Callout>
+      )}
 
       {/* Compare Paths toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5 p-2.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
+      <div className="order-1 flex flex-wrap items-center gap-2.5 rounded-xl border border-[color:var(--border)] bg-white p-2.5 shadow-sm">
         <Button
           variant={compareMode ? 'amber' : 'primary'}
           size="sm"
@@ -136,11 +143,11 @@ export function PathNavigatorView() {
       </div>
 
       {/* Shape Adjustment */}
-      <ShapeAdjustment />
+      <div className="order-2"><ShapeAdjustment /></div>
 
       {/* Graph + Node detail */}
-      <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-        <div className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-3.5">
+      <div className="order-3 grid gap-4 lg:grid-cols-[3fr_2fr]">
+        <div className="rounded-2xl border border-[color:var(--border)] bg-white p-3.5 shadow-[0_8px_28px_rgba(15,23,42,0.05)]">
           <PathGraph
             nodes={graphNodes}
             selectedNode={selectedNode}
@@ -155,7 +162,7 @@ export function PathNavigatorView() {
 
         <div className="flex flex-col gap-3">
           {selectedNode && selectedSalary ? (
-            <div className="p-3.5 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
+            <div className="rounded-2xl border border-[color:var(--border)] bg-white p-4 shadow-[0_8px_28px_rgba(15,23,42,0.05)]">
               <div className="flex items-baseline justify-between gap-2 mb-2">
                 <div>
                   <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
@@ -211,7 +218,7 @@ export function PathNavigatorView() {
 
       {/* Compare Paths panel */}
       {compareMode && compareNodes.length >= 2 && result && 'aggregate' in result && (
-        <ComparePanel nodes={compareNodes} aggregate={result.aggregate} />
+        <div className="order-4"><ComparePanel nodes={compareNodes} aggregate={result.aggregate} /></div>
       )}
     </div>
   );

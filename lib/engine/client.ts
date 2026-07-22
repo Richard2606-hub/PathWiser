@@ -3,7 +3,7 @@
  * Hits the /api/engine/navigate route.
  */
 
-import type { UserShape, Aggregate, Explanation } from '@/types';
+import type { UserShape, Aggregate, Explanation, EvidenceProvenance } from '@/types';
 
 export interface NavigateOptions {
   currentStepIndex?: number;
@@ -22,6 +22,7 @@ export interface NavigateResponse {
   aggregate: Aggregate;
   explanation: Explanation;
   k_min: number;
+  evidence: EvidenceProvenance;
   cohort_too_small?: never;
 }
 

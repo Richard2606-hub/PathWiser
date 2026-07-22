@@ -1,6 +1,8 @@
 # PathWiser · Career OS Navigation Platform
 
-**Live demo:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/)
+> **Release status:** the application code implements the proposal-defined community product, including authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all nine audience modules, health/telemetry and responsive UX. The bundled evidence is still modelled. A public launch requires the owner-controlled deployment and governed-data steps in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md).
+
+**Existing preview:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/) (the current public deployment may predate the community-release changes in this workspace)
 
 Submitted to the **Talentbank Tech Hackathon 2026** — First Cohort. PathWiser is an evidence-based Career OS navigation platform built around the **Career Twin Engine**: a hybrid retrieval + deterministic aggregation + LLM explanation architecture that helps candidates, employers, and universities across Asia make wiser career decisions.
 
@@ -43,8 +45,8 @@ Sixteen modules across four layers, all backed by a single shared engine:
 - **🐾 Work Animal quiz** (Menagerie Method) — 8-question personality read aligned with Talentbank's own `yourworkanimal.com` framework.
 - **UN SDG mapping** — every module tagged with the Sustainable Development Goals it addresses (4 · 5 · 8 · 9 · 10 · 17).
 - **Honest cohort disclosure** everywhere — cohort size, range, and "cohort aggregates, not individual predictions" on every output.
-- **Judge view / Production view** — locked-audience mode by default (each user only sees their own surface, as in production); one-click Judge view unlocks all three for demo.
-- **One-click login bypass** — three demo personas (Aisyah · BoldRise · UTM) launch straight into their respective dashboards.
+- **Server-enforced audience workspaces** — authenticated accounts are restricted to candidate, employer or university routes; the optional review switch is disabled by default and still requires an admin/judge server role.
+- **Community preview personas** — three clearly labelled modelled personas can launch the local evidence workflow when authentication is optional.
 - **Full close/back UX on every overlay** — ESC to close, × button, backdrop click. No sudden-modal traps.
 
 ---
@@ -63,7 +65,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-This runs the full engine end-to-end using an in-memory corpus of ~1,500 synthetic-but-DOSM-calibrated trajectories. Every module is fully interactive.
+This runs the engine end-to-end using an in-memory corpus of ~1,500 modelled, DOSM-calibrated trajectories. The interface discloses that evidence mode.
 
 **Optional: enable full mode** (real Supabase + Gemini):
 
@@ -74,7 +76,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-When Supabase is configured, retrieval switches to pgvector HNSW cosine over the persisted trajectory corpus. When Gemini is configured, narratives are generated live (falling back to templates if the API rate-limits).
+After migrations and a governed data import, set `ALLOW_FULL_MODE=true` to switch retrieval to pgvector HNSW cosine over the persisted corpus. AI narratives fall back to deterministic cohort summaries when the provider is unavailable or fails honesty validation.
 
 **Available scripts**
 
@@ -176,22 +178,13 @@ Currently DOSM 2024 hard-coded in [`lib/engine/aggregate.ts`](lib/engine/aggrega
 
 ### 6. HTTP API surface
 
-The engine is exposed at `POST /api/engine/navigate`. Full contract in [`openapi.yaml`](openapi.yaml).
+The public contract covers health, navigation, coach, matching, profile, consent and feedback endpoints in [`openapi.yaml`](openapi.yaml).
 
 Talentbank's Angular team can call this directly from their frontend without ever running React — the engine is framework-agnostic.
 
-### What we deliberately did NOT build
+### Owner-controlled work before public launch
 
-Per the Kick-Off brief:
-
-| Deferred to Talentbank | Why |
-|---|---|
-| PDPA / consent flow implementation | *"Talentbank manages legal, PDPA and cross-border policy"* |
-| Payment / monetisation | *"Set the commercial details aside. Talentbank handles pricing."* |
-| Real recruiter salary-guide tables | Copyrighted; used as headline anchors only |
-| Enterprise SSO | Provider abstraction gets you there in one file swap |
-| Angular migration | *"We handle re-implementation where needed"* — OpenAPI makes this low-risk |
-| Real employer/university onboarding at scale | Assumes the 10k+ employer + 100+ uni network exists |
+The code includes consent records, RLS, organisations, profile persistence and privacy-safe matching. Legal approval, the governed evidence import, production credentials/domain, representative fairness and accessibility studies, distributed rate limiting, incident response and ongoing operations remain deployment responsibilities. See [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md).
 
 ---
 

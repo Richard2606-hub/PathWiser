@@ -9,11 +9,11 @@ interface LogLine { text: string; color: string; }
 
 const SCRIPT: LogLine[] = [
   { text: '$ pathwiser.engine.retrieve --query=user_shape --k=1200', color: 'var(--text-2)' },
-  { text: '> Loading user shape embedding (768-d, text-embedding-004)', color: 'var(--text-2)' },
+  { text: '> Loading user shape embedding (768-d, gemini-embedding-2)', color: 'var(--text-2)' },
   { text: '  query_vec = [0.124, -0.453, 0.881, 0.211, -0.092, …, 0.405]', color: 'var(--text-3)' },
   { text: '> Connecting to Postgres + pgvector …', color: 'var(--text-2)' },
   { text: '  pgvector v0.7.0 · HNSW index (m=16, ef_search=64)', color: 'var(--text-3)' },
-  { text: '> Running cosine similarity over corpus (1,500 trajectories)', color: 'var(--text-2)' },
+  { text: '> Running similarity retrieval over the configured evidence corpus', color: 'var(--text-2)' },
   { text: '  [████████████████████] 100% · 42ms', color: 'var(--teal)' },
   { text: '> Applying audience filters: life_stage=Early Career, geography=MY-KL', color: 'var(--text-2)' },
   { text: '> Cohort size check: 1,240 ≥ k_min (50) ✓', color: 'var(--teal)' },

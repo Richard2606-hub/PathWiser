@@ -31,6 +31,15 @@ export interface UserShape {
   skills: string[];
   life_stage: LifeStage;
   work_animal?: WorkAnimalKey; // Optional Menagerie Method dimension
+  dimensions?: ShapeDimensions;
+}
+
+export interface ShapeDimensions {
+  technical: number;
+  domain: number;
+  leadership: number;
+  analytics: number;
+  communication: number;
 }
 
 export type WorkAnimalKey =
@@ -151,4 +160,25 @@ export interface Explanation {
   ranges_disclosed: boolean;
   passed_validation: boolean;
   validator_notes?: string[];
+}
+
+export interface EvidenceProvenance {
+  mode: 'community' | 'modelled';
+  synthetic: boolean;
+  label: string;
+  corpus_size: number;
+  minimum_cohort_size: number;
+  calibration_sources: string[];
+}
+
+export interface TalentCandidateMatch {
+  id: string;
+  display_name: string;
+  current_role: string;
+  state: string;
+  matched_skills: string[];
+  skill_bridges: string[];
+  rationale: string;
+  adjacent: boolean;
+  consent_scope: 'synthetic-example' | 'employer-discovery';
 }

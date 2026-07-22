@@ -1,10 +1,10 @@
 'use client';
 
-import { useAppStore } from '@/store/useAppStore';
 import { MODULES } from '@/lib/corpus/modules';
 import { SdgStrip } from '@/components/common/SdgChip';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 /**
  * Panel header — the top strip of every module page.
@@ -21,22 +21,22 @@ export function PanelHeader({
   if (!m) return null;
 
   return (
-    <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-[color:var(--border)]">
-      <div className="flex flex-col gap-1 flex-1 min-w-0">
+    <div className="relative overflow-hidden flex items-start justify-between gap-5 border-b border-[color:var(--border)] bg-white px-5 py-6 sm:px-7 sm:py-8">
+      <div aria-hidden="true" className="absolute -right-20 -top-24 h-56 w-56 rounded-full bg-[color:var(--accent-glow)] blur-2xl" />
+      <div className="relative flex flex-col gap-1.5 flex-1 min-w-0">
         <span className={cn(
-          'inline-flex self-start px-2.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-widest',
-          'bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-[color:var(--text-2)]'
+          'inline-flex self-start text-[11px] font-semibold text-[color:var(--yellow)]'
         )}>
           {m.badge}
         </span>
-        <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight mt-1.5">
+        <h1 className="mt-1 text-2xl sm:text-[32px] font-extrabold tracking-[-0.03em] leading-tight">
           {m.title}
         </h1>
-        <p className="text-sm font-semibold text-[color:var(--text-1)]">{m.purpose}</p>
-        <p className="text-xs text-[color:var(--text-3)] leading-relaxed max-w-3xl">{m.desc}</p>
-        <SdgStrip moduleKey={moduleKey} />
+        <p className="text-sm sm:text-base font-semibold text-[color:var(--text-1)]">{m.purpose}</p>
+        <p className="max-w-3xl text-sm text-[color:var(--text-2)] leading-relaxed">{m.desc}</p>
+        <div className="mt-2"><SdgStrip moduleKey={moduleKey} /></div>
       </div>
-      <div className="flex flex-col gap-2 items-end flex-shrink-0">
+      <div className="relative hidden sm:flex flex-col gap-2 items-end flex-shrink-0">
         {actions}
         <FeedbackButton />
       </div>
@@ -45,14 +45,14 @@ export function PanelHeader({
 }
 
 function FeedbackButton() {
-  const showToast = useAppStore((s) => s.showToast);
+  const router = useRouter();
   return (
     <Button
       variant="outline"
       size="sm"
-      onClick={() => showToast('Feedback captured — thank you. This feeds the corpus curation queue.', 'success')}
+      onClick={() => router.push('/dashboard/support/feedback')}
     >
-      📝 Feedback
+      Share feedback
     </Button>
   );
 }

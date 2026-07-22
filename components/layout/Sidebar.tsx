@@ -37,6 +37,7 @@ const CAP_HINTS: Record<string, string> = {
  * In judge mode, all three persona surfaces are collapsible.
  */
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const judgeEnabled = process.env.NEXT_PUBLIC_ENABLE_JUDGE_MODE === 'true';
   const persona = useAppStore((s) => s.persona);
   const judgeMode = useAppStore((s) => s.judgeMode);
   const setPersona = useAppStore((s) => s.setPersona);
@@ -46,42 +47,13 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <aside className="flex flex-col gap-3 p-3.5 h-full">
-      {/* System Overview */}
-      <SidebarCard title="SYSTEM OVERVIEW">
-        <ModuleTile
-          module={MODULES.architecture}
-          isActive={isActive}
-          onNavigate={onNavigate}
-          wide
-          gradient
-        />
-      </SidebarCard>
-
-      {/* Marketplace */}
-      <SidebarCard title="MARKETPLACE">
-        <div className="grid grid-cols-2 gap-1.5">
-          {marketplaceModules().map((m) => (
-            <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} />
-          ))}
-        </div>
-      </SidebarCard>
-
-      {/* Engine Layer */}
-      <SidebarCard title="ENGINE LAYER">
-        <div className="flex flex-col gap-1">
-          {engineModules().map((m) => (
-            <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} row />
-          ))}
-        </div>
-      </SidebarCard>
-
+    <aside className="flex h-full flex-col gap-5 p-4">
       {/* Persona surfaces */}
       {(['candidate', 'employer', 'university'] as const).map((p) => {
         const meta = PERSONA_META[p];
         const isActivePersona = persona === p;
-        const showBody = judgeMode ? true : isActivePersona;
-        const showCard = judgeMode ? true : isActivePersona;
+        const showBody = judgeEnabled && judgeMode ? true : isActivePersona;
+        const showCard = judgeEnabled && judgeMode ? true : isActivePersona;
 
         if (!showCard) return null;
 
@@ -95,7 +67,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   !isActivePersona && 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {
-                  if (!judgeMode && !isActivePersona) {
+                  if (!(judgeEnabled && judgeMode) && !isActivePersona) {
                     openLockedExplainer(p);
                     return;
                   }
@@ -130,10 +102,33 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         );
       })}
 
+      {/* Shared tools follow the audience's primary tasks. */}
+      <SidebarCard title="MARKETPLACE">
+        <div className="grid grid-cols-2 gap-1.5">
+          {marketplaceModules().map((m) => (
+            <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} />
+          ))}
+        </div>
+      </SidebarCard>
+
+      <details className="rounded-xl bg-[color:var(--bg-elevated)]">
+        <summary className="cursor-pointer px-3 py-2.5 text-[11px] font-semibold text-[color:var(--text-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--yellow)]">
+          Technical details
+        </summary>
+        <div className="flex flex-col gap-3 border-t border-[color:var(--border)] p-3">
+          <ModuleTile module={MODULES.architecture} isActive={isActive} onNavigate={onNavigate} wide gradient />
+          <div className="flex flex-col gap-1">
+            {engineModules().map((m) => (
+              <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} row />
+            ))}
+          </div>
+        </div>
+      </details>
+
       {/* Support Layer */}
       <SidebarCard title="SUPPORT LAYER">
         <div className="grid grid-cols-3 gap-1.5">
-          {supportModules().map((m) => (
+          {supportModules().filter((m) => m.key !== 'analytics' || (judgeEnabled && judgeMode)).map((m) => (
             <ModuleTile key={m.key} module={m} isActive={isActive} onNavigate={onNavigate} />
           ))}
         </div>
@@ -142,7 +137,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       {/* Neutral sponsored slot */}
       <div
         title="Neutral advertising space — signals product sustainability. Talentbank keeps commercial control."
-        className="flex flex-col gap-2 p-3 rounded-md border border-dashed border-[color:var(--border-strong)]"
+        className="flex flex-col gap-2 rounded-xl bg-[color:var(--bg-elevated)] p-3"
         style={{
           backgroundImage:
             'repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px)',
@@ -177,16 +172,12 @@ function SidebarCard({
 }) {
   return (
     <div
-      className="rounded-md border p-3 flex flex-col gap-2.5"
+      className="flex flex-col gap-2"
       style={{
-        background: highlightColor
-          ? `linear-gradient(180deg, ${highlightColor}0f, transparent 60%)`
-          : 'var(--bg-glass)',
-        borderColor: highlightColor || 'var(--border)',
-        boxShadow: highlightColor ? `0 0 0 1px ${highlightColor}22` : undefined,
+        background: 'transparent',
       }}
     >
-      <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-[color:var(--text-2)]">
+      <div className="px-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-3)]">
         {title}
       </div>
       {children}
@@ -215,14 +206,14 @@ function ModuleTile({
       href={m.href}
       onClick={onNavigate}
       className={cn(
-        'block rounded-md border p-2.5 transition-all',
+        'block rounded-xl p-2.5 transition-all',
         row
           ? 'flex items-center gap-2 py-2 px-2.5'
           : 'flex flex-col items-center text-center gap-1 py-2.5',
         wide && 'p-3.5 items-start',
         active
-          ? 'border-[color:var(--accent)] bg-[color:var(--accent-glow)]'
-          : 'border-transparent bg-[color:var(--bg-glass)] hover:bg-[color:var(--bg-glass-strong)] hover:border-[color:var(--border-strong)]',
+          ? 'bg-[color:var(--accent-glow)] text-[color:var(--yellow)]'
+          : 'bg-transparent hover:bg-[color:var(--bg-elevated)]',
         gradient &&
           'bg-[linear-gradient(135deg,rgba(250,204,21,0.06),rgba(45,212,191,0.06))] border-[color:var(--border-strong)] hover:border-[color:var(--accent)]'
       )}
@@ -257,11 +248,11 @@ function CapRow({
       href={m.href}
       onClick={onNavigate}
       className={cn(
-        'group grid gap-2 rounded-md px-2.5 py-2 border transition-all',
+        'group grid gap-2 rounded-xl px-3 py-2.5 transition-all',
         'grid-cols-[70px_1fr] items-baseline',
         active
-          ? 'bg-[color:var(--bg-elevated)] border-transparent'
-          : 'bg-[color:var(--bg-glass)] border-transparent hover:bg-[color:var(--bg-glass-strong)] hover:border-[color:var(--border-strong)] hover:translate-x-[2px]'
+          ? 'bg-[color:var(--accent-glow)] shadow-[inset_0_0_0_1px_rgba(79,70,229,0.08)]'
+          : 'bg-transparent hover:bg-[color:var(--bg-elevated)] hover:translate-x-[2px]'
       )}
       style={active ? { boxShadow: `inset 3px 0 0 ${accentColor}` } : undefined}
     >

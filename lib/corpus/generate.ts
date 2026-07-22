@@ -98,6 +98,13 @@ export function shapeToFeatureVector(shape: {
   life_stage: LifeStage;
   skills: string[];
   years_experience: number;
+  dimensions?: {
+    technical: number;
+    domain: number;
+    leadership: number;
+    analytics: number;
+    communication: number;
+  };
 }): number[] {
   const seniority =
     shape.years_experience < 2 ? 'entry' :
@@ -106,13 +113,27 @@ export function shapeToFeatureVector(shape: {
     shape.years_experience < 15 ? 'senior' :
     shape.years_experience < 20 ? 'lead' : 'exec';
 
-  return trajectoryToFeatureVector({
+  const vector = trajectoryToFeatureVector({
     sector: shape.sector || 'Tech',
     state: shape.state,
     life_stage: shape.life_stage,
     finalSeniority: seniority,
     allSkills: shape.skills,
   });
+
+  if (shape.dimensions) {
+    const technicalWeight = 0.5 + shape.dimensions.technical / 100;
+    const analyticsWeight = 0.5 + shape.dimensions.analytics / 100;
+    const leadershipWeight = 0.5 + shape.dimensions.leadership / 100;
+    const communicationWeight = 0.5 + shape.dimensions.communication / 100;
+    vector[17] *= technicalWeight;
+    vector[16] *= analyticsWeight;
+    vector[18] *= analyticsWeight;
+    vector[22] *= communicationWeight;
+    vector[23] *= leadershipWeight;
+  }
+
+  return vector;
 }
 
 // ─── Corpus generation ──────────────────────────────────────

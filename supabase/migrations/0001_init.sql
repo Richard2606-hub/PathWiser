@@ -51,7 +51,23 @@ create index if not exists trajectories_life_stage_idx on public.trajectories(li
 create index if not exists trajectories_state_idx on public.trajectories(state);
 create index if not exists trajectories_sector_idx on public.trajectories(sector);
 
--- 4. Job listings
+-- 4. Companies (created before job_listings so the foreign key is valid)
+create table if not exists public.companies (
+  id             uuid primary key default gen_random_uuid(),
+  name           text not null unique,
+  logo_emoji     text,
+  sector         text,
+  headcount_band text,
+  hires_per_year int,
+  retention_pct  numeric,
+  culture        text,
+  hiring_shape   text,
+  mycol_roles_count int not null default 0,
+  next_destinations text[] not null default '{}',
+  sdgs           int[] not null default '{}'
+);
+
+-- 5. Job listings
 create table if not exists public.job_listings (
   id            uuid primary key default gen_random_uuid(),
   title         text not null,
@@ -74,22 +90,6 @@ create index if not exists job_listings_role_shape_hnsw_idx
   on public.job_listings using hnsw (role_shape_vector vector_cosine_ops)
   where role_shape_vector is not null;
 create index if not exists job_listings_active_idx on public.job_listings(active);
-
--- 5. Companies (employer directory)
-create table if not exists public.companies (
-  id             uuid primary key default gen_random_uuid(),
-  name           text not null unique,
-  logo_emoji     text,
-  sector         text,
-  headcount_band text,
-  hires_per_year int,
-  retention_pct  numeric,
-  culture        text,
-  hiring_shape   text,
-  mycol_roles_count int not null default 0,
-  next_destinations text[] not null default '{}',
-  sdgs           int[] not null default '{}'
-);
 
 -- 6. Feedback (Support Layer)
 create table if not exists public.feedback_sessions (

@@ -1,179 +1,79 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
-import { cn } from '@/lib/utils';
+import { cn, formatMYR } from '@/lib/utils';
 import { navigate } from '@/lib/engine/client';
 import { useAppStore } from '@/store/useAppStore';
 
-const OUTCOMES = {
-  first: [
-    { role: 'Software Developer', pct: 68 },
-    { role: 'Data Analyst', pct: 52 },
-    { role: 'System Admin', pct: 35 },
-    { role: 'QA Engineer', pct: 28 },
-    { role: 'IT Support', pct: 22 },
-  ],
-  five: [
-    { role: 'Senior Engineer', pct: 45 },
-    { role: 'Data Scientist', pct: 38 },
-    { role: 'Tech Lead', pct: 32 },
-    { role: 'Product Manager', pct: 25 },
-    { role: 'Consultant', pct: 18 },
-  ],
-  ten: [
-    { role: 'Engineering Manager', pct: 28 },
-    { role: 'Architect', pct: 22 },
-    { role: 'Director', pct: 15 },
-    { role: 'Entrepreneur', pct: 12 },
-    { role: 'Academic', pct: 8 },
-  ],
-};
-
 const HORIZONS = [
-  { key: 'first', label: 'First Job' },
-  { key: 'five', label: '5-Year' },
-  { key: 'ten', label: '10-Year' },
+  { key: 'first', label: 'First job', step: 0, years: 1 },
+  { key: 'five', label: '5-year', step: 1, years: 5 },
+  { key: 'ten', label: '10-year', step: 2, years: 10 },
 ] as const;
+type Horizon = typeof HORIZONS[number]['key'];
 
 const PROGRAMMES = [
-  { key: 'cs', label: 'BSc Computer Science (AI/DS)', role: 'Software Engineer' },
-  { key: 'it', label: 'BSc Information Technology', role: 'IT Support' },
-  { key: 'biz', label: 'BSc Business Analytics', role: 'Data Analyst' },
+  { key: 'cs', label: 'BSc Computer Science (AI/DS)', role: 'Software Engineer', skills: ['Python','SQL','Algorithms'] },
+  { key: 'it', label: 'BSc Information Technology', role: 'IT Support', skills: ['Networks','SQL','Cloud'] },
+  { key: 'biz', label: 'BSc Business Analytics', role: 'Data Analyst', skills: ['SQL','Excel','Tableau'] },
 ];
 
+interface OutcomeRow { role: string; share: number; count: number; salary: number | null; }
+
 export function OutcomeLoopView() {
-  const showToast = useAppStore((s) => s.showToast);
-  const [horizon, setHorizon] = useState<'first' | 'five' | 'ten'>('first');
+  const router = useRouter();
+  const showToast = useAppStore((state) => state.showToast);
+  const [horizon, setHorizon] = useState<Horizon>('first');
   const [programme, setProgramme] = useState('cs');
-  
-  const [data, setData] = useState<{ role: string; pct: number }[]>(OUTCOMES['first']);
+  const [rows, setRows] = useState<OutcomeRow[]>([]);
+  const [cohortSize, setCohortSize] = useState(0);
+  const [source, setSource] = useState('Loading evidence');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       setLoading(true);
+      const selectedProgramme = PROGRAMMES.find((item) => item.key === programme) || PROGRAMMES[0];
+      const selectedHorizon = HORIZONS.find((item) => item.key === horizon) || HORIZONS[0];
       try {
-        const progRole = PROGRAMMES.find(p => p.key === programme)?.role || 'Software Engineer';
-        const exp = horizon === 'first' ? 1 : horizon === 'five' ? 5 : 10;
-        
-        const res = await navigate({
-          userId: 'anon',
-          persona: 'university',
-          role: progRole,
-          education: "Bachelor's",
-          years_experience: exp,
-          state: 'Kuala Lumpur',
-          skills: [],
-          life_stage: exp < 3 ? 'young_adult' : 'mid_career',
-        });
-
-        if ('aggregate' in res && res.aggregate?.next_role_distribution) {
-          const mapped = res.aggregate.next_role_distribution.map(d => ({
-            role: d.role,
-            pct: Math.round(d.probability * 100),
-          })).sort((a, b) => b.pct - a.pct).slice(0, 5);
-          
-          if (mapped.length > 0) {
-            setData(mapped);
-          } else {
-            setData(OUTCOMES[horizon]);
-          }
-        } else {
-          setData(OUTCOMES[horizon]);
+        const result = await navigate({ userId: 'anon', persona: 'university', role: selectedProgramme.role, education: selectedProgramme.label, years_experience: selectedHorizon.years, state: 'Kuala Lumpur', skills: selectedProgramme.skills, life_stage: selectedHorizon.years < 3 ? 'young_adult' : 'early_career' }, { currentStepIndex: selectedHorizon.step });
+        if (cancelled) return;
+        if (!('aggregate' in result)) {
+          setRows([]); setCohortSize(result.cohort_size); setSource('No sufficiently large cohort'); return;
         }
-      } catch (err: any) {
-        console.error(err);
-        setData(OUTCOMES[horizon]);
-        showToast(`Engine API Error: ${err.message || 'Failed to fetch outcome data.'}`, 'error');
-      } finally {
-        setLoading(false);
-      }
+        setRows(result.aggregate.next_role_distribution.slice(0, 6).map((item) => ({ role: item.role, share: item.probability, count: item.count, salary: result.aggregate.salary_percentiles_by_role[item.role]?.median ?? null })));
+        setCohortSize(result.cohort.size); setSource(result.evidence.label);
+      } catch (error) {
+        if (!cancelled) { setRows([]); setCohortSize(0); setSource('Evidence service unavailable'); showToast(error instanceof Error ? error.message : 'Unable to retrieve programme outcomes.', 'error'); }
+      } finally { if (!cancelled) setLoading(false); }
     }
-    load();
-  }, [horizon, programme]);
+    void load(); return () => { cancelled = true; };
+  }, [horizon, programme, showToast]);
 
-  const max = data.length ? Math.max(...data.map((d) => d.pct)) : 100;
+  const maxShare = Math.max(...rows.map((item) => item.share), 0.01);
+  const exportCohort = () => {
+    const programmeLabel = PROGRAMMES.find((item) => item.key === programme)?.label || programme;
+    const csvRows = [['programme','horizon','destination_role','trajectory_count','cohort_share_percent','median_monthly_salary_myr','evidence_cohort','source'], ...rows.map((item) => [programmeLabel,horizon,item.role,item.count,Math.round(item.share * 100),item.salary ?? '',cohortSize,source])];
+    const csv = csvRows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"','""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `pathwiser-outcomes-${programme}-${horizon}.csv`; anchor.click(); URL.revokeObjectURL(url); showToast('Outcome evidence exported as CSV.', 'success');
+  };
 
-  return (
-    <div className="flex flex-col gap-4">
-      <StatGrid cols={4}>
-        <StatBox label="Consortium Unis" value="18" />
-        <StatBox label="Tracked Graduates" value="28,400" color="var(--teal)" />
-        <StatBox label="Horizon" value={horizon === 'first' ? '1 Year' : horizon === 'five' ? '5 Year' : '10 Year'} color="var(--violet)" />
-        <StatBox label="Data Freshness" value={loading ? '...' : 'Real-time'} color="var(--sky)" />
-      </StatGrid>
+  const openCurriculumEngine = () => {
+    const selected = PROGRAMMES.find((item) => item.key === programme) || PROGRAMMES[0];
+    sessionStorage.setItem('pathwiser-curriculum-context', JSON.stringify({ programme: selected.label, destination: rows[0]?.role || selected.role, currentSkills: selected.skills.join(', ') }));
+    router.push('/dashboard/university/curriculum-engine');
+  };
 
-      <div className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
-        <div className="flex flex-wrap gap-3 items-center mb-4">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-              Programme
-            </span>
-            <select
-              value={programme}
-              onChange={(e) => setProgramme(e.target.value)}
-              className="px-2.5 py-1.5 rounded-md bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-sm outline-none focus:border-[color:var(--accent)]"
-            >
-              {PROGRAMMES.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
-            </select>
-          </div>
-          <div className="flex gap-1 ml-auto">
-            {HORIZONS.map((h) => (
-              <button
-                key={h.key}
-                onClick={() => setHorizon(h.key)}
-                className={cn(
-                  'px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
-                  horizon === h.key
-                    ? 'bg-[color:var(--violet)] text-[color:var(--bg-base)]'
-                    : 'bg-[color:var(--bg-elevated)] border border-[color:var(--border)] text-[color:var(--text-2)] hover:border-[color:var(--violet)]'
-                )}
-              >
-                {h.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2.5">
-          {data.map((d) => (
-            <div key={d.role} className="grid grid-cols-[180px_1fr_44px] items-center gap-3">
-              <span className="text-xs font-semibold text-[color:var(--text-1)]">{d.role}</span>
-              <div className="h-2 rounded-full bg-[color:var(--bg-elevated)] overflow-hidden">
-                <div
-                  className="h-full bg-[color:var(--violet)] transition-[width] duration-700"
-                  style={{ width: `${(d.pct / (max || 1)) * 100}%` }}
-                />
-              </div>
-              <span className="text-[11px] font-mono text-[color:var(--text-3)] text-right tabular-nums">
-                {d.pct}%
-              </span>
-            </div>
-          ))}
-          {data.length === 0 && !loading && (
-            <div className="text-[color:var(--text-3)] text-sm py-4 text-center">No outcome data available for this configuration.</div>
-          )}
-        </div>
-      </div>
-
-      <Callout tone="violet">
-        <strong>Curriculum Feedback</strong>
-        <p className="mt-1">
-          Outcome data automatically feeds into the Future-State Curriculum Engine for gap identification.
-        </p>
-      </Callout>
-
-      <div className="flex flex-wrap gap-2">
-        <Button variant="violet" size="sm">
-          → Feed to Curriculum Engine
-        </Button>
-        <Button variant="outline" size="sm">
-          Export cohort data
-        </Button>
-      </div>
-    </div>
-  );
+  return <div className="flex flex-col gap-4">
+    <StatGrid cols={4}><StatBox label="Programmes" value={PROGRAMMES.length.toString()} /><StatBox label="Evidence cohort" value={loading ? '…' : cohortSize.toLocaleString()} color="var(--teal)" /><StatBox label="Horizon" value={HORIZONS.find((item) => item.key === horizon)?.label || horizon} color="var(--violet)" /><StatBox label="Destinations" value={loading ? '…' : rows.length.toString()} color="var(--sky)" /></StatGrid>
+    <section className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-4" aria-labelledby="outcome-controls-title"><h2 id="outcome-controls-title" className="font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-2)]">Programme outcome evidence</h2><div className="mt-3 flex flex-wrap items-end gap-3"><label className="text-xs">Programme<select className="community-input mt-1" value={programme} onChange={(event) => setProgramme(event.target.value)}>{PROGRAMMES.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label><fieldset><legend className="mb-1 text-xs">Outcome horizon</legend><div className="flex gap-1">{HORIZONS.map((item) => <button key={item.key} type="button" aria-pressed={horizon === item.key} onClick={() => setHorizon(item.key)} className={cn('rounded-md border px-3 py-2 text-xs', horizon === item.key ? 'border-[color:var(--violet)] bg-[color:var(--violet)] text-[color:var(--bg-base)]' : 'border-[color:var(--border)]')}>{item.label}</button>)}</div></fieldset></div></section>
+    <Callout tone={source.includes('unavailable') || source.includes('No sufficiently') ? 'amber' : 'violet'}><strong>Evidence provenance</strong><p className="mt-1">{source}. Outcomes are aggregated by programme and horizon; no graduate is individually identifiable. Peer-programme comparison remains unavailable unless both institutions approve a consortium agreement.</p></Callout>
+    <section className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-4" aria-labelledby="destination-title"><h2 id="destination-title" className="font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-2)]">Observed destinations</h2><div className="mt-3 flex flex-col gap-3" aria-live="polite">{rows.map((item) => <div key={item.role} className="grid gap-2 sm:grid-cols-[180px_1fr_90px_120px] sm:items-center"><strong className="text-xs">{item.role}</strong><div className="h-2 overflow-hidden rounded-full bg-[color:var(--bg-elevated)]"><div className="h-full bg-[color:var(--violet)]" style={{ width: `${item.share / maxShare * 100}%` }} /></div><span className="text-right font-mono text-[11px]">{Math.round(item.share * 100)}% · {item.count}</span><span className="text-right text-xs text-[color:var(--text-2)]">{item.salary ? formatMYR(item.salary) : 'Salary unavailable'}</span></div>)}{!loading && !rows.length && <p className="py-6 text-center text-sm text-[color:var(--text-2)]">No publishable outcome cohort is available for this programme and horizon.</p>}</div></section>
+    <div className="flex flex-wrap gap-2"><Button variant="violet" size="sm" onClick={openCurriculumEngine} disabled={!rows.length}>Send context to Curriculum Engine</Button><Button variant="outline" size="sm" onClick={exportCohort} disabled={loading || !rows.length}>Export outcome evidence</Button></div>
+  </div>;
 }

@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { retrieveCohort, aggregate } from '@/lib/engine';
 import { getAIProvider } from '@/lib/ai';
 import type { UserShape } from '@/types';
+import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
+import { deterministicCoachReply, validateCoachReply } from '@/lib/ai/coachValidation';
+import { getEvidenceProvenance } from '@/lib/evidence';
 
 const ShapeSchema = z.object({
   userId: z.string().default('anon'),
@@ -17,20 +20,23 @@ const ShapeSchema = z.object({
   skills: z.array(z.string()),
   life_stage: z.enum(['student', 'young_adult', 'early_career', 'mid_career', 'senior_career', 'executive']),
   work_animal: z.enum(['owl', 'fox', 'bear', 'dolphin', 'eagle', 'ant']).optional(),
+  dimensions: z.object({ technical: z.number().min(0).max(100), domain: z.number().min(0).max(100), leadership: z.number().min(0).max(100), analytics: z.number().min(0).max(100), communication: z.number().min(0).max(100) }).optional(),
 });
 
 const RequestSchema = z.object({
   shape: ShapeSchema,
-  message: z.string(),
-  history: z.array(z.object({ role: z.string(), content: z.string() })).optional(),
+  message: z.string().trim().min(1).max(2000),
+  history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(4000) })).max(20).optional(),
 });
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'coach', 20);
+  if (limited) return limited;
+  const invalidOrigin = requireSameOrigin(req);
+  if (invalidOrigin) return invalidOrigin;
   try {
     const body = await req.json();
     const { shape, message, history } = RequestSchema.parse(body);
-
-    const ai = getAIProvider();
 
     // 1. Retrieval
     const cohort = await retrieveCohort(shape as UserShape, { k: 1200 });
@@ -55,19 +61,32 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Chat completion
-    let responseText;
+    let responseText: string;
+    let validated = true;
+    let fallbackReason: 'validation_failed' | 'provider_unavailable' | null = null;
     if (!aggContext) {
-       // if too small, generate without aggregate but warn
-       responseText = await ai.chatCompletion(
-         systemPrompt + "\n\nNote: Cohort is too small to provide exact statistical data. Guide them generally but state that there isn't enough trajectory evidence.",
-         message,
-         { cohort_size: cohort.size, next_role_distribution: [], salary_percentiles_by_role: {}, median_time_in_role_months: 0, common_skill_bridges: [], trade_offs: [], calibration_anchors: [] }
-       );
+       responseText = `Only ${cohort.size} comparable trajectories were found, below the minimum cohort of 50. PathWiser cannot provide a responsible evidence-based answer for this question yet. Broaden the role, location, or skill constraints and try again.`;
     } else {
-       responseText = await ai.chatCompletion(systemPrompt, message, aggContext);
+       try {
+         responseText = process.env.GEMINI_API_KEY
+           ? await getAIProvider().chatCompletion(systemPrompt, message, aggContext)
+           : deterministicCoachReply(aggContext);
+         const validation = validateCoachReply(responseText, aggContext);
+         if (!validation.passed) {
+           console.warn('[PathWiser] Coach reply rejected:', validation.notes.join(' '));
+           responseText = deterministicCoachReply(aggContext);
+           validated = false;
+           fallbackReason = 'validation_failed';
+         }
+       } catch (providerError) {
+         console.warn('[PathWiser] Coach provider unavailable; using deterministic evidence summary:', providerError instanceof Error ? providerError.message : providerError);
+         responseText = deterministicCoachReply(aggContext);
+         validated = false;
+         fallbackReason = 'provider_unavailable';
+       }
     }
 
-    return NextResponse.json({ reply: responseText });
+    return NextResponse.json({ reply: responseText, validated, fallback_reason: fallbackReason, cohort_size: cohort.size, evidence: getEvidenceProvenance() });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'invalid_input', issues: err.issues }, { status: 400 });

@@ -7,31 +7,31 @@
    Ported from the Stage 1 static prototype (see /legacy/styles.css).
    ═══════════════════════════════════════════ */
 :root {
-  --bg-base: #06090e;
-  --bg-surface: rgba(10, 15, 22, 0.85);
-  --bg-elevated: rgba(17, 24, 35, 0.9);
-  --bg-glass: rgba(255, 255, 255, 0.02);
-  --bg-glass-strong: rgba(255, 255, 255, 0.05);
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --bg-base: #f3f6fb;
+  --bg-surface: rgba(255, 255, 255, 0.96);
+  --bg-elevated: #f8fafc;
+  --bg-glass: #ffffff;
+  --bg-glass-strong: #f6f8fc;
+  --border: #e5eaf1;
+  --border-strong: #cbd5e1;
 
-  --yellow: #facc15;
-  --yellow-glow: rgba(250, 204, 21, 0.12);
-  --teal: #2dd4bf;
-  --teal-glow: rgba(45, 212, 191, 0.12);
-  --violet: #a78bfa;
-  --violet-glow: rgba(167, 139, 250, 0.12);
-  --rose: #fb7185;
-  --emerald: #34d399;
-  --sky: #38bdf8;
-  --amber: #fbbf24;
+  --yellow: #4f46e5;
+  --yellow-glow: rgba(79, 70, 229, 0.10);
+  --teal: #0f9f8f;
+  --teal-glow: rgba(15, 159, 143, 0.10);
+  --violet: #7c3aed;
+  --violet-glow: rgba(124, 58, 237, 0.10);
+  --rose: #e11d48;
+  --emerald: #059669;
+  --sky: #0284c7;
+  --amber: #d97706;
 
   --accent: var(--yellow);
   --accent-glow: var(--yellow-glow);
 
-  --text-1: #f1f5f9;
-  --text-2: #94a3b8;
-  --text-3: #475569;
+  --text-1: #172033;
+  --text-2: #536179;
+  --text-3: #7b879c;
 
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
   --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -50,7 +50,10 @@
   box-sizing: border-box;
 }
 html, body {
-  background: var(--bg-base);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(79,70,229,0.08), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(15,159,143,0.06), transparent 24rem),
+    var(--bg-base);
   color: var(--text-1);
   font-family: var(--sans);
   line-height: 1.6;
@@ -59,6 +62,28 @@ html, body {
 }
 body {
   overflow-x: hidden;
+}
+
+.community-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: var(--text-1);
+  min-height: 2.75rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.875rem;
+}
+.community-input:focus {
+  outline: none;
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px var(--yellow-glow);
+}
+
+::selection { background: rgba(79,70,229,0.18); color: var(--text-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
 /* ─── Scrollbar ─── */

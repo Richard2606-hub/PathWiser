@@ -47,6 +47,7 @@ export function OnboardingShell() {
   const setIdentity = useAppStore((s) => s.setIdentity);
   const setShape = useAppStore((s) => s.setShape);
   const setPersona = useAppStore((s) => s.setPersona);
+  const showToast = useAppStore((s) => s.showToast);
 
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
   const [profileValues, setProfileValues] = useState<ProfileFormValues | null>(null);
@@ -73,32 +74,44 @@ export function OnboardingShell() {
     setProfileValues(null);
   };
 
-  const launchAsPersona = (persona: Persona, name: string) => {
+  const launchAsPersona = async (persona: Persona, name: string) => {
     const demoKey = persona === 'candidate' ? 'aisyah' : persona === 'employer' ? 'boldrise' : 'utm';
     const demo = DEMO_PERSONAS[demoKey];
     setIdentity({ name, role: persona.charAt(0).toUpperCase() + persona.slice(1) });
-    setShape({
+    const yearsExperience = profileValues?.yearsExperience ?? demo.shape.years_experience;
+    const shape = {
       ...demo.shape,
       persona,
       role: profileValues?.role || demo.shape.role,
       education: profileValues?.education || demo.shape.education,
-      years_experience: profileValues?.yearsExperience ?? demo.shape.years_experience,
+      years_experience: yearsExperience,
       state: profileValues?.state || demo.shape.state,
       skills: profileValues?.skills || demo.shape.skills,
-    });
+      life_stage: yearsExperience < 1 ? 'student' as const : yearsExperience < 3 ? 'young_adult' as const : yearsExperience < 12 ? 'early_career' as const : yearsExperience < 20 ? 'mid_career' as const : 'senior_career' as const,
+    };
+    setShape(shape);
     setPersona(persona);
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...shape, display_name: name, profile_summary: profileValues?.context }),
+      });
+      if (response.ok) showToast('Your profile was securely saved to your account.', 'success');
+    } catch {
+      // Community preview remains usable when account services are not configured.
+    }
     closeOnb();
     router.push(`/dashboard/${persona === 'candidate' ? 'candidate/path-navigator' : persona === 'employer' ? 'employer/talent-matching' : 'university/outcome-loop'}`);
   };
 
-  const goNext = () => {
+  const goNext = async () => {
     if (step === 0) {
-      // Employer + University fast-track: skip all intermediate steps
-      if (role && role !== 'candidate') {
-        launchAsPersona(role, role === 'employer' ? 'BoldRise Sdn Bhd' : 'Universiti Teknologi Malaysia');
-        return;
-      }
       setStep(1);
+      return;
+    }
+    if (step === 1 && effectiveRole !== 'candidate') {
+      setStep(3);
       return;
     }
     if (step < totalSteps - 1) {
@@ -107,18 +120,18 @@ export function OnboardingShell() {
     }
     // Last step — launch
     if (effectiveRole && profileValues) {
-      launchAsPersona(effectiveRole, profileValues.name || 'Aisyah binti Rahman');
+      await launchAsPersona(effectiveRole, profileValues.name || 'Aisyah binti Rahman');
     } else if (effectiveRole) {
-      launchAsPersona(effectiveRole, effectiveRole === 'candidate' ? 'Aisyah binti Rahman' : effectiveRole);
+      await launchAsPersona(effectiveRole, effectiveRole === 'candidate' ? 'Aisyah binti Rahman' : effectiveRole);
     }
   };
 
-  const goBack = () => setStep(Math.max(0, step - 1));
+  const goBack = () => setStep(effectiveRole !== 'candidate' && step === 3 ? 1 : Math.max(0, step - 1));
 
   return (
     <>
       <ClosableOverlay
-        open={open}
+        open={open && !confirmLeaveOpen}
         onClose={requestClose}
         onEscape={requestClose}
         ariaLabel="Onboarding"
@@ -128,10 +141,11 @@ export function OnboardingShell() {
 
         <div className="p-6 border-b border-[color:var(--border)]">
           {/* Step indicator dots */}
-          <div className="flex items-center gap-1.5 mb-3">
+          <div className="flex items-center gap-1.5 mb-3" role="progressbar" aria-label="Onboarding progress" aria-valuemin={1} aria-valuemax={totalSteps} aria-valuenow={step + 1}>
             {Array.from({ length: totalSteps }).map((_, i) => (
               <span
                 key={i}
+                aria-hidden="true"
                 className={cn(
                   'h-2 rounded-full transition-all',
                   i === step ? 'w-8 bg-[color:var(--yellow)]' :
@@ -201,7 +215,7 @@ export function OnboardingShell() {
           >
             {step === totalSteps - 1
               ? 'Launch Dashboard →'
-              : step === 0 && role && role !== 'candidate'
+              : false
                 ? 'Launch Dashboard →'
                 : 'Next →'}
           </Button>

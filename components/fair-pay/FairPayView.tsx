@@ -18,11 +18,12 @@ export function FairPayView() {
   const [experience, setExperience] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [b, setB] = useState({ p10: 3500, p25: 4800, median: 6200, p75: 8500, p90: 12000, name: 'Software Engineer' });
+  const [b, setB] = useState<{ p10: number; p25: number; median: number; p75: number; p90: number; name: string; cohortSize: number } | null>(null);
 
   useEffect(() => {
     async function load() {
       setIsLoading(true);
+      setB(null);
       try {
         const res = await navigate({
           userId: 'anon',
@@ -38,12 +39,13 @@ export function FairPayView() {
         if ('aggregate' in res && res.aggregate?.salary_percentiles_by_role && res.aggregate.salary_percentiles_by_role[role]) {
           const stats = res.aggregate.salary_percentiles_by_role[role];
           setB({
-            p10: stats.p10 || b.p10,
-            p25: stats.p25 || b.p25,
-            median: stats.median || b.median,
-            p75: stats.p75 || b.p75,
-            p90: stats.p90 || b.p90,
+            p10: stats.p10,
+            p25: stats.p25,
+            median: stats.median,
+            p75: stats.p75,
+            p90: stats.p90,
             name: role,
+            cohortSize: res.aggregate.cohort_size,
           });
         }
       } catch (err: any) {
@@ -57,12 +59,14 @@ export function FairPayView() {
   }, [role, location, experience]);
 
   const pct = useMemo(() => {
+    if (!b) return 0;
     const range = b.p90 - b.p10;
     if (range === 0) return 50;
     return Math.max(0, Math.min(100, ((salary - b.p10) / range) * 100));
   }, [salary, b]);
 
   const percentileLabel = useMemo(() => {
+    if (!b) return '—';
     if (salary <= b.p10) return 'P10';
     if (salary <= b.p25) return 'P25';
     if (salary <= b.median) return 'P50';
@@ -71,13 +75,13 @@ export function FairPayView() {
     return 'P90+';
   }, [salary, b]);
 
-  const verdict =
+  const verdict = !b ? 'Evidence unavailable' :
     salary < b.p25 ? 'Below Market' :
     salary < b.median ? 'Approaching Median' :
     salary < b.p75 ? 'At Market Rate' :
     'Above Market';
 
-  const verdictColor =
+  const verdictColor = !b ? 'var(--text-3)' :
     salary < b.p25 ? 'var(--rose)' :
     salary < b.p75 ? 'var(--yellow)' :
     'var(--emerald)';
@@ -87,8 +91,8 @@ export function FairPayView() {
       <StatGrid cols={4}>
         <StatBox label="Your Salary" value={formatMYR(salary, false)} />
         <StatBox label="Percentile" value={percentileLabel} />
-        <StatBox label="Market Median" value={isLoading ? '...' : formatMYR(b.median, false)} color="var(--teal)" />
-        <StatBox label="Gap to Median" value={`${salary >= b.median ? '+' : ''}${isLoading ? '...' : formatMYR(salary - b.median, false)}`} color={salary >= b.median ? 'var(--emerald)' : 'var(--rose)'} />
+        <StatBox label="Market Median" value={isLoading ? 'Loading…' : b ? formatMYR(b.median, false) : 'Unavailable'} color="var(--teal)" />
+        <StatBox label="Gap to Median" value={isLoading ? 'Loading…' : b ? `${salary >= b.median ? '+' : ''}${formatMYR(salary - b.median, false)}` : 'Unavailable'} color={b && salary >= b.median ? 'var(--emerald)' : 'var(--rose)'} />
       </StatGrid>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
@@ -140,6 +144,8 @@ export function FairPayView() {
         </div>
 
         <div className="flex flex-col gap-3">
+          {!isLoading && !b && <Callout tone="amber"><strong>No publishable pay cohort</strong><p className="mt-1">PathWiser could not retrieve a salary band for these filters. It will not substitute a hard-coded market figure.</p></Callout>}
+          {b && <>
           <div className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
             <div className="flex items-baseline justify-between mb-3">
               <div>
@@ -198,15 +204,15 @@ export function FairPayView() {
           </Callout>
 
           <Callout>
-            <strong>Calibration Sources</strong>
+            <strong>Evidence and calibration</strong>
+            <p className="mt-1">Calculated from {b.cohortSize.toLocaleString()} retrieved trajectories. This is cohort context, not a valuation of an individual.</p>
             <ul className="mt-2 space-y-1 text-[11px]">
-              <li>📊 <strong>DOSM</strong> — Salaries & Wages Survey Report 2024 (CC-BY-4.0)</li>
-              <li>📋 <strong>Michael Page MY</strong> — Salary Guide (headline anchors)</li>
-              <li>📋 <strong>Hays Asia</strong> — Salary Guide (headline anchors)</li>
-              <li>📋 <strong>Robert Walters MY</strong> — Salary Survey (headline anchors)</li>
-              <li>🏛️ <strong>TalentCorp</strong> — MyMahir Critical Occupations List</li>
+              <li><strong>DOSM</strong> — Salaries &amp; Wages Survey Report 2024</li>
+              <li><strong>ESCO and O*NET</strong> — occupation and skill taxonomy anchors</li>
+              <li><strong>TalentCorp MyCOL</strong> — critical occupation context</li>
             </ul>
           </Callout>
+          </>}
         </div>
       </div>
     </div>

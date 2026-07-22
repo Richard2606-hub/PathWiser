@@ -4,7 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'PathWiser · Career OS Navigation Platform',
   description:
-    'An evidence-based Career OS that uses the Career Twin Engine to match your trajectory shape against real anonymised paths — surfacing realistic ranges of outcomes, not false predictions. Built for candidates, employers, and universities across Asia.',
+    'An evidence-based Career OS that compares your trajectory shape with consented community evidence or clearly disclosed modelled paths—surfacing realistic ranges, not individual predictions.',
   authors: [{ name: 'PathWiser · Talentbank Tech Hackathon 2026' }],
   openGraph: {
     title: 'PathWiser',

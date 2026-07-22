@@ -18,7 +18,7 @@ export interface AIProvider {
   /**
    * Embed a user's shape as a dense vector.
    * @param text The structured shape as a text representation
-   * @returns Vector embedding (dimensionality depends on model; default 768 for text-embedding-004)
+   * @returns Vector embedding (dimensionality depends on model; default 768 for gemini-embedding-2)
    */
   getEmbedding(text: string): Promise<number[]>;
 

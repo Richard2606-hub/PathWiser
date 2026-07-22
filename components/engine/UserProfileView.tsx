@@ -65,7 +65,7 @@ export function UserProfileView() {
             <span className="ml-4">0.405, 0.023, -0.187, 0.516</span><br />]
             <br />
             <span className="text-[color:var(--text-3)]">
-              # 768 dimensions · text-embedding-004
+              # 768 dimensions · gemini-embedding-2
             </span>
           </div>
         </div>
