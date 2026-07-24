@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { retrieveCohort, aggregate } from '@/lib/engine';
 import { MODELLED_CANDIDATES } from '@/lib/corpus/candidates';
-import { getEvidenceProvenance } from '@/lib/evidence';
+import { getEvidenceProvenance, resolveEvidenceMode } from '@/lib/evidence';
 import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
 import { createClient } from '@/lib/supabase/server';
 import { getAIProvider } from '@/lib/ai';
@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
   try {
     const input = RequestSchema.parse(await request.json());
     const shape: UserShape = { userId: 'anon', persona: 'employer', role: input.role, education: "Bachelor's", years_experience: 5, state: input.state, skills: input.skills, life_stage: 'mid_career' };
-    const cohort = await retrieveCohort(shape, { k: 1200 });
+    const evidenceMode = resolveEvidenceMode(shape.userId);
+    const cohort = await retrieveCohort(shape, { k: 1200, evidenceMode });
     if (cohort.cohort_too_small) return NextResponse.json({
       cohort_too_small: true,
       cohort_size: cohort.size,
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
       candidates: [],
       common_bridges: [],
       data_scope: 'cohort-gated',
-      evidence: getEvidenceProvenance(),
+      evidence: getEvidenceProvenance(evidenceMode),
     });
     const evidenceAggregate = aggregate(cohort, 0);
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       .filter((candidate) => input.include_adjacent || !candidate.adjacent)
       .sort((a, b) => b.matched_skills.length - a.matched_skills.length || a.skill_bridges.length - b.skill_bridges.length);
 
-    return NextResponse.json({ candidates, cohort_size: cohort.size, common_bridges: evidenceAggregate.common_skill_bridges.slice(0, 5), data_scope: dataScope, evidence: getEvidenceProvenance() });
+    return NextResponse.json({ candidates, cohort_size: cohort.size, common_bridges: evidenceAggregate.common_skill_bridges.slice(0, 5), data_scope: dataScope, evidence: getEvidenceProvenance(evidenceMode) });
   } catch (error) {
     if (error instanceof z.ZodError) return NextResponse.json({ error: 'invalid_query', issues: error.issues }, { status: 400 });
     return NextResponse.json({ error: 'talent_match_failed', message: error instanceof Error ? error.message : String(error) }, { status: 500 });

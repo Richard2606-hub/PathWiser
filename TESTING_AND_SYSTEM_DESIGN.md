@@ -17,7 +17,10 @@ flowchart LR
   E[Employer\nDemand and hiring feedback] --> S
   U[University\nProgramme and outcome signals] --> S
 
-  S --> R[Trajectory retrieval\npgvector in full mode\nor disclosed demo corpus]
+  S --> M{Evidence context}
+  M -- Authenticated community --> R[Trajectory retrieval\npgvector over governed records]
+  M -- Anonymous preview --> P[Disclosed modelled corpus\nno real-person claims]
+  P --> G
   R --> G{At least 50\nsimilar trajectories?}
   G -- No --> H[Show insufficient-evidence state\nInvite wider filters; do not infer]
   G -- Yes --> A[Deterministic aggregation\nroles, ranges, time, bridges, trade-offs]
@@ -46,23 +49,24 @@ flowchart LR
 
 ### Deployment modes
 
-- **Demo / local default:** In-memory, synthetic-but-calibrated corpus. It is deterministic, fast, and does not depend on an external AI service.
+- **Modelled preview:** Anonymous and named preview personas use the in-memory, synthetic-but-calibrated corpus. This remains interactive in a full-mode deployment and is always labelled `modelled`.
 - **Community/full mode:** Set `ALLOW_FULL_MODE=true` with valid Supabase and Gemini configuration after migrations and a governed trajectory import. The flag is explicit in every environment.
-- **Failure handling:** Production propagates a full-mode retrieval error rather than silently replacing live evidence with synthetic data. Development can fall back to the disclosed demo corpus.
+- **Evidence separation:** Authenticated community requests never silently fall back to modelled people. They return an explicit cohort gate or temporary-service state. Preview requests opt into modelled evidence by contract.
+- **Failure handling:** Gemini embedding requests use an explicit 768-dimensional contract and bounded transient retries. Provider/database outages return a human-readable retry state without exposing provider errors; narrative generation retains its deterministic template fallback.
 
 ## QA results
 
 | Area | Check | Result |
 |---|---|---|
-| Engine math, normalization, ranking, salary presentation and coach honesty | Percentiles, distributions, MyCOL flags, salary ranges, bridges, small-cohort guard, probability totals, taxonomy handling, explainable marketplace ranking, whole-ringgit presentation, predictive-language rejection and deterministic fallback | Pass: 29 automated Vitest tests on 24 July 2026. |
-| Production HTTP and API surface | 23 rendered pages; candidate/employer/university engine calls; coach; matching; marketplace; feedback; account isolation; export/deletion safeguards; retention authorization; authentication callback safety; malformed input and Origin handling; security headers | Pass: 44 checks per run. Earlier extended testing completed eight 38-check iterations (304 checks) with zero failures, plus a separate 60-request bounded concurrency pass with 60/60 HTTP 200 responses. |
-| Build quality | ESLint, TypeScript, OpenAPI YAML and Next production compilation | Pass: zero-warning ESLint, `npm.cmd run typecheck`, OpenAPI 3.1 parse across 13 paths, and `npm.cmd run build` across all 40 routes. The merged `main` revision also passed the clean Linux [Production quality gate](https://github.com/Richard2606-hub/PathWiser/actions/runs/30087625136). |
+| Engine math, normalization, ranking, salary presentation and coach honesty | Percentiles, distributions, MyCOL flags, salary ranges, bridges, small-cohort guard, probability totals, taxonomy handling, explainable marketplace ranking, whole-ringgit presentation, predictive-language rejection, transient-provider classification and deterministic fallback | Pass: 40 automated Vitest tests on 24 July 2026. |
+| Production HTTP and API surface | 23 rendered pages; candidate/employer/university modelled flows; explicit community probe; coach; matching; marketplace; feedback; account isolation; export/deletion safeguards; retention authorization; authentication callback safety; malformed input and Origin handling; security headers | Pass: 45 checks per run. Earlier extended testing completed eight 38-check iterations (304 checks) with zero failures, plus a separate 60-request bounded concurrency pass with 60/60 HTTP 200 responses. |
+| Build quality | ESLint, TypeScript, OpenAPI YAML and Next production compilation | Pass: zero-warning ESLint, `npm.cmd run typecheck`, OpenAPI 3.1 parse across 13 paths, and `npm.cmd run build` across all 40 routes. The merged `main` revision passed the clean Linux [Production quality gate](https://github.com/Richard2606-hub/PathWiser/actions/runs/30096387316). |
 | Automated accessibility | WCAG 2.0/2.1/2.2 A and AA semantic rules across public, authentication/recovery, candidate, employer, university, marketplace, feedback and privacy surfaces | Pass: 16 routes and 24 applicable rule groups through `npm.cmd run test:a11y`; rendered browser review covers colour/visual and touch behaviour that JSDOM cannot measure. |
 | Dependency security | Entire production and development dependency graph | Pass: Next.js 15.5.21, PostCSS 8.5.22, Sharp 0.35.3 and Vitest 4.1.10; `npm.cmd audit --json` reports zero known vulnerabilities on 24 July 2026. |
 | Release metadata | Open Graph/Twitter metadata and 1200 × 630 social image | Pass: metadata tags and `/og-pathwiser.png` return HTTP 200 with the expected PNG content type. |
 | Candidate journey | Clean onboarding -> normalization -> launch -> navigator -> cohort graph -> node detail -> compare mode -> coach -> fair-pay -> saved marketplace role | Pass in a fresh production-browser session. The audit removed demo identity leakage, a hard-coded graph role, fractional-ringgit noise and an overconfident comparison claim. |
-| Employer journey | Persona launch -> demand controls -> explainable matching -> saved retention review -> onboarding planner | Pass against the labelled modelled-evidence path in a fresh production-browser session; live account persistence remains conditional on completing the production Supabase migrations and grants. |
-| University journey | Persona launch -> outcome horizon -> saved snapshot -> curriculum handoff -> readiness evidence -> contextual reflection | Pass against the labelled modelled-evidence path in a fresh production-browser session; live account persistence remains conditional on completing the production Supabase migrations and grants. |
+| Employer journey | Persona launch -> demand controls -> explainable matching -> saved retention review -> onboarding planner | Pass against the labelled modelled-evidence path in a fresh production-browser session; live account persistence and consented matching remain conditional on populated production accounts and evidence. |
+| University journey | Persona launch -> outcome horizon -> saved snapshot -> curriculum handoff -> readiness evidence -> contextual reflection | Pass against the labelled modelled-evidence path in a fresh production-browser session; live account persistence remains conditional on populated production accounts and programme consent. |
 | Persona access | Direct navigation to another audience while production view is locked | Enforced in middleware for authenticated accounts. Cross-audience Judge View requires an explicit environment flag and admin/judge server role; production multi-account RLS test remains a launch gate. |
 | Keyboard and dialogs | Onboarding close/Escape/focus restoration; marketplace detail Escape; graph selection and compare controls | Pass in the fresh production-browser regression. |
 | Rendered route audit | Public page, authentication/recovery and all dashboard pages | Pass: 23 page surfaces rendered with the expected level-one heading and no application/runtime error state. Production persona locking redirected direct cross-audience navigation as designed. |
@@ -80,4 +84,4 @@ flowchart LR
 
 ## Known delivery boundary
 
-The bundled corpus and candidate profiles are modelled and calibrated to open Malaysian labour anchors. The configured Supabase Auth service is reachable and accepts the configured keys, but the live project is missing migrations `0003`–`0005`; older tables also need the explicit API grants in `0005_api_privileges.sql`. Full mode therefore remains disabled. A public community launch still requires applying all five migrations with `npm run supabase:migrate`, real organisations, a governed trajectory import, PDPA/legal approval, fairness evaluation, distributed monitoring/rate limiting, backups and production credentials. Until those external gates pass, the interface must retain its modelled-evidence labels and must not be represented as the real-data community release.
+The public preview at `https://path-wiser-sigma.vercel.app` is production-built and the live Supabase project has all five checksum-recorded migrations and API grants. The governed tables are intentionally empty: no real organisation, marketplace, trajectory or consent records have been invented. Anonymous preview personas therefore use the explicitly requested modelled corpus, while authenticated community retrieval stays cohort-gated. A real-data community launch still requires approved organisations and users, a governed consented trajectory import, PDPA/legal and fairness review, multi-account RLS verification, distributed monitoring/rate limiting, backups and support operations. Until those external gates pass, PathWiser must be described as a production preview, not a populated real-data community service.

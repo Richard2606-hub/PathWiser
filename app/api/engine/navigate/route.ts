@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { retrieveCohort, aggregate, explain } from '@/lib/engine';
+import { EvidenceServiceUnavailableError } from '@/lib/engine/retrieve';
 import { MIN_COHORT_SIZE } from '@/lib/engine/aggregate';
 import type { UserShape } from '@/types';
 import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
 import { recordEngineEvent } from '@/lib/observability';
-import { getEvidenceProvenance } from '@/lib/evidence';
+import { getEvidenceProvenance, resolveEvidenceMode } from '@/lib/evidence';
+import { isTransientAIError } from '@/lib/ai/gemini';
 
 const ShapeSchema = z.object({
   userId: z.string().trim().min(1).max(160).default('anon'),
@@ -37,6 +39,7 @@ const RequestSchema = z.object({
   filterByState: z.boolean().optional(),
   filterBySector: z.string().optional(),
   k: z.number().min(50).max(2000).optional(),
+  evidenceMode: z.enum(['community', 'modelled']).optional(),
 });
 
 /**
@@ -54,8 +57,9 @@ export async function POST(req: NextRequest) {
   const startedAt = Date.now();
   try {
     const body = await req.json();
-    const { shape, currentStepIndex, filterByLifeStage, filterByState, filterBySector, k } =
+    const { shape, currentStepIndex, filterByLifeStage, filterByState, filterBySector, k, evidenceMode } =
       RequestSchema.parse(body);
+    const resolvedEvidenceMode = resolveEvidenceMode(shape.userId, evidenceMode);
 
     // 1. Retrieval
     const cohort = await retrieveCohort(shape as UserShape, {
@@ -63,6 +67,7 @@ export async function POST(req: NextRequest) {
       filterByLifeStage,
       filterByState,
       filterBySector,
+      evidenceMode: resolvedEvidenceMode,
     });
 
     if (cohort.cohort_too_small) {
@@ -73,7 +78,7 @@ export async function POST(req: NextRequest) {
           cohort_size: cohort.size,
           k_min: cohort.cohort_too_small.k_min,
           message: cohort.cohort_too_small.reason,
-          evidence: getEvidenceProvenance(),
+          evidence: getEvidenceProvenance(resolvedEvidenceMode),
         },
         { status: 200 }
       );
@@ -107,15 +112,31 @@ export async function POST(req: NextRequest) {
       aggregate: agg,
       explanation,
       k_min: MIN_COHORT_SIZE,
-      evidence: getEvidenceProvenance(),
+      evidence: getEvidenceProvenance(resolvedEvidenceMode),
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'invalid_input', issues: err.issues }, { status: 400 });
     }
+    if (isTransientAIError(err) || err instanceof EvidenceServiceUnavailableError) {
+      void recordEngineEvent({ module: 'navigate', latencyMs: Date.now() - startedAt, outcome: 'error' });
+      return NextResponse.json(
+        {
+          error: 'evidence_service_unavailable',
+          message: 'Evidence matching is temporarily unavailable. Please try again in a moment.',
+          retryable: true,
+        },
+        { status: 503 }
+      );
+    }
+    console.error('[PathWiser] Navigation engine failed:', err);
     void recordEngineEvent({ module: 'navigate', latencyMs: Date.now() - startedAt, outcome: 'error' });
     return NextResponse.json(
-      { error: 'internal_error', message: err instanceof Error ? err.message : String(err) },
+      {
+        error: 'internal_error',
+        message: 'PathWiser could not load this evidence view. Please try again.',
+        retryable: true,
+      },
       { status: 500 }
     );
   }

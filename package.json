@@ -13,12 +13,13 @@
     "test:watch": "vitest",
     "test:smoke": "node scripts/smoke-test.mjs",
     "test:a11y": "node scripts/accessibility-test.mjs",
+    "test:openapi": "node scripts/validate-openapi.mjs",
     "corpus:generate": "tsx scripts/generate-corpus.ts",
     "corpus:embed": "tsx scripts/embed-corpus.ts",
     "supabase:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/genai": "^2.13.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.4",
     "clsx": "^2.1.1",
@@ -44,7 +45,8 @@
     "tailwindcss": "^3.4.13",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "yaml": "^2.9.0"
   },
   "overrides": {
     "sharp": "0.35.3",

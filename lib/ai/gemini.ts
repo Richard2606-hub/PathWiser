@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ApiError, GoogleGenAI } from '@google/genai';
 import type { AIProvider } from './interface';
 import { HONEST_NARRATIVE_CONSTRAINTS } from './interface';
 import type { Aggregate, Explanation } from '@/types';
@@ -16,9 +16,10 @@ import type { Aggregate, Explanation } from '@/types';
  */
 export class GeminiProvider implements AIProvider {
   readonly name = 'gemini';
-  private client: GoogleGenerativeAI;
+  private client: GoogleGenAI;
   private embeddingModel: string;
   private chatModel: string;
+  private readonly embeddingDimensions = 768;
 
   constructor(apiKey: string, options?: { embeddingModel?: string; chatModel?: string }) {
     if (!apiKey) {
@@ -27,31 +28,40 @@ export class GeminiProvider implements AIProvider {
         'Get one free at https://aistudio.google.com/apikey'
       );
     }
-    this.client = new GoogleGenerativeAI(apiKey);
+    this.client = new GoogleGenAI({ apiKey });
     this.embeddingModel = options?.embeddingModel || 'gemini-embedding-2';
     this.chatModel = options?.chatModel || 'gemini-3.5-flash-lite';
   }
 
   async getEmbedding(text: string): Promise<number[]> {
-    const model = this.client.getGenerativeModel({ model: this.embeddingModel });
-    const result = await model.embedContent(text);
-    return result.embedding.values;
+    const result = await withTransientRetry(() => this.client.models.embedContent({
+      model: this.embeddingModel,
+      contents: text,
+      config: { outputDimensionality: this.embeddingDimensions },
+    }));
+    const values = result.embeddings?.[0]?.values;
+    return requireEmbedding(values, this.embeddingDimensions);
   }
 
   async getEmbeddings(texts: string[]): Promise<number[][]> {
-    // Gemini free-tier throttles at 1500/min for embeddings.
-    // For our ~1500-row corpus we chunk into batches of 50 with a small delay.
-    const model = this.client.getGenerativeModel({ model: this.embeddingModel });
+    // Separate Content objects produce one embedding per input. Chunking keeps
+    // import requests bounded while avoiding one HTTP request per trajectory.
     const out: number[][] = [];
     const chunkSize = 50;
     for (let i = 0; i < texts.length; i += chunkSize) {
       const batch = texts.slice(i, i + chunkSize);
-      const results = await Promise.all(
-        batch.map((t) => model.embedContent(t).then((r) => r.embedding.values))
-      );
-      out.push(...results);
-      // Throttle: 50 requests per second is well under the free-tier ceiling.
-      if (i + chunkSize < texts.length) await new Promise((r) => setTimeout(r, 1100));
+      const result = await withTransientRetry(() => this.client.models.embedContent({
+        model: this.embeddingModel,
+        contents: batch.map((text) => ({ role: 'user', parts: [{ text }] })),
+        config: { outputDimensionality: this.embeddingDimensions },
+      }));
+      const embeddings = result.embeddings ?? [];
+      if (embeddings.length !== batch.length) {
+        throw new Error(`Gemini returned ${embeddings.length} embeddings for a batch of ${batch.length}.`);
+      }
+      out.push(...embeddings.map((embedding) =>
+        requireEmbedding(embedding.values, this.embeddingDimensions)
+      ));
     }
     return out;
   }
@@ -69,11 +79,13 @@ export class GeminiProvider implements AIProvider {
         'You are speaking to a university programme director. Frame the aggregate around where graduates land and what curriculum insight it implies.',
     }[audience];
 
-    const model = this.client.getGenerativeModel({ model: this.chatModel });
     const prompt = `${HONEST_NARRATIVE_CONSTRAINTS}\n\n${audiencePrompt}\n\nAggregate (verbatim numbers you must reference):\n\`\`\`json\n${JSON.stringify(aggregate, null, 2)}\n\`\`\`\n\nProduce a 2-4 sentence narrative that explains what this cohort shows.`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const result = await withTransientRetry(() => this.client.models.generateContent({
+      model: this.chatModel,
+      contents: prompt,
+    }));
+    const text = requireGeneratedText(result.text);
 
     return validateExplanation(text, aggregate);
   }
@@ -83,13 +95,52 @@ export class GeminiProvider implements AIProvider {
     userMessage: string,
     cohortContext: Aggregate
   ): Promise<string> {
-    const model = this.client.getGenerativeModel({
-      model: this.chatModel,
-      systemInstruction: `${HONEST_NARRATIVE_CONSTRAINTS}\n\n${systemPrompt}`,
-    });
     const contextBlock = `\n\n[Cohort context - use these numbers verbatim, do not invent others]:\n${JSON.stringify(cohortContext, null, 2)}\n\n`;
-    const result = await model.generateContent(userMessage + contextBlock);
-    return result.response.text();
+    const result = await withTransientRetry(() => this.client.models.generateContent({
+      model: this.chatModel,
+      contents: userMessage + contextBlock,
+      config: {
+        systemInstruction: `${HONEST_NARRATIVE_CONSTRAINTS}\n\n${systemPrompt}`,
+      },
+    }));
+    return requireGeneratedText(result.text);
+  }
+}
+
+function requireEmbedding(values: number[] | undefined, dimensions: number): number[] {
+  if (!values || values.length !== dimensions) {
+    throw new Error(
+      `Gemini embedding contract failed: expected ${dimensions} dimensions, received ${values?.length ?? 0}.`
+    );
+  }
+  return values;
+}
+
+function requireGeneratedText(text: string | undefined): string {
+  const value = text?.trim();
+  if (!value) throw new Error('Gemini returned an empty response.');
+  return value;
+}
+
+export function isTransientAIError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return [429, 500, 502, 503, 504].includes(error.status);
+  }
+  const status = typeof error === 'object' && error !== null && 'status' in error
+    ? Number((error as { status?: unknown }).status)
+    : NaN;
+  return [429, 500, 502, 503, 504].includes(status);
+}
+
+async function withTransientRetry<T>(operation: () => Promise<T>): Promise<T> {
+  const delays = [300, 900];
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!isTransientAIError(error) || attempt >= delays.length) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+    }
   }
 }
 

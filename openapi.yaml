@@ -67,8 +67,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Community evidence database or embedding provider temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
-          description: Engine or provider failure
+          description: Unexpected internal engine failure
           content:
             application/json:
               schema:
@@ -284,11 +290,15 @@ components:
       required: [shape]
       properties:
         shape: { $ref: '#/components/schemas/UserShape' }
-        currentStepIndex: { type: integer, minimum: 0, maximum: 6, default: 0 }
+        currentStepIndex: { type: integer, minimum: -1, maximum: 6, default: 0 }
         filterByLifeStage: { type: boolean, default: false }
         filterByState:     { type: boolean, default: false }
         filterBySector:    { type: string }
         k: { type: integer, minimum: 50, maximum: 2000, default: 1200 }
+        evidenceMode:
+          type: string
+          enum: [community, modelled]
+          description: Explicit evidence context. Anonymous preview clients use modelled; authenticated community clients use community.
 
     NavigateResponse:
       type: object

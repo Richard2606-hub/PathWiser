@@ -4,6 +4,7 @@
  */
 
 import type { UserShape, Aggregate, Explanation, EvidenceProvenance } from '@/types';
+import type { EvidenceMode } from '@/lib/evidence';
 
 export interface NavigateOptions {
   currentStepIndex?: number;
@@ -11,6 +12,7 @@ export interface NavigateOptions {
   filterByState?: boolean;
   filterBySector?: string;
   k?: number;
+  evidenceMode?: EvidenceMode;
 }
 
 export interface NavigateResponse {
@@ -37,10 +39,12 @@ export async function navigate(
   shape: UserShape,
   options: NavigateOptions = {}
 ): Promise<NavigateResponse | CohortTooSmallResponse> {
+  const evidenceMode = options.evidenceMode ??
+    (shape.userId === 'anon' || shape.userId.startsWith('demo-') ? 'modelled' : 'community');
   const res = await fetch('/api/engine/navigate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ shape, ...options }),
+    body: JSON.stringify({ shape, ...options, evidenceMode }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
