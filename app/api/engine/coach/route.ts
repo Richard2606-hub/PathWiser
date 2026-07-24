@@ -5,7 +5,7 @@ import { getAIProvider } from '@/lib/ai';
 import type { UserShape } from '@/types';
 import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
 import { deterministicCoachReply, validateCoachReply } from '@/lib/ai/coachValidation';
-import { getEvidenceProvenance } from '@/lib/evidence';
+import { getEvidenceProvenance, resolveEvidenceMode } from '@/lib/evidence';
 
 const ShapeSchema = z.object({
   userId: z.string().trim().min(1).max(160).default('anon'),
@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
     const { shape, message, history } = RequestSchema.parse(body);
 
     // 1. Retrieval
-    const cohort = await retrieveCohort(shape as UserShape, { k: 1200 });
+    const evidenceMode = resolveEvidenceMode(shape.userId);
+    const cohort = await retrieveCohort(shape as UserShape, { k: 1200, evidenceMode });
     
     // 2. Aggregation
     let aggContext;
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
        }
     }
 
-    return NextResponse.json({ reply: responseText, validated, fallback_reason: fallbackReason, cohort_size: cohort.size, evidence: getEvidenceProvenance() });
+    return NextResponse.json({ reply: responseText, validated, fallback_reason: fallbackReason, cohort_size: cohort.size, evidence: getEvidenceProvenance(evidenceMode) });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: 'invalid_input', issues: err.issues }, { status: 400 });
