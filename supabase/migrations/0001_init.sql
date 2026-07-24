@@ -166,22 +166,30 @@ alter table public.job_listings enable row level security;
 alter table public.companies enable row level security;
 
 -- Users read/write only their own shape
+drop policy if exists user_shapes_own_read on public.user_shapes;
 create policy user_shapes_own_read on public.user_shapes
   for select using (auth.uid() = user_id);
+drop policy if exists user_shapes_own_write on public.user_shapes;
 create policy user_shapes_own_write on public.user_shapes
   for insert with check (auth.uid() = user_id);
+drop policy if exists user_shapes_own_update on public.user_shapes;
 create policy user_shapes_own_update on public.user_shapes
   for update using (auth.uid() = user_id);
 
 -- Users read/write only their own feedback
+drop policy if exists feedback_own_all on public.feedback_sessions;
 create policy feedback_own_all on public.feedback_sessions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Engine sessions: user reads only their own; server writes for anyone (service role bypasses RLS)
+drop policy if exists engine_own_read on public.engine_sessions;
 create policy engine_own_read on public.engine_sessions
   for select using (auth.uid() = user_id);
 
 -- Trajectories, jobs, companies: public read (anonymised corpus)
+drop policy if exists trajectories_public_read on public.trajectories;
 create policy trajectories_public_read on public.trajectories for select using (true);
+drop policy if exists job_listings_public_read on public.job_listings;
 create policy job_listings_public_read on public.job_listings for select using (true);
+drop policy if exists companies_public_read on public.companies;
 create policy companies_public_read on public.companies for select using (true);

@@ -1,47 +1,87 @@
 import { loadEnvConfig } from '@next/env';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import postgres from 'postgres';
 
-// Load environment variables from .env.local
 loadEnvConfig(process.cwd());
 
 async function main() {
   const dbUrl = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
   if (!dbUrl) {
-    console.error('\x1b[31m%s\x1b[0m', 'Error: DATABASE_URL or SUPABASE_DB_URL is not set in environment variables.');
-    console.info('\nPlease configure your .env.local file with your database connection string.');
-    console.info('Example:');
-    console.info('  DATABASE_URL="postgres://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres"');
-    console.info('\nAlternatively, you can manually apply migrations by copy-pasting the contents of:');
-    console.info('  supabase/migrations/0001_init.sql');
-    console.info('directly into the Supabase Dashboard SQL Editor.');
-    process.exit(1);
+    throw new Error(
+      'DATABASE_URL or SUPABASE_DB_URL is required. Use the Supabase pooler connection string; never use a public API key as a database password.'
+    );
   }
 
-  const migrationPath = path.join(process.cwd(), 'supabase', 'migrations', '0001_init.sql');
-  if (!fs.existsSync(migrationPath)) {
-    console.error('\x1b[31m%s\x1b[0m', `Migration file not found at: ${migrationPath}`);
-    process.exit(1);
+  const migrationsDirectory = path.join(process.cwd(), 'supabase', 'migrations');
+  const migrationFiles = fs
+    .readdirSync(migrationsDirectory)
+    .filter((filename) => /^\d{4}_.+\.sql$/.test(filename))
+    .sort((left, right) => left.localeCompare(right));
+
+  if (migrationFiles.length === 0) {
+    throw new Error(`No migration files found in ${migrationsDirectory}`);
   }
 
-  console.log(`Reading migration file from ${migrationPath}...`);
-  const sqlContent = fs.readFileSync(migrationPath, 'utf8');
-
-  console.log('Connecting to database and running migration...');
-  // Use ssl: 'require' for secure connection to Supabase
-  const sql = postgres(dbUrl, { ssl: 'require' });
+  const sql = postgres(dbUrl, {
+    ssl: 'require',
+    max: 1,
+    idle_timeout: 10,
+    connect_timeout: 20,
+  });
 
   try {
-    await sql.unsafe(sqlContent);
-    console.log('\x1b[32m%s\x1b[0m', '✓ Migration applied successfully!');
-  } catch (err) {
-    console.error('\x1b[31m%s\x1b[0m', 'Migration failed with error:');
-    console.error(err);
-    process.exit(1);
+    await sql`select pg_advisory_lock(hashtext('pathwiser_schema_migrations'))`;
+    await sql.unsafe(`
+      create table if not exists public.pathwiser_schema_migrations (
+        filename text primary key,
+        checksum text not null,
+        applied_at timestamptz not null default now()
+      );
+      alter table public.pathwiser_schema_migrations enable row level security;
+    `);
+
+    const appliedRows = await sql<{ filename: string; checksum: string }[]>`
+      select filename, checksum
+      from public.pathwiser_schema_migrations
+    `;
+    const applied = new Map(appliedRows.map((row) => [row.filename, row.checksum]));
+
+    for (const filename of migrationFiles) {
+      const migrationPath = path.join(migrationsDirectory, filename);
+      const sqlContent = fs.readFileSync(migrationPath, 'utf8');
+      const checksum = crypto.createHash('sha256').update(sqlContent).digest('hex');
+      const previousChecksum = applied.get(filename);
+
+      if (previousChecksum) {
+        if (previousChecksum !== checksum) {
+          throw new Error(
+            `Migration ${filename} changed after it was applied. Add a new numbered migration instead of editing production history.`
+          );
+        }
+        console.info(`skip  ${filename}`);
+        continue;
+      }
+
+      console.info(`apply ${filename}`);
+      await sql.begin(async (transaction) => {
+        await transaction.unsafe(sqlContent);
+        await transaction`
+          insert into public.pathwiser_schema_migrations (filename, checksum)
+          values (${filename}, ${checksum})
+        `;
+      });
+    }
+
+    console.info(`Applied migration set through ${migrationFiles.at(-1)}.`);
   } finally {
+    await sql`select pg_advisory_unlock(hashtext('pathwiser_schema_migrations'))`.catch(() => undefined);
     await sql.end();
   }
 }
 
-main();
+main().catch((error) => {
+  console.error('Migration failed:', error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+});
