@@ -24,7 +24,15 @@ export async function POST(request: NextRequest) {
     const input = RequestSchema.parse(await request.json());
     const shape: UserShape = { userId: 'anon', persona: 'employer', role: input.role, education: "Bachelor's", years_experience: 5, state: input.state, skills: input.skills, life_stage: 'mid_career' };
     const cohort = await retrieveCohort(shape, { k: 1200 });
-    if (cohort.cohort_too_small) return NextResponse.json({ cohort_too_small: true, cohort_size: cohort.size, message: cohort.cohort_too_small.reason, candidates: [], evidence: getEvidenceProvenance() });
+    if (cohort.cohort_too_small) return NextResponse.json({
+      cohort_too_small: true,
+      cohort_size: cohort.size,
+      message: cohort.cohort_too_small.reason,
+      candidates: [],
+      common_bridges: [],
+      data_scope: 'cohort-gated',
+      evidence: getEvidenceProvenance(),
+    });
     const evidenceAggregate = aggregate(cohort, 0);
 
     let candidates: TalentCandidateMatch[] = [];
