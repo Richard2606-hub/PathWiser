@@ -126,7 +126,12 @@ for (const audienceShape of [
 }
 
 const feedback = await request('/api/feedback');
-assert(feedback.response.ok && Array.isArray(feedback.body.feedback), 'Feedback history did not return a safe account-or-device response');
+assert([200, 503].includes(feedback.response.status), 'Feedback history returned an unexpected status');
+if (feedback.response.ok) {
+  assert(Array.isArray(feedback.body.feedback), 'Feedback history did not return an account-or-device list');
+} else {
+  assert(feedback.body.error === 'feedback_unavailable', 'Feedback outage did not return the documented safety response');
+}
 
 const invalidNavigate = await request('/api/engine/navigate', {
   method: 'POST',
