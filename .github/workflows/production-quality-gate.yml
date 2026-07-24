@@ -1,0 +1,91 @@
+name: Production quality gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pathwiser-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate production release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test -- --run
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Start production application
+        shell: bash
+        run: |
+          npm run start > "$RUNNER_TEMP/pathwiser-server.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/pathwiser-server.pid"
+
+          for attempt in {1..30}; do
+            if curl --silent --show-error --fail http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          cat "$RUNNER_TEMP/pathwiser-server.log"
+          exit 1
+
+      - name: Run route and API smoke suite
+        env:
+          PATHWISER_BASE_URL: http://127.0.0.1:3000
+        run: npm run test:smoke
+
+      - name: Run WCAG semantic audit
+        env:
+          PATHWISER_BASE_URL: http://127.0.0.1:3000
+        run: npm run test:a11y
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pathwiser-production-server-log
+          path: ${{ runner.temp }}/pathwiser-server.log
+          if-no-files-found: ignore
+
+      - name: Stop production application
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "$RUNNER_TEMP/pathwiser-server.pid" ]]; then
+            kill "$(cat "$RUNNER_TEMP/pathwiser-server.pid")" 2>/dev/null || true
+          fi
