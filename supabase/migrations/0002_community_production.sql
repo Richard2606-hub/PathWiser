@@ -55,14 +55,19 @@ alter table public.organisation_members enable row level security;
 alter table public.consent_records enable row level security;
 alter table public.audit_events enable row level security;
 
+drop policy if exists organisations_member_read on public.organisations;
 create policy organisations_member_read on public.organisations for select
   using (exists (select 1 from public.organisation_members m where m.organisation_id = id and m.user_id = auth.uid()));
+drop policy if exists organisations_authenticated_create on public.organisations;
 create policy organisations_authenticated_create on public.organisations for insert
   with check (auth.uid() = created_by);
+drop policy if exists organisation_members_member_read on public.organisation_members;
 create policy organisation_members_member_read on public.organisation_members for select
   using (user_id = auth.uid());
+drop policy if exists consent_records_own_all on public.consent_records;
 create policy consent_records_own_all on public.consent_records for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists audit_events_own_read on public.audit_events;
 create policy audit_events_own_read on public.audit_events for select using (actor_user_id = auth.uid());
 
 create or replace function public.handle_new_user()

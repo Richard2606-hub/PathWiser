@@ -44,10 +44,13 @@ alter table public.feedback_sessions
 alter table public.workspace_records enable row level security;
 alter table public.saved_marketplace_items enable row level security;
 
+drop policy if exists workspace_records_own_all on public.workspace_records;
 create policy workspace_records_own_all on public.workspace_records for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists saved_marketplace_items_own_all on public.saved_marketplace_items;
 create policy saved_marketplace_items_own_all on public.saved_marketplace_items for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists audit_events_own_insert on public.audit_events;
 create policy audit_events_own_insert on public.audit_events for insert
   with check (actor_user_id = auth.uid());
 
