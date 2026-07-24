@@ -11,7 +11,7 @@ import type { EvidenceProvenance, TalentCandidateMatch } from '@/types';
 interface MatchResponse {
   candidates: TalentCandidateMatch[];
   cohort_size: number;
-  data_scope: 'consented-community' | 'modelled-examples';
+  data_scope: 'consented-community' | 'modelled-examples' | 'cohort-gated';
   evidence: EvidenceProvenance;
   common_bridges: Array<{ skill: string; frequency: number }>;
   cohort_too_small?: boolean;
@@ -51,7 +51,11 @@ export function TalentMatchingView() {
         <StatBox label="Candidate profiles" value={loading ? '…' : String(result?.candidates.length || 0)} />
         <StatBox label="Evidence cohort" value={loading ? '…' : (result?.cohort_size || 0).toLocaleString()} color="var(--teal)" />
         <StatBox label="Adjacent profiles" value={loading ? '…' : String(result?.candidates.filter((item) => item.adjacent).length || 0)} />
-        <StatBox label="Data scope" value={result?.data_scope === 'consented-community' ? 'Consented' : 'Modelled'} color="var(--sky)" />
+        <StatBox
+          label="Data scope"
+          value={result?.data_scope === 'consented-community' ? 'Consented' : result?.data_scope === 'cohort-gated' ? 'Cohort gated' : 'Modelled'}
+          color="var(--sky)"
+        />
       </StatGrid>
 
       <section className="p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]" aria-labelledby="demand-title">
@@ -66,8 +70,8 @@ export function TalentMatchingView() {
       </section>
 
       <Callout tone={result?.data_scope === 'consented-community' ? 'teal' : 'amber'}>
-        <strong>{result?.data_scope === 'consented-community' ? 'Consented community discovery' : 'Modelled profile preview'}</strong>
-        <p className="mt-1">{result?.data_scope === 'consented-community' ? 'Only candidates who opted into employer discovery are included. Consent is revocable.' : 'These are clearly labelled synthetic profiles for evaluating the workflow. Configure community accounts and employer membership to retrieve opted-in candidates.'} No single match score is shown; employers review evidence, bridges, and context.</p>
+        <strong>{result?.data_scope === 'consented-community' ? 'Consented community discovery' : result?.data_scope === 'cohort-gated' ? 'Insufficient cohort evidence' : 'Modelled profile preview'}</strong>
+        <p className="mt-1">{result?.data_scope === 'consented-community' ? 'Only candidates who opted into employer discovery are included. Consent is revocable.' : result?.data_scope === 'cohort-gated' ? 'The connected evidence corpus is below the privacy-safe minimum, so PathWiser returns no named or modelled matches.' : 'These are clearly labelled synthetic profiles for evaluating the workflow. Configure community accounts and employer membership to retrieve opted-in candidates.'} No single match score is shown; employers review evidence, bridges, and context.</p>
       </Callout>
 
       <div className="flex flex-col gap-3" aria-live="polite">

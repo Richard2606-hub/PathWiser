@@ -86,7 +86,7 @@ paths:
   /api/talent/match:
     post:
       summary: Retrieve explainable employer matches
-      description: Returns consented candidate profiles in connected full mode, otherwise clearly labelled modelled profiles. Account IDs and individual prediction scores are never returned.
+      description: Returns consented candidate profiles in connected full mode, clearly labelled modelled profiles in evaluation mode, or an explicit cohort-gated empty set when the evidence minimum is not met. Account IDs and individual prediction scores are never returned.
       tags: [Employer]
       responses:
         '200': { description: Privacy-safe explainable matches }
