@@ -10,9 +10,9 @@ import { ProfileIntake, type ProfileFormValues } from './steps/ProfileIntake';
 import { WorkAnimalQuiz } from './steps/WorkAnimalQuiz';
 import { EscoNormalization } from './steps/EscoNormalization';
 import { ShapeSummary } from './steps/ShapeSummary';
-import { DEMO_PERSONAS } from '@/lib/corpus/personas';
 import type { Persona } from '@/types';
 import { cn } from '@/lib/utils';
+import { applyNormalization } from '@/lib/profile/normalize';
 
 const STEP_TITLES: Record<Persona, string[]> = {
   candidate:  ['Welcome to PathWiser', 'Profile Intake', 'Your Work Animal', 'ESCO Normalization', 'Your Career Shape'],
@@ -43,10 +43,11 @@ export function OnboardingShell() {
   const role = useAppStore((s) => s.onboardRole);
   const setStep = useAppStore((s) => s.setOnboardStep);
   const setRole = useAppStore((s) => s.setOnboardRole);
-  const closeOnb = useAppStore((s) => s.closeOnboarding);
+  const resetOnboarding = useAppStore((s) => s.resetOnboarding);
   const setIdentity = useAppStore((s) => s.setIdentity);
   const setShape = useAppStore((s) => s.setShape);
   const setPersona = useAppStore((s) => s.setPersona);
+  const workAnimal = useAppStore((s) => s.workAnimal);
   const showToast = useAppStore((s) => s.showToast);
 
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
@@ -60,7 +61,8 @@ export function OnboardingShell() {
   const requestClose = () => {
     if (step === 0) {
       // No progress lost
-      closeOnb();
+      setProfileValues(null);
+      resetOnboarding();
       return;
     }
     setConfirmLeaveOpen(true);
@@ -68,27 +70,25 @@ export function OnboardingShell() {
 
   const confirmLeave = () => {
     setConfirmLeaveOpen(false);
-    closeOnb();
-    setStep(0);
-    setRole(null as unknown as Persona);
+    resetOnboarding();
     setProfileValues(null);
   };
 
   const launchAsPersona = async (persona: Persona, name: string) => {
-    const demoKey = persona === 'candidate' ? 'aisyah' : persona === 'employer' ? 'boldrise' : 'utm';
-    const demo = DEMO_PERSONAS[demoKey];
+    if (!profileValues) return;
     setIdentity({ name, role: persona.charAt(0).toUpperCase() + persona.slice(1) });
-    const yearsExperience = profileValues?.yearsExperience ?? demo.shape.years_experience;
-    const shape = {
-      ...demo.shape,
+    const yearsExperience = profileValues.yearsExperience;
+    const shape = applyNormalization({
+      userId: `local-${crypto.randomUUID()}`,
       persona,
-      role: profileValues?.role || demo.shape.role,
-      education: profileValues?.education || demo.shape.education,
+      role: profileValues.role,
+      education: profileValues.education,
       years_experience: yearsExperience,
-      state: profileValues?.state || demo.shape.state,
-      skills: profileValues?.skills || demo.shape.skills,
+      state: profileValues.state,
+      skills: profileValues.skills,
       life_stage: yearsExperience < 1 ? 'student' as const : yearsExperience < 3 ? 'young_adult' as const : yearsExperience < 12 ? 'early_career' as const : yearsExperience < 20 ? 'mid_career' as const : 'senior_career' as const,
-    };
+      work_animal: workAnimal?.key,
+    });
     setShape(shape);
     setPersona(persona);
     try {
@@ -101,7 +101,8 @@ export function OnboardingShell() {
     } catch {
       // Community preview remains usable when account services are not configured.
     }
-    closeOnb();
+    setProfileValues(null);
+    resetOnboarding();
     router.push(`/dashboard/${persona === 'candidate' ? 'candidate/path-navigator' : persona === 'employer' ? 'employer/talent-matching' : 'university/outcome-loop'}`);
   };
 
@@ -120,13 +121,17 @@ export function OnboardingShell() {
     }
     // Last step — launch
     if (effectiveRole && profileValues) {
-      await launchAsPersona(effectiveRole, profileValues.name || 'Aisyah binti Rahman');
-    } else if (effectiveRole) {
-      await launchAsPersona(effectiveRole, effectiveRole === 'candidate' ? 'Aisyah binti Rahman' : effectiveRole);
+      await launchAsPersona(effectiveRole, profileValues.name);
     }
   };
 
   const goBack = () => setStep(effectiveRole !== 'candidate' && step === 3 ? 1 : Math.max(0, step - 1));
+  const profileComplete = Boolean(
+    profileValues?.name.trim() &&
+    profileValues?.role.trim() &&
+    profileValues?.state.trim() &&
+    profileValues?.skills.length,
+  );
 
   return (
     <>
@@ -139,7 +144,7 @@ export function OnboardingShell() {
       >
         <CloseButton onClick={requestClose} label="Close onboarding" />
 
-        <div className="p-6 border-b border-[color:var(--border)]">
+        <div className="border-b border-[color:var(--border)] p-6 pr-20">
           {/* Step indicator dots */}
           <div className="flex items-center gap-1.5 mb-3" role="progressbar" aria-label="Onboarding progress" aria-valuemin={1} aria-valuemax={totalSteps} aria-valuenow={step + 1}>
             {Array.from({ length: totalSteps }).map((_, i) => (
@@ -211,7 +216,7 @@ export function OnboardingShell() {
             variant="primary"
             size="sm"
             onClick={goNext}
-            disabled={step === 0 && !role}
+            disabled={(step === 0 && !role) || (step === 1 && !profileComplete) || (step === totalSteps - 1 && !profileComplete)}
           >
             {step === totalSteps - 1
               ? 'Launch Dashboard →'

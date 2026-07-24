@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const authRequired = process.env.AUTH_MODE === 'required';
   const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
-  const isAuth = request.nextUrl.pathname.startsWith('/auth');
+  const isAuthLanding = request.nextUrl.pathname === '/auth';
 
   if (authRequired && configured && isDashboard && !user) {
     const destination = request.nextUrl.clone();
@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
       }
     }
   }
-  if (user && isAuth) return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (user && isAuthLanding) return NextResponse.redirect(new URL('/dashboard', request.url));
   return response;
 }
 

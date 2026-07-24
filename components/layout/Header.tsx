@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 import { AccountActions } from './AccountActions';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 const PERSONA_ICON: Record<string, string> = {
@@ -26,6 +28,32 @@ export function Header() {
   const toggleJudgeMode = useAppStore((s) => s.toggleJudgeMode);
   const setPersona = useAppStore((s) => s.setPersona);
   const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
+  const [evidenceStatus, setEvidenceStatus] = useState<'checking' | 'modelled' | 'community' | 'unavailable'>('checking');
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/health', { cache: 'no-store' })
+      .then(async (response) => {
+        const body = await response.json();
+        if (!active) return;
+        if (body.evidence?.mode === 'community' && body.services?.supabase_reachable) {
+          setEvidenceStatus('community');
+        } else if (body.evidence?.mode === 'modelled') {
+          setEvidenceStatus('modelled');
+        } else {
+          setEvidenceStatus('unavailable');
+        }
+      })
+      .catch(() => active && setEvidenceStatus('unavailable'));
+    return () => { active = false; };
+  }, []);
+
+  const evidenceMeta = {
+    checking: { label: 'Checking evidence status', color: 'var(--text-3)' },
+    modelled: { label: 'Modelled evidence active', color: 'var(--yellow)' },
+    community: { label: 'Community evidence online', color: 'var(--emerald)' },
+    unavailable: { label: 'Evidence status unavailable', color: 'var(--rose)' },
+  }[evidenceStatus];
 
   return (
     <header className="sticky top-0 z-30 flex min-h-[68px] items-center justify-between gap-3 border-b border-[color:var(--border)] bg-white/95 px-4 py-3 shadow-[0_1px_12px_rgba(15,23,42,0.04)] backdrop-blur-xl sm:px-7">
@@ -35,28 +63,28 @@ export function Header() {
           type="button"
           onClick={toggleSidebar}
           aria-label="Open menu"
-          className="lg:hidden w-9 h-9 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] hover:border-[color:var(--accent)] flex flex-col items-center justify-center gap-[3px]"
+          className="flex h-11 w-11 flex-col items-center justify-center gap-[3px] rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] hover:border-[color:var(--accent)] lg:hidden"
         >
           <span className="block w-4 h-0.5 rounded bg-[color:var(--text-1)]" />
           <span className="block w-4 h-0.5 rounded bg-[color:var(--text-1)]" />
           <span className="block w-4 h-0.5 rounded bg-[color:var(--text-1)]" />
         </button>
-        <a href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[color:var(--yellow)] text-xs font-extrabold text-white shadow-[0_6px_16px_rgba(79,70,229,0.2)]">PW</span>
           <span className="text-base sm:text-lg font-extrabold tracking-tight">
             Path<span className="text-[color:var(--yellow)]">Wiser</span>
           </span>
-        </a>
+        </Link>
       </div>
 
       {/* Center · engine status */}
       <div className="hidden md:flex items-center gap-2 rounded-full bg-[color:var(--bg-elevated)] px-3 py-1.5">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--emerald)] opacity-40" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--emerald)]" />
+          {evidenceStatus === 'community' && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--emerald)] opacity-40" />}
+          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: evidenceMeta.color }} />
         </span>
         <span className="text-[11px] font-medium text-[color:var(--text-2)]">
-          Evidence service online
+          {evidenceMeta.label}
         </span>
       </div>
 
@@ -69,7 +97,7 @@ export function Header() {
             onClick={() => openLockedExplainer(null)}
             aria-label={`${PERSONA_LABEL[persona].toLowerCase()} workspace for ${identity.name}. Open persona information`}
             className={cn(
-              'flex items-center gap-2 px-3 py-1.5 rounded-xl',
+              'flex min-h-11 min-w-11 items-center gap-2 px-3 py-1.5 rounded-xl',
               'border border-[color:var(--border)] bg-white shadow-sm',
               'hover:border-[color:var(--accent)] transition-colors'
             )}

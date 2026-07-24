@@ -4,13 +4,14 @@ import { getAIProvider } from '../lib/ai';
 import { generateCorpus } from '../lib/corpus/generate';
 import { COMPANIES } from '../lib/corpus/companies';
 import { JOB_LISTINGS } from '../lib/corpus/jobs';
+import type { Trajectory } from '../types';
 
 // Load env vars
 loadEnvConfig(process.cwd());
 
-function trajectoryToText(traj: any): string {
-  const roles = traj.path.map((n: any) => n.role).join(' -> ');
-  const allSkills = Array.from(new Set(traj.path.flatMap((n: any) => n.skills_added || [])));
+function trajectoryToText(traj: Trajectory): string {
+  const roles = traj.path.map((node) => node.role).join(' -> ');
+  const allSkills = Array.from(new Set(traj.path.flatMap((node) => node.skills_added || [])));
 
   return [
     `Persona: ${traj.persona}`,
@@ -24,7 +25,7 @@ function trajectoryToText(traj: any): string {
     .join('\n');
 }
 
-function jobToText(job: any): string {
+function jobToText(job: (typeof JOB_LISTINGS)[number]): string {
   return [
     `Role: ${job.title}`,
     `Location: ${job.location}`,

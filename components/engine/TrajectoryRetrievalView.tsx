@@ -4,78 +4,116 @@ import { useState } from 'react';
 import { Callout } from '@/components/common/Callout';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Button } from '@/components/common/Button';
-
-interface LogLine { text: string; color: string; }
-
-const SCRIPT: LogLine[] = [
-  { text: '$ pathwiser.engine.retrieve --query=user_shape --k=1200', color: 'var(--text-2)' },
-  { text: '> Loading user shape embedding (768-d, gemini-embedding-2)', color: 'var(--text-2)' },
-  { text: '  query_vec = [0.124, -0.453, 0.881, 0.211, -0.092, …, 0.405]', color: 'var(--text-3)' },
-  { text: '> Connecting to Postgres + pgvector …', color: 'var(--text-2)' },
-  { text: '  pgvector v0.7.0 · HNSW index (m=16, ef_search=64)', color: 'var(--text-3)' },
-  { text: '> Running similarity retrieval over the configured evidence corpus', color: 'var(--text-2)' },
-  { text: '  [████████████████████] 100% · 42ms', color: 'var(--teal)' },
-  { text: '> Applying audience filters: life_stage=Early Career, geography=MY-KL', color: 'var(--text-2)' },
-  { text: '> Cohort size check: 1,240 ≥ k_min (50) ✓', color: 'var(--teal)' },
-  { text: '> Top-K retrieved · mean cosine_distance = 0.142 · sd = 0.063', color: 'var(--teal)' },
-  { text: '> Anonymisation gate passed (k-anonymity ≥ 5) ✓', color: 'var(--teal)' },
-  { text: '✓ Retrieval complete — passing cohort to deterministic Aggregator', color: 'var(--emerald)' },
-];
+import { useAppStore } from '@/store/useAppStore';
+import { DEMO_PERSONAS } from '@/lib/corpus/personas';
+import { navigate, type NavigateResponse, type CohortTooSmallResponse } from '@/lib/engine/client';
+import { formatPct } from '@/lib/utils';
 
 export function TrajectoryRetrievalView() {
+  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
   const [running, setRunning] = useState(false);
-  const [visibleLines, setVisibleLines] = useState<LogLine[]>([]);
+  const [result, setResult] = useState<NavigateResponse | CohortTooSmallResponse | null>(null);
+  const [roundTripMs, setRoundTripMs] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const runSearch = () => {
+  const runSearch = async () => {
     setRunning(true);
-    setVisibleLines([]);
-    SCRIPT.forEach((line, i) => {
-      setTimeout(() => {
-        setVisibleLines((prev) => [...prev, line]);
-        if (i === SCRIPT.length - 1) setRunning(false);
-      }, 200 + i * 220);
-    });
+    setError(null);
+    const started = performance.now();
+    try {
+      const response = await navigate(shape, {
+        currentStepIndex: 0,
+        filterByLifeStage: true,
+        k: 1200,
+      });
+      setResult(response);
+      setRoundTripMs(Math.round(performance.now() - started));
+    } catch (requestError) {
+      setResult(null);
+      setError(requestError instanceof Error ? requestError.message : 'Retrieval failed.');
+    } finally {
+      setRunning(false);
+    }
   };
+
+  const complete = result && 'cohort' in result ? result : null;
+  const tooSmall = result && 'cohort_too_small' in result ? result : null;
+  const evidence = complete?.evidence || tooSmall?.evidence;
 
   return (
     <div className="flex flex-col gap-4">
       <Callout tone="amber">
-        <strong>Engine Room · Layer 2</strong>
+        <strong>Live engine inspection · retrieval</strong>
         <p className="mt-1">
-          The pgvector HNSW cosine similarity search that turns your shape into a cohort. Every audience module calls this — the same query, different framings.
+          This runs the same retrieval request used by the audience modules. The output below comes from
+          the current saved shape; no terminal lines or performance numbers are prewritten.
         </p>
       </Callout>
 
       <StatGrid cols={4}>
-        <StatBox label="Corpus Size" value="1,500" />
-        <StatBox label="Vector Dim" value="768" color="var(--sky)" />
-        <StatBox label="Index" value="HNSW" color="var(--yellow)" />
-        <StatBox label="Distance" value="cosine" color="var(--teal)" />
+        <StatBox
+          label="Evidence corpus"
+          value={evidence?.corpus_size ? evidence.corpus_size.toLocaleString() : evidence?.mode === 'community' ? 'Community' : 'Run search'}
+        />
+        <StatBox label="Active cohort" value={complete ? complete.cohort.size.toLocaleString() : tooSmall ? tooSmall.cohort_size.toLocaleString() : '—'} color="var(--teal)" />
+        <StatBox label="Similarity" value={complete ? formatPct(complete.cohort.similarity_stats.mean) : '—'} color="var(--sky)" />
+        <StatBox label="Round trip" value={roundTripMs == null ? '—' : `${roundTripMs}ms`} color="var(--yellow)" />
       </StatGrid>
 
-      <div className="flex items-center gap-3 p-3 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
+      <div className="flex flex-wrap items-center gap-3 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-3">
         <Button variant="amber" size="sm" onClick={runSearch} disabled={running}>
-          {running ? 'Running…' : '▶ Run Vector Search (cosine similarity)'}
+          {running ? 'Retrieving current cohort…' : 'Run live retrieval'}
         </Button>
         <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-          Target K = 1,200 trajectories
+          Current shape · {shape.role} · {shape.life_stage.replaceAll('_', ' ')} · {shape.state}
         </span>
       </div>
 
-      <div className="p-4 rounded-md bg-[#0d1117] border border-[color:var(--border)] font-mono text-[11px] min-h-[280px]">
-        {visibleLines.length === 0 && !running ? (
-          <div className="text-[color:var(--text-3)]">$ awaiting trigger — click &ldquo;Run Vector Search&rdquo; to begin</div>
+      {error && (
+        <Callout tone="rose">
+          <strong>Retrieval unavailable</strong>
+          <p className="mt-1">{error}</p>
+        </Callout>
+      )}
+
+      {tooSmall && (
+        <Callout tone="amber">
+          <strong>Cohort gate stopped publication</strong>
+          <p className="mt-1">{tooSmall.message}</p>
+        </Callout>
+      )}
+
+      <div className="min-h-[280px] rounded-md border border-[color:var(--border)] bg-[#0d1117] p-4 font-mono text-[11px]" aria-live="polite">
+        {!complete && !tooSmall && !error ? (
+          <div className="text-slate-400">$ awaiting a live retrieval request</div>
         ) : (
-          <div className="flex flex-col gap-1">
-            {visibleLines.map((line, i) => (
-              <div key={i} className="animate-in fade-in duration-200" style={{ color: line.color }}>
-                {line.text}
-              </div>
-            ))}
-            {running && <div className="text-[color:var(--yellow)] animate-pulse">▍</div>}
+          <div className="flex flex-col gap-1.5 text-slate-300">
+            <LogLine label="shape" value={`${shape.role} · ${shape.skills.join(', ') || 'no skills declared'}`} />
+            <LogLine label="mode" value={evidence?.label || 'evidence mode unavailable'} />
+            <LogLine label="filters" value={complete ? Object.entries(complete.cohort.filters_applied).filter(([, value]) => value).map(([key, value]) => `${key}=${value}`).join(', ') || 'no hard filters' : 'cohort gate evaluated'} />
+            <LogLine label="minimum" value={`${complete?.k_min || tooSmall?.k_min || 50} trajectories required`} />
+            {complete && (
+              <>
+                <LogLine label="cohort" value={`${complete.cohort.size.toLocaleString()} trajectories published`} success />
+                <LogLine label="similarity" value={`mean ${complete.cohort.similarity_stats.mean.toFixed(4)} · range ${complete.cohort.similarity_stats.min.toFixed(4)}-${complete.cohort.similarity_stats.max.toFixed(4)}`} success />
+                <LogLine label="handoff" value={`${complete.aggregate.next_role_distribution.length} outcome branches passed to deterministic aggregation`} success />
+              </>
+            )}
+            {tooSmall && <LogLine label="stopped" value={`${tooSmall.cohort_size} trajectories did not meet the publication threshold`} />}
+            {roundTripMs != null && <LogLine label="timing" value={`${roundTripMs}ms browser-to-API round trip; not represented as retrieval-only latency`} />}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function LogLine({ label, value, success = false }: { label: string; value: string; success?: boolean }) {
+  return (
+    <div>
+      <span className={success ? 'text-emerald-400' : 'text-amber-300'}>&gt; {label}</span>
+      <span className="text-slate-500"> · </span>
+      <span>{value}</span>
     </div>
   );
 }

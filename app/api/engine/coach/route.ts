@@ -8,16 +8,16 @@ import { deterministicCoachReply, validateCoachReply } from '@/lib/ai/coachValid
 import { getEvidenceProvenance } from '@/lib/evidence';
 
 const ShapeSchema = z.object({
-  userId: z.string().default('anon'),
+  userId: z.string().trim().min(1).max(160).default('anon'),
   persona: z.enum(['candidate', 'employer', 'university']),
-  role: z.string(),
-  esco_code: z.string().optional(),
-  onet_code: z.string().optional(),
-  masco_code: z.string().optional(),
-  education: z.string(),
+  role: z.string().trim().min(1).max(160),
+  esco_code: z.string().trim().max(40).optional(),
+  onet_code: z.string().trim().max(40).optional(),
+  masco_code: z.string().trim().max(40).optional(),
+  education: z.string().trim().max(240),
   years_experience: z.number().min(0).max(60),
-  state: z.string(),
-  skills: z.array(z.string()),
+  state: z.string().trim().max(80),
+  skills: z.array(z.string().trim().min(1).max(80)).max(50),
   life_stage: z.enum(['student', 'young_adult', 'early_career', 'mid_career', 'senior_career', 'executive']),
   work_animal: z.enum(['owl', 'fox', 'bear', 'dolphin', 'eagle', 'ant']).optional(),
   dimensions: z.object({ technical: z.number().min(0).max(100), domain: z.number().min(0).max(100), leadership: z.number().min(0).max(100), analytics: z.number().min(0).max(100), communication: z.number().min(0).max(100) }).optional(),
@@ -30,10 +30,10 @@ const RequestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'coach', 20);
-  if (limited) return limited;
   const invalidOrigin = requireSameOrigin(req);
   if (invalidOrigin) return invalidOrigin;
+  const limited = rateLimit(req, 'coach', 20);
+  if (limited) return limited;
   try {
     const body = await req.json();
     const { shape, message, history } = RequestSchema.parse(body);
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     } else {
       try {
         aggContext = aggregate(cohort, 0);
-      } catch (e) {
+      } catch {
         aggContext = null;
       }
     }

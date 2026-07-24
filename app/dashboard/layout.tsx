@@ -5,8 +5,14 @@ import { LockedExplainer } from '@/components/layout/LockedExplainer';
 import { PersonaRouteGuard } from '@/components/layout/PersonaRouteGuard';
 import { CommunityBootstrap } from '@/components/layout/CommunityBootstrap';
 import { ToastLayer } from '@/components/common/Toast';
+import { cookies } from 'next/headers';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const authRequired = process.env.AUTH_MODE === 'required';
+  const cookieStore = await cookies();
+  const hasSessionCookie = cookieStore
+    .getAll()
+    .some(({ name }) => name.startsWith('sb-') && name.includes('auth-token'));
   return (
     <div className="min-h-screen">
       <div className="pb-12">
@@ -16,7 +22,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Sidebar />
           </div>
           <main className="min-w-0 overflow-hidden rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg-base)] shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
-            <CommunityBootstrap><PersonaRouteGuard>{children}</PersonaRouteGuard></CommunityBootstrap>
+            <CommunityBootstrap authRequired={authRequired} hasSessionCookie={hasSessionCookie}>
+              <PersonaRouteGuard>{children}</PersonaRouteGuard>
+            </CommunityBootstrap>
           </main>
         </div>
         <MobileDrawer />

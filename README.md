@@ -2,7 +2,7 @@
 
 > **Release status:** the application code implements the proposal-defined community product, including authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all nine audience modules, health/telemetry and responsive UX. The bundled evidence is still modelled. A public launch requires the owner-controlled deployment and governed-data steps in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md).
 
-**Existing preview:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/) (the current public deployment may predate the community-release changes in this workspace)
+**Previous preview reference:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/) (this is not a verified deployment of the community-release changes in this workspace)
 
 Submitted to the **Talentbank Tech Hackathon 2026** — First Cohort. PathWiser is an evidence-based Career OS navigation platform built around the **Career Twin Engine**: a hybrid retrieval + deterministic aggregation + LLM explanation architecture that helps candidates, employers, and universities across Asia make wiser career decisions.
 
@@ -87,7 +87,9 @@ After migrations and a governed data import, set `ALLOW_FULL_MODE=true` to switc
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | tsc --noEmit |
-| `npm run test` | Vitest (aggregation math) |
+| `npm run test` | Vitest (engine aggregation, normalization, ranking and AI honesty) |
+| `npm run test:smoke` | Production HTTP, API, security-header and route smoke suite (server required) |
+| `npm run test:a11y` | WCAG A/AA semantic audit across 16 representative routes (server required) |
 
 ---
 
@@ -113,7 +115,7 @@ User shape
     ─ Post-generation validator rejects predictive verbs + hallucinated numbers
     ─ Template fallback if provider is unavailable (demo never breaks)
     ↓
-UI (16 modules, all calling the same engine)
+UI (16 proposal modules sharing one engine and platform-control layer)
 ```
 
 ### The Career Signal Loop
@@ -178,7 +180,7 @@ Currently DOSM 2024 hard-coded in [`lib/engine/aggregate.ts`](lib/engine/aggrega
 
 ### 6. HTTP API surface
 
-The public contract covers health, navigation, coach, matching, profile, consent and feedback endpoints in [`openapi.yaml`](openapi.yaml).
+The public contract covers health, navigation, coach, matching, profile, consent, feedback, durable workflow records, and marketplace endpoints in [`openapi.yaml`](openapi.yaml).
 
 Talentbank's Angular team can call this directly from their frontend without ever running React — the engine is framework-agnostic.
 
@@ -233,7 +235,7 @@ lib/
 
 types/                      # UserShape · Cohort · Aggregate · Explanation · Trajectory · WorkAnimalKey
 store/                      # useAppStore (Zustand · persisted persona + shape + judgeMode + workAnimal)
-supabase/migrations/        # 0001_init.sql — pgvector · trajectories · users · jobs · companies · RLS · match_trajectories RPC
+supabase/migrations/        # 0001–0004 · core data · organisations/consent · durable workflows · erasure/retention controls
 openapi.yaml                # Engine API contract for Talentbank's Angular team
 legacy/                     # Stage 1 static clickable prototype (archived for reference)
 ```
@@ -260,8 +262,8 @@ Attribution is displayed in-product on the Architecture & Vision screen.
 | Criterion | Weight | How we address it |
 |---|---|---|
 | **Product & UX Thinking** | 30% | Honest navigation framing everywhere; branching trajectory viz + Compare Paths as signature moments; cohort disclosure on every output; three-audience Signal Loop |
-| **System Design & Integration** | 25% | One shared engine (`lib/engine/`) serving all 16 modules; retrieval/aggregation/explanation cleanly separated; OpenAPI spec + provider abstraction make integration a one-file swap |
-| **Completeness** | 20% | Live URL from day 1; every module end-to-end functional; one-command local setup; `.env.example`; template fallback so the demo never breaks |
+| **System Design & Integration** | 25% | One shared engine (`lib/engine/`) serving all nine audience modules; retrieval/aggregation/explanation cleanly separated; support controls, OpenAPI and provider abstraction create clear integration seams |
+| **Completeness** | 20% | Every proposal module has a connected workflow; one-command local setup; `.env.example`; durable account records; deterministic fallback so provider outages do not break core evidence flows |
 | **AI Craft** | 15% | Numbers from deterministic aggregation, LLM only explains; post-generation validator rejects predictive verbs; provider abstraction so Talentbank swaps in one env var |
 | **Code Quality** | 10% | TypeScript strict + Zod schemas at every boundary; module boundaries at `lib/engine/`, `lib/ai/`, `lib/supabase/`; RLS policies in-migration; conventional-commit history |
 

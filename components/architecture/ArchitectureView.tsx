@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Callout } from '@/components/common/Callout';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { MODULES, modulesForPersona } from '@/lib/corpus/modules';
@@ -13,7 +14,41 @@ const AUDIENCE_META = {
 
 const CAPABILITIES = ['Navigation', 'Intelligence', 'Valuation'] as const;
 
+interface HealthSnapshot {
+  status: 'ok' | 'degraded';
+  checked_at: string;
+  services: {
+    application: boolean;
+    supabase_configured: boolean;
+    supabase_reachable: boolean;
+    supabase_message: string;
+    ai_provider_configured: boolean;
+    full_mode_requested: boolean;
+  };
+  evidence: {
+    mode: 'community' | 'modelled';
+    label: string;
+    corpus_size: number;
+    minimum_cohort_size: number;
+  };
+}
+
 export function ArchitectureView() {
+  const [health, setHealth] = useState<HealthSnapshot | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/health', { cache: 'no-store' })
+      .then(async (response) => {
+        const body = await response.json() as HealthSnapshot;
+        if (!cancelled) setHealth(body);
+      })
+      .catch(() => {
+        if (!cancelled) setHealth(null);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div className="flex flex-col gap-5">
       {/* Hero */}
@@ -112,11 +147,20 @@ export function ArchitectureView() {
 
       {/* Stats */}
       <StatGrid cols={4}>
-        <StatBox label="Trajectory corpus" value="1,500" />
+        <StatBox label="Evidence corpus" value={health ? health.evidence.corpus_size.toLocaleString() : 'Checking'} />
         <StatBox label="Audience surfaces" value="3" color="var(--teal)" />
-        <StatBox label="Total modules" value="16" color="var(--violet)" />
+        <StatBox label="Registered modules" value={Object.keys(MODULES).length} color="var(--violet)" />
         <StatBox label="SDGs addressed" value={Object.keys(SDG_META).length} color="var(--sky)" />
       </StatGrid>
+
+      <Callout tone={health?.status === 'ok' ? 'emerald' : 'amber'}>
+        <strong>Live service and evidence status</strong>
+        <p className="mt-1">
+          {health
+            ? `${health.evidence.label}. Database: ${health.services.supabase_message}. AI provider ${health.services.ai_provider_configured ? 'is configured' : 'is not configured'}.`
+            : 'The live health endpoint could not be read. Engine surfaces will show their own failure state instead of inventing availability.'}
+        </p>
+      </Callout>
 
       {/* Signal Loop diagram */}
       <div className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-4">

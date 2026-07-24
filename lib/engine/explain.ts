@@ -27,7 +27,13 @@ export async function explain(
 
   try {
     const ai = getAIProvider();
-    return await ai.generateNarrative(aggregate, opts.audience);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const explanation = await ai.generateNarrative(aggregate, opts.audience);
+      if (explanation.passed_validation) {
+        return { ...explanation, generation_mode: 'provider' };
+      }
+    }
+    return renderTemplateExplanation(aggregate, opts.audience, 'validation_failed');
   } catch (err) {
     // Graceful degradation: template narrative that still references aggregates verbatim.
     // Talentbank's engineers will see the fallback in logs and know something's up.
@@ -35,7 +41,7 @@ export async function explain(
       '[PathWiser] AI provider unavailable, falling back to template narrative:',
       err instanceof Error ? err.message : err
     );
-    return renderTemplateExplanation(aggregate, opts.audience);
+    return renderTemplateExplanation(aggregate, opts.audience, 'provider_unavailable');
   }
 }
 
@@ -46,7 +52,8 @@ export async function explain(
  */
 export function renderTemplateExplanation(
   agg: Aggregate,
-  audience: 'candidate' | 'employer' | 'university'
+  audience: 'candidate' | 'employer' | 'university',
+  fallbackReason?: Explanation['fallback_reason'],
 ): Explanation {
   const topRole = agg.next_role_distribution[0];
   const topSalary = topRole ? agg.salary_percentiles_by_role[topRole.role] : undefined;
@@ -97,5 +104,7 @@ export function renderTemplateExplanation(
     ranges_disclosed: true,
     passed_validation: true,
     validator_notes: undefined,
+    generation_mode: 'template',
+    fallback_reason: fallbackReason,
   };
 }
