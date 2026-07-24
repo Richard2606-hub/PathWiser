@@ -41,21 +41,12 @@ export function ShapeSummary({
     return base.map((v) => Math.min(100, v));
   }, [role, skills, persona]);
 
-  const cohortLabel =
-    persona === 'employer' ? 'Relevant Candidates Found' :
-    persona === 'university' ? 'Baseline Curriculum Matches' :
-    'Similar Profiles Found';
-  const cohortVal =
-    persona === 'employer' ? '1,420' :
-    persona === 'university' ? '850' :
-    '2,840';
-
   return (
     <div className="flex flex-col gap-4">
       <Callout tone="emerald">
         <strong>✅ Profile Mapped Successfully</strong>
         <p className="mt-1">
-          We&apos;ve analyzed your background and mapped it into a unique &ldquo;Career Shape&rdquo;. The engine now uses this shape to find real historically-successful paths from people who look like you on paper.
+          We&apos;ve structured your information into a reviewable &ldquo;Career Shape&rdquo;. The engine uses it to retrieve a privacy-safe cohort from the currently configured evidence source, which is labelled as community or modelled on every result.
         </p>
       </Callout>
 
@@ -64,13 +55,13 @@ export function ShapeSummary({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Metric label="Profile Depth" value="768 Data Points" />
-        <Metric label="AI Engine" value="Google AI" />
-        <Metric label={cohortLabel} value={cohortVal} />
+        <Metric label="Audience" value={persona.charAt(0).toUpperCase() + persona.slice(1)} />
+        <Metric label="Skills mapped" value={skillCount.toString()} />
+        <Metric label="Evidence state" value="Ready to retrieve" />
         {wa ? (
           <Metric label="Work Animal" value={`${wa.emoji} ${wa.name}`} color={`var(${wa.colorVar})`} />
         ) : (
-          <Metric label="Match Accuracy" value="89%" />
+          <Metric label="Profile status" value="Reviewable" />
         )}
       </div>
 

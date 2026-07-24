@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PathWiser · Career Twin Engine API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     The Career Twin Engine — one API that all 9 audience modules call.
     Given a user shape, returns a cohort of similar privacy-protected trajectories,
@@ -25,10 +25,8 @@ info:
     name: PathWiser · Talentbank Tech Hackathon 2026
 
 servers:
-  - url: https://path-wiser-sigma.vercel.app
-    description: Live demo deployment
   - url: http://localhost:3000
-    description: Local dev
+    description: Local development or production-compatible container
 
 paths:
   /api/health:
@@ -37,7 +35,7 @@ paths:
       tags: [Operations]
       responses:
         '200': { description: Ready }
-        '503': { description: Required community services are not configured }
+        '503': { description: Required community services are not ready }
 
   /api/engine/navigate:
     post:
@@ -109,6 +107,35 @@ paths:
         '401': { description: Authentication required }
         '403': { description: Audience role changes require support }
 
+  /api/account:
+    get:
+      summary: Export the authenticated user's portable account data
+      tags: [Account, Privacy]
+      responses:
+        '200':
+          description: JSON account export returned as a private attachment
+        '401': { description: Authentication required }
+        '429': { description: Export rate limited }
+    delete:
+      summary: Permanently delete the authenticated account and account-owned data
+      tags: [Account, Privacy]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmation]
+              properties:
+                confirmation:
+                  type: string
+                  const: DELETE MY PATHWISER ACCOUNT
+      responses:
+        '200': { description: Account and account-owned data deleted }
+        '400': { description: Exact confirmation phrase required }
+        '401': { description: Authentication required }
+        '403': { description: Cross-origin request rejected }
+
   /api/consent:
     get:
       summary: Read revocable consent choices
@@ -130,12 +157,96 @@ paths:
       responses:
         '200': { description: Feedback returned }
     post:
-      summary: Store a reflection or experience rating
+      summary: Store a contextual reflection or experience rating
       tags: [Support]
       responses:
-        '201': { description: Feedback saved }
+        '200': { description: Feedback saved or device persistence requested }
+        '400': { description: Invalid feedback }
+
+  /api/records:
+    get:
+      summary: Read durable module workflow records
+      tags: [Workflows]
+      parameters:
+        - in: query
+          name: module
+          schema:
+            type: string
+            enum: [retention_signals, onboarding_predictor, outcome_loop, curriculum_engine, readiness_profile]
+      responses:
+        '200': { description: Account records returned }
+        '401': { description: Authentication required }
+    post:
+      summary: Create or update a durable module workflow record
+      tags: [Workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRecordInput'
+      responses:
+        '200': { description: Existing record updated }
+        '201': { description: Record created }
+        '401': { description: Authentication required }
+    delete:
+      summary: Delete a durable module workflow record
+      tags: [Workflows]
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Record deleted }
+        '401': { description: Authentication required }
+
+  /api/marketplace/jobs:
+    get:
+      summary: Read active or explicitly modelled job listings
+      tags: [Marketplace]
+      responses:
+        '200': { description: Listings returned with an evidence-scope label }
+
+  /api/marketplace/companies:
+    get:
+      summary: Read community or explicitly modelled employer profiles
+      tags: [Marketplace]
+      responses:
+        '200': { description: Employer profiles returned with an evidence-scope label }
+
+  /api/marketplace/saved:
+    get:
+      summary: Read saved jobs and companies
+      tags: [Marketplace]
+      responses:
+        '200': { description: Saved items returned }
+        '401': { description: Authentication required }
+    put:
+      summary: Save or remove a marketplace item
+      tags: [Marketplace]
+      responses:
+        '200': { description: Saved state updated }
+        '401': { description: Authentication required }
+
+  /api/operations/retention:
+    post:
+      summary: Purge expired operational data according to the retention schedule
+      description: Hosting scheduler endpoint protected by a server-only bearer secret. The database operation is transactional and available only to the service role.
+      tags: [Operations, Privacy]
+      security:
+        - cronBearer: []
+      responses:
+        '200': { description: Retention cleanup completed and counts returned }
+        '401': { description: Invalid scheduler credential }
+        '503': { description: Scheduler or database retention function not configured }
 
 components:
+  securitySchemes:
+    cronBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
   schemas:
     UserShape:
       type: object
@@ -279,6 +390,31 @@ components:
         validator_notes:
           type: array
           items: { type: string }
+        generation_mode:
+          type: string
+          enum: [provider, template]
+        fallback_reason:
+          type: string
+
+    WorkspaceRecordInput:
+      type: object
+      required: [module, record_type, title]
+      properties:
+        id: { type: string, format: uuid }
+        module:
+          type: string
+          enum: [retention_signals, onboarding_predictor, outcome_loop, curriculum_engine, readiness_profile]
+        record_type: { type: string, maxLength: 80 }
+        title: { type: string, maxLength: 180 }
+        status:
+          type: string
+          enum: [draft, active, review_due, completed, archived]
+          default: active
+        payload: { type: object, additionalProperties: true }
+        next_review_at:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
 
     CohortTooSmallResponse:
       type: object
@@ -300,3 +436,7 @@ components:
 tags:
   - name: Engine
     description: The Career Twin Engine — the single seam every module calls.
+  - name: Workflows
+    description: Durable account records for employer and university workflows.
+  - name: Marketplace
+    description: Disclosed community or modelled listings, profiles, and saved items.

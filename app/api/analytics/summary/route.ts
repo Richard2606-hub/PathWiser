@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   if (!configured) return NextResponse.json({ available: false, reason: 'Community database is not configured.', calls: 0, p95_latency_ms: null, validation_pass_rate: null, modules: [] });
   try {
-    const sessionClient = createClient(); const { data: { user } } = await sessionClient.auth.getUser();
+    const sessionClient = await createClient(); const { data: { user } } = await sessionClient.auth.getUser();
     if (!user) return NextResponse.json({ error: 'authentication_required' }, { status: 401 });
     if (user.app_metadata?.platform_role !== 'admin') return NextResponse.json({ error: 'admin_required' }, { status: 403 });
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

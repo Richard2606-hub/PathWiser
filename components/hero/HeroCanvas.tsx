@@ -19,14 +19,12 @@ export function HeroCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let w = 0;
-    let h = 0;
     let particles: Array<{ x: number; y: number; r: number; dx: number; dy: number; o: number }> = [];
     let raf = 0;
 
     const resize = () => {
-      w = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      h = canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
       const displayW = canvas.offsetWidth;
       const displayH = canvas.offsetHeight;

@@ -23,7 +23,6 @@ export interface NavigateResponse {
   explanation: Explanation;
   k_min: number;
   evidence: EvidenceProvenance;
-  cohort_too_small?: never;
 }
 
 export interface CohortTooSmallResponse {
@@ -31,6 +30,7 @@ export interface CohortTooSmallResponse {
   cohort_size: number;
   k_min: number;
   message: string;
+  evidence?: EvidenceProvenance;
 }
 
 export async function navigate(

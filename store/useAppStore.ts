@@ -30,7 +30,7 @@ interface AppState {
   onboardRole: Persona | null;
   onboardOpen: boolean;
   setOnboardStep: (n: number) => void;
-  setOnboardRole: (p: Persona) => void;
+  setOnboardRole: (p: Persona | null) => void;
   openOnboarding: () => void;
   closeOnboarding: () => void;
   resetOnboarding: () => void;
@@ -108,7 +108,7 @@ export const useAppStore = create<AppState>()(
       onboardOpen: false,
       setOnboardStep: (onboardStep) => set({ onboardStep }),
       setOnboardRole: (onboardRole) => set({ onboardRole }),
-      openOnboarding: () => set({ onboardOpen: true, onboardStep: 0 }),
+      openOnboarding: () => set({ onboardOpen: true, onboardStep: 0, onboardRole: null }),
       closeOnboarding: () => set({ onboardOpen: false }),
       resetOnboarding: () =>
         set({ onboardOpen: false, onboardStep: 0, onboardRole: null }),

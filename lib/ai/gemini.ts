@@ -120,5 +120,6 @@ function validateExplanation(text: string, aggregate: Aggregate): Explanation {
     ranges_disclosed: /between|from|to|range/i.test(text),
     passed_validation: passed,
     validator_notes: notes.length ? notes : undefined,
+    generation_mode: 'provider',
   };
 }

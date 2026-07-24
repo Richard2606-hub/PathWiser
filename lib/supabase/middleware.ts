@@ -6,6 +6,10 @@ export async function refreshSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return { response, user: null, supabase: null };
+  const hasSessionCookie = request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith('sb-') && name.includes('auth-token'));
+  if (!hasSessionCookie) return { response, user: null, supabase: null };
 
   const supabase = createServerClient(url, key, {
     cookies: {

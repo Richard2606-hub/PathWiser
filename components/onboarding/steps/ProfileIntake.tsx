@@ -15,31 +15,31 @@ export interface ProfileFormValues {
 }
 
 const CANDIDATE_DEFAULT: ProfileFormValues = {
-  name: 'Aisyah binti Rahman',
-  role: 'Junior Data Analyst',
+  name: '',
+  role: '',
   education: "Bachelor's in Computer Science",
-  yearsExperience: 3,
+  yearsExperience: 1,
   state: 'Kuala Lumpur',
-  skills: ['SQL', 'Python', 'Tableau', 'Excel'],
-  context: 'Explore realistic next moves while balancing salary growth and learning time.',
+  skills: [],
+  context: '',
 };
 const EMPLOYER_DEFAULT: ProfileFormValues = {
-  name: 'BoldRise Sdn Bhd',
-  role: 'Data Scientist (target hire)',
+  name: '',
+  role: '',
   education: 'N/A',
-  yearsExperience: 10,
+  yearsExperience: 3,
   state: 'Kuala Lumpur',
-  skills: ['Python', 'SQL', 'Machine Learning'],
-  context: 'Hiring for a growing data team; open to adjacent candidates with a practical bridge plan.',
+  skills: [],
+  context: '',
 };
 const UNIVERSITY_DEFAULT: ProfileFormValues = {
-  name: 'Universiti Teknologi Malaysia',
-  role: 'BSc Computer Science',
-  education: 'PhD (Programme Director)',
-  yearsExperience: 18,
-  state: 'Johor',
-  skills: ['Java', 'Algorithms', 'Data Structures', 'SQL'],
-  context: 'Programme outcome review across consenting graduates and approved consortium comparisons.',
+  name: '',
+  role: '',
+  education: 'N/A',
+  yearsExperience: 3,
+  state: 'Kuala Lumpur',
+  skills: [],
+  context: '',
 };
 
 const EDUCATION_OPTIONS_CANDIDATE = [

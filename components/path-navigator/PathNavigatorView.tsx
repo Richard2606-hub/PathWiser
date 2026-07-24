@@ -43,8 +43,14 @@ export function PathNavigatorView() {
   }, [shape]);
 
   const cohortSize = result && 'cohort' in result ? result.cohort.size : null;
-  const nextRoles = result && 'aggregate' in result ? result.aggregate.next_role_distribution : [];
-  const salaries = result && 'aggregate' in result ? result.aggregate.salary_percentiles_by_role : {};
+  const nextRoles = useMemo(
+    () => result && 'aggregate' in result ? result.aggregate.next_role_distribution : [],
+    [result],
+  );
+  const salaries = useMemo(
+    () => result && 'aggregate' in result ? result.aggregate.salary_percentiles_by_role : {},
+    [result],
+  );
   const bridges = result && 'aggregate' in result ? result.aggregate.common_skill_bridges : [];
   const explanation = result && 'aggregate' in result ? result.explanation : null;
 
@@ -150,6 +156,7 @@ export function PathNavigatorView() {
         <div className="rounded-2xl border border-[color:var(--border)] bg-white p-3.5 shadow-[0_8px_28px_rgba(15,23,42,0.05)]">
           <PathGraph
             nodes={graphNodes}
+            currentRole={shape.role}
             selectedNode={selectedNode}
             onNodeClick={(id) => setSelectedNode(id)}
           />

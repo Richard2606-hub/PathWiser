@@ -76,7 +76,7 @@ export function ComparePanel({ nodes, aggregate }: { nodes: string[]; aggregate:
         </span>
         <p className="mt-1.5 text-xs text-[color:var(--text-2)] leading-relaxed">
           Among these {nodes.length} paths, <strong className="text-[color:var(--yellow)]">{dataByNode[highestSalary].role}</strong> has the highest salary anchor.{' '}
-          <strong className="text-[color:var(--teal)]">{dataByNode[largestCohort].role}</strong> has the largest cohort — meaning the range estimate is tightest and most trustworthy.
+          <strong className="text-[color:var(--teal)]">{dataByNode[largestCohort].role}</strong> has the largest observed cohort among this comparison; review its published range and limitations before drawing a conclusion.
           {mycolCount > 0 && ` ${mycolCount === nodes.length ? 'All' : mycolCount} of these are on Malaysia's Critical Occupations List — signalling national demand.`}
         </p>
         <p className="mt-2 text-[10px] italic text-[color:var(--text-3)]">
