@@ -17,22 +17,37 @@ import { getAIProvider } from '@/lib/ai';
 import type { UserShape, Cohort, Trajectory } from '@/types';
 import { getCorpus, shapeToFeatureVector } from '@/lib/corpus';
 import { cosineSimilarity, hasSupabaseConfig, hasGeminiConfig } from '@/lib/utils';
+import { resolveEvidenceMode, type EvidenceMode } from '@/lib/evidence';
 
 const DEFAULT_K = 1200;
 const K_MIN = 50;
+
+export class EvidenceServiceUnavailableError extends Error {
+  readonly code = 'evidence_service_unavailable';
+
+  constructor(message = 'The trajectory evidence service is temporarily unavailable.') {
+    super(message);
+    this.name = 'EvidenceServiceUnavailableError';
+  }
+}
 
 export interface RetrieveOptions {
   k?: number;
   filterByState?: boolean;
   filterBySector?: string;
   filterByLifeStage?: boolean;
+  evidenceMode?: EvidenceMode;
 }
 
 export async function retrieveCohort(
   shape: UserShape,
   opts: RetrieveOptions = {}
 ): Promise<Cohort> {
-  const canUseFullMode = hasSupabaseConfig() && hasGeminiConfig() && process.env.ALLOW_FULL_MODE === 'true';
+  const canUseFullMode =
+    resolveEvidenceMode(shape.userId, opts.evidenceMode) === 'community' &&
+    hasSupabaseConfig() &&
+    hasGeminiConfig() &&
+    process.env.ALLOW_FULL_MODE === 'true';
 
   // Local development defaults to the disclosed synthetic corpus even when a
   // developer has production credentials in .env.local. This keeps the demo
@@ -146,12 +161,39 @@ async function retrieveDemoMode(shape: UserShape, opts: RetrieveOptions): Promis
 async function retrieveFullMode(shape: UserShape, opts: RetrieveOptions): Promise<Cohort> {
   const k = opts.k || DEFAULT_K;
 
+  const { createServiceRoleClient } = await import('@/lib/supabase/server');
+  const supabase = createServiceRoleClient();
+  const { count: corpusSize, error: countError } = await supabase
+    .from('trajectories')
+    .select('id', { count: 'exact', head: true });
+
+  if (countError) {
+    console.warn('[PathWiser] Trajectory corpus check failed:', countError.message);
+    throw new EvidenceServiceUnavailableError();
+  }
+
+  // Do not call an external embedding provider when the entire governed corpus
+  // is below the disclosure threshold: no filtered query could be publishable.
+  if ((corpusSize ?? 0) < K_MIN) {
+    return {
+      size: corpusSize ?? 0,
+      trajectories: [],
+      similarity_stats: { mean: 0, stddev: 0, min: 0, max: 0 },
+      filters_applied: {
+        life_stage: opts.filterByLifeStage ? shape.life_stage : undefined,
+        state: opts.filterByState ? shape.state : undefined,
+        sector: opts.filterBySector,
+      },
+      cohort_too_small: {
+        reason: `Only ${corpusSize ?? 0} governed trajectories are available. Minimum for honest aggregation is ${K_MIN}.`,
+        k_min: K_MIN,
+      },
+    };
+  }
+
   const ai = getAIProvider();
   const shapeText = shapeToText(shape);
   const embedding = await ai.getEmbedding(shapeText);
-
-  const { createServiceRoleClient } = await import('@/lib/supabase/server');
-  const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc('match_trajectories', {
     query_embedding: embedding,
     match_count: k,
@@ -161,7 +203,8 @@ async function retrieveFullMode(shape: UserShape, opts: RetrieveOptions): Promis
   });
 
   if (error) {
-    throw new Error(`Trajectory retrieval failed: ${error.message}`);
+    console.warn('[PathWiser] Trajectory retrieval failed:', error.message);
+    throw new EvidenceServiceUnavailableError();
   }
 
   const trajectories = (data || []) as Array<Trajectory & { similarity: number }>;

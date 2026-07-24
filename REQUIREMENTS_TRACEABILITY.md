@@ -26,7 +26,7 @@ Status meanings:
 | OFF-03 | Kick-Off Summary pp. 2, 4 | One unified platform with different persona views | One Next.js application with candidate, employer, and university route guards | Complete | Persona route-guard tests |
 | OFF-04 | Kick-Off Summary pp. 3-4 | Clean, professional, editorial design for ages 20-50; mobile-friendly candidate experience and desktop dashboards | Responsive light SaaS design, mobile drawer, conventional navigation, touch-sized mobile path cards | Complete | Fresh desktop, 390 × 844 phone and 768 × 1024 tablet browser audits pass |
 | OFF-05 | Final Kit section 03 | Clear architecture, working marketplace, differentiators, integrated core flow, documentation | Architecture view, engine API, marketplace, module registry, README/OpenAPI/system design | Complete | Build, OpenAPI review, route audit |
-| OFF-06 | Final Kit section 05 | Live interactive demo URL | Source is deployable, but no verified public deployment is currently attached to this workspace | External prerequisite | Production deployment smoke test |
+| OFF-06 | Final Kit section 05 | Live interactive demo URL | Verified production preview at `https://path-wiser-sigma.vercel.app` | Complete | Remote production smoke and rendered-browser test |
 | OFF-07 | Kick-Off Deck p. 23 and Summary pp. 2, 4 | Prioritise product/UX, functional depth, innovation, career impact, and sustainability | Career Twin differentiation, Career Signal Loop, SDG mappings, evidence disclosures | Complete | UX heuristic and content audit |
 | OFF-08 | Final Kit | Career OS core plus selected modules; live demo and 2-3 minute judge walkthrough | Product build is in scope; walkthrough recording is a separate media deliverable | External prerequisite | Verify final URL and video |
 
@@ -34,7 +34,7 @@ Status meanings:
 
 | ID | Proposal module | Required behaviour | Current implementation | Status | Remaining acceptance work |
 |---|---|---|---|---|---|
-| ENG-01 | User Profile and Trajectory Shape | Registration, persona onboarding, structured profile, ESCO-aligned fields, embedding, continuous updates, completeness prompts, RLS-backed persistence | Registration, email callback and password recovery, organisation-aware persona onboarding, editable account profile, deterministic taxonomy normalization, embedding provenance, device preview fallback and RLS schema | Conditional | Verify saved profile, recovery and embedding against a working production Supabase project |
+| ENG-01 | User Profile and Trajectory Shape | Registration, persona onboarding, structured profile, ESCO-aligned fields, embedding, continuous updates, completeness prompts, RLS-backed persistence | Registration, email callback and password recovery, organisation-aware persona onboarding, editable account profile, deterministic taxonomy normalization, 768-dimensional embedding contract, device preview fallback and deployed RLS schema | Conditional | Verify recovery and profile isolation with multiple real production accounts |
 | ENG-02 | Trajectory Retrieval | Reusable retrieval API, vector similarity, filters, minimum cohort gate, deterministic contract, short-lived reuse | Live engine-room retrieval, `retrieveCohort`, `/api/engine/navigate`, pgvector RPC, disclosed modelled fallback, cohort gate | Complete | Browser interaction and connected full-mode performance test |
 | ENG-03 | Range-of-Outcomes Aggregation | Deterministic next roles, salary percentiles, time in role, skill bridges, trade-offs, calibration metadata | Pure tested aggregation plus live active-profile inspection view | Complete | Cross-check displayed values against API fixture |
 | ENG-04 | AI Explanation and Honest Narrative | Audience prompt, provider abstraction, schema/honesty validation, retries/fallback, cohort disclosure | Live structured input/output inspection, provider retry, validation gate, deterministic fallback and visible generation reason | Complete | Provider failure and validation-failure integration test |
@@ -88,19 +88,16 @@ Status meanings:
 
 ## Production configuration findings
 
-- The configured Supabase URL and keys are valid and authenticated Auth health
-  returns HTTP 200. The live project is missing the durable workflow and
-  production-control tables (`0003` and `0004` return HTTP 404), while older
-  tables reject service reads until the explicit PostgREST grants in
-  `0005_api_privileges.sql` are applied. Live database mode must remain disabled
-  until the checksum-locked migration runner completes and the table audit passes.
-- Modelled Malaysian-calibrated evidence remains an honest, labelled fallback for
-  local evaluation. Production must fail visibly rather than silently substituting
-  modelled evidence when `ALLOW_FULL_MODE=true` and fallback is not explicitly
-  authorised.
-- Vercel builds the merged `main` revision successfully, but currently classifies
-  it as a non-production environment and leaves the public alias pinned to an
-  older frontend. A production launch still requires Vercel alias promotion,
-  production environment values, all five migrations, seeded/licensed corpus
-  data, backup and alert configuration, and a final multi-account authorization
-  test.
+- The configured Supabase project is reachable in production. Migrations
+  `0001` through `0005` and their checksums are recorded, every proposal table is
+  available, and the explicit PostgREST grants are applied. The governed tables
+  currently contain zero community records by design.
+- Anonymous and named preview personas explicitly request the labelled,
+  Malaysian-calibrated modelled evidence path. Authenticated community requests
+  never silently receive modelled people: an insufficient corpus is cohort-gated
+  and an unavailable provider/database produces a retryable service response.
+- Vercel serves the verified merged application at
+  `https://path-wiser-sigma.vercel.app`. Remaining community-launch gates are a
+  governed consented corpus, real organisation/account acceptance tests, backup
+  and alert configuration, PDPA/legal and fairness approval, and final
+  multi-account authorization verification.

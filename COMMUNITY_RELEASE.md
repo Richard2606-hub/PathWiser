@@ -2,6 +2,12 @@
 
 The repository is community-product capable, but it is not a public deployment by itself. Complete the following owner-controlled steps before inviting real people.
 
+Current verified state (24 July 2026): the production preview is live at
+`https://path-wiser-sigma.vercel.app`; migrations `0001` through `0005` and their
+checksums are applied to the live Supabase project. Governed community tables are
+empty, so anonymous preview personas use the separately labelled modelled corpus
+and authenticated evidence remains cohort-gated.
+
 ## Required launch configuration
 
 1. Create the production Supabase project, set the server-only `SUPABASE_DB_URL`, and run `npm run supabase:migrate`. The checksum-locked runner applies `0001_init.sql` through `0005_api_privileges.sql` transactionally and in order.

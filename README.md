@@ -1,8 +1,8 @@
 # PathWiser · Career OS Navigation Platform
 
-> **Release status:** the application code implements the proposal-defined community product, including authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all nine audience modules, health/telemetry and responsive UX. The bundled evidence is still modelled. A public launch requires the owner-controlled deployment and governed-data steps in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md).
+> **Release status:** the proposal-defined product is deployed as a public, production-built preview with authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all nine audience modules, health/telemetry and responsive UX. Anonymous preview personas deliberately use the labelled modelled corpus; authenticated community evidence remains cohort-gated until a governed, consented corpus is approved. Complete the owner-controlled gates in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md) before inviting real community data.
 
-**Previous preview reference:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/) (this is not a verified deployment of the community-release changes in this workspace)
+**Live production preview:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/)
 
 Submitted to the **Talentbank Tech Hackathon 2026** — First Cohort. PathWiser is an evidence-based Career OS navigation platform built around the **Career Twin Engine**: a hybrid retrieval + deterministic aggregation + LLM explanation architecture that helps candidates, employers, and universities across Asia make wiser career decisions.
 
@@ -46,7 +46,7 @@ Sixteen modules across four layers, all backed by a single shared engine:
 - **UN SDG mapping** — every module tagged with the Sustainable Development Goals it addresses (4 · 5 · 8 · 9 · 10 · 17).
 - **Honest cohort disclosure** everywhere — cohort size, range, and "cohort aggregates, not individual predictions" on every output.
 - **Server-enforced audience workspaces** — authenticated accounts are restricted to candidate, employer or university routes; the optional review switch is disabled by default and still requires an admin/judge server role.
-- **Community preview personas** — three clearly labelled modelled personas can launch the local evidence workflow when authentication is optional.
+- **Community preview personas** — three clearly labelled modelled personas can launch the complete evidence workflow even when the production community corpus is still below its privacy-safe threshold.
 - **Full close/back UX on every overlay** — ESC to close, × button, backdrop click. No sudden-modal traps.
 
 ---

@@ -87,10 +87,11 @@ assert(['community-marketplace', 'modelled-marketplace'].includes(companies.body
 const navigate = await request('/api/engine/navigate', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Origin: baseUrl },
-  body: JSON.stringify({ shape, currentStepIndex: 0 }),
+  body: JSON.stringify({ shape, currentStepIndex: 0, evidenceMode: 'modelled' }),
 });
 assert(navigate.response.ok, `Engine navigation returned ${navigate.response.status}`);
-assert(navigate.body.cohort_too_small || navigate.body.aggregate?.cohort_size >= 50, 'Engine returned neither a safe cohort gate nor an aggregate');
+assert(navigate.body.aggregate?.cohort_size >= 50, 'Modelled engine did not return a usable aggregate');
+assert(navigate.body.evidence?.mode === 'modelled', 'Modelled engine request omitted its provenance');
 if (navigate.body.explanation) {
   assert(navigate.body.explanation.passed_validation === true, 'Engine delivered an unvalidated explanation');
   assert(navigate.body.explanation.narrative.includes('cohort'), 'Explanation omitted cohort framing');
@@ -99,7 +100,7 @@ if (navigate.body.explanation) {
 const coach = await request('/api/engine/coach', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Origin: baseUrl },
-  body: JSON.stringify({ shape, message: 'What evidence should I review before choosing a data science path?' }),
+  body: JSON.stringify({ shape: { ...shape, userId: 'demo-smoke-candidate' }, message: 'What evidence should I review before choosing a data science path?' }),
 });
 assert(coach.response.ok && typeof coach.body.reply === 'string', 'AI coach did not return a usable response');
 assert(coach.body.evidence?.mode, 'AI coach omitted evidence provenance');
@@ -119,10 +120,22 @@ for (const audienceShape of [
   const audienceEngine = await request('/api/engine/navigate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Origin: baseUrl },
-    body: JSON.stringify({ shape: audienceShape, currentStepIndex: 0 }),
+    body: JSON.stringify({ shape: audienceShape, currentStepIndex: 0, evidenceMode: 'modelled' }),
   });
   assert(audienceEngine.response.ok, `${audienceShape.persona} engine call failed`);
   assert(audienceEngine.body.cohort_too_small || audienceEngine.body.explanation?.passed_validation === true, `${audienceShape.persona} engine output was not safely gated`);
+}
+
+const communityEngine = await request('/api/engine/navigate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Origin: baseUrl },
+  body: JSON.stringify({ shape, currentStepIndex: 0, evidenceMode: 'community' }),
+});
+assert([200, 503].includes(communityEngine.response.status), 'Community engine returned an unexpected status');
+if (communityEngine.response.ok) {
+  assert(communityEngine.body.cohort_too_small || communityEngine.body.aggregate?.cohort_size >= 50, 'Community engine bypassed the safe cohort contract');
+} else {
+  assert(communityEngine.body.error === 'evidence_service_unavailable', 'Community evidence outage did not return the documented safety response');
 }
 
 const feedback = await request('/api/feedback');

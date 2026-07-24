@@ -24,6 +24,7 @@ export function PathNavigatorView() {
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [requestVersion, setRequestVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +41,7 @@ export function PathNavigatorView() {
       .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, [shape]);
+  }, [shape, requestVersion]);
 
   const cohortSize = result && 'cohort' in result ? result.cohort.size : null;
   const nextRoles = useMemo(
@@ -77,8 +78,11 @@ export function PathNavigatorView() {
   if (error) {
     return (
       <Callout tone="rose">
-        <strong>Engine error</strong>
+        <strong>We could not load your evidence view</strong>
         <p className="mt-1">{error}</p>
+        <Button className="mt-3" size="sm" onClick={() => setRequestVersion((version) => version + 1)}>
+          Try again
+        </Button>
       </Callout>
     );
   }
