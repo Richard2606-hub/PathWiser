@@ -3,19 +3,20 @@
 The repository is community-product capable, but it is not a public deployment by itself. Complete the following owner-controlled steps before inviting real people.
 
 Current verified state (24 July 2026): the production preview is live at
-`https://path-wiser-sigma.vercel.app`; migrations `0001` through `0005` and their
+`https://path-wiser-sigma.vercel.app`; migrations `0001` through `0006` and their
 checksums are applied to the live Supabase project. Governed community tables are
 empty, so anonymous preview personas use the separately labelled modelled corpus
-and authenticated evidence remains cohort-gated.
+and authenticated evidence remains cohort-gated. The temporary two-account RLS,
+employer-membership, consent, revocation and cleanup test passes against production.
 
 ## Required launch configuration
 
-1. Create the production Supabase project, set the server-only `SUPABASE_DB_URL`, and run `npm run supabase:migrate`. The checksum-locked runner applies `0001_init.sql` through `0005_api_privileges.sql` transactionally and in order.
+1. Create the production Supabase project, set the server-only `SUPABASE_DB_URL`, and run `npm run supabase:migrate`. The checksum-locked runner applies every numbered migration, currently `0001_init.sql` through `0006_pgcrypto_digest_schema.sql`, transactionally and in order.
 2. Import a governed, consented trajectory corpus; validate embeddings and set `EVIDENCE_CORPUS_SYNTHETIC=false` only after that import is approved.
 3. Set `AUTH_MODE=required`, `ALLOW_FULL_MODE=true`, `NEXT_PUBLIC_ENABLE_JUDGE_MODE=false`, Supabase credentials and the AI provider key in the hosting platform.
 4. Complete PDPA/legal review, retention/deletion rules, incident response, accessibility testing and a documented fairness review for candidate discovery.
 5. Configure a distributed rate limiter and production observability. Schedule `POST /api/operations/retention` with `Authorization: Bearer CRON_SECRET`; the bundled limiter is intentionally per application instance and is not sufficient across a multi-instance deployment.
-6. Run `npm run lint`, `npm run test`, `npm run typecheck`, `npm run build`, `npm run test:smoke`, `npm run test:a11y`, and `npm audit --json`, then complete the authenticated acceptance suite in `TESTING_AND_SYSTEM_DESIGN.md` for candidate, employer, university and admin accounts.
+6. Run `npm run lint`, `npm run test`, `npm run typecheck`, `npm run test:openapi`, `npm run build`, `npm run test:smoke`, `npm run test:a11y`, `npm run test:rls:production`, and `npm audit --json`, then complete the authenticated acceptance suite in `TESTING_AND_SYSTEM_DESIGN.md` for candidate, employer, university and admin accounts.
 7. Configure the production domain, email confirmation templates, backups, uptime alerts and a user-support route.
 
 ## Go/no-go checks
