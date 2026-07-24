@@ -18,8 +18,8 @@ const RequestSchema = z.object({
 function normalise(value: string) { return value.trim().toLowerCase(); }
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(request, 'talent-match', 25); if (limited) return limited;
   const invalidOrigin = requireSameOrigin(request); if (invalidOrigin) return invalidOrigin;
+  const limited = rateLimit(request, 'talent-match', 25); if (limited) return limited;
   try {
     const input = RequestSchema.parse(await request.json());
     const shape: UserShape = { userId: 'anon', persona: 'employer', role: input.role, education: "Bachelor's", years_experience: 5, state: input.state, skills: input.skills, life_stage: 'mid_career' };
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     if (process.env.ALLOW_FULL_MODE === 'true' && process.env.GEMINI_API_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
       try {
-        const supabase = createClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const embedding = await getAIProvider().getEmbedding(`Target role: ${input.role}\nRequired skills: ${input.skills.join(', ')}\nState: ${input.state}`);
@@ -69,6 +69,6 @@ function buildMatch(id: string, displayName: string, currentRole: string, state:
   return {
     id, display_name: displayName, current_role: currentRole, state,
     matched_skills: matchedSkills, skill_bridges: skillBridges, adjacent, consent_scope: consentScope,
-    rationale: `${matchedSkills.length || 'No'} declared requirement${matchedSkills.length === 1 ? '' : 's'} align directly. ${adjacent ? `${skillBridges.length} bridge skill${skillBridges.length === 1 ? '' : 's'} should be assessed with the candidate.` : 'No declared bridge is required.'} The role context is supported by a retrieved cohort of ${cohortSize.toLocaleString()} modelled trajectories; the employer makes the final decision.`,
+    rationale: `${matchedSkills.length || 'No'} declared requirement${matchedSkills.length === 1 ? '' : 's'} ${matchedSkills.length === 1 ? 'aligns' : 'align'} directly. ${adjacent ? `${skillBridges.length} bridge skill${skillBridges.length === 1 ? '' : 's'} should be assessed with the candidate.` : 'No declared bridge is required.'} The role context is supported by a retrieved cohort of ${cohortSize.toLocaleString()} modelled trajectories; the employer makes the final decision.`,
   };
 }

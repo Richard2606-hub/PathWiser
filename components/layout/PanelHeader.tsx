@@ -4,7 +4,7 @@ import { MODULES } from '@/lib/corpus/modules';
 import { SdgStrip } from '@/components/common/SdgChip';
 import { Button } from '@/components/common/Button';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 /**
  * Panel header — the top strip of every module page.
@@ -35,22 +35,30 @@ export function PanelHeader({
         <p className="text-sm sm:text-base font-semibold text-[color:var(--text-1)]">{m.purpose}</p>
         <p className="max-w-3xl text-sm text-[color:var(--text-2)] leading-relaxed">{m.desc}</p>
         <div className="mt-2"><SdgStrip moduleKey={moduleKey} /></div>
+        <div className="mt-3 flex flex-wrap gap-2 sm:hidden">
+          {actions}
+          <FeedbackButton moduleTitle={m.title} />
+        </div>
       </div>
       <div className="relative hidden sm:flex flex-col gap-2 items-end flex-shrink-0">
         {actions}
-        <FeedbackButton />
+        <FeedbackButton moduleTitle={m.title} />
       </div>
     </div>
   );
 }
 
-function FeedbackButton() {
+function FeedbackButton({ moduleTitle }: { moduleTitle: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   return (
     <Button
       variant="outline"
       size="sm"
-      onClick={() => router.push('/dashboard/support/feedback')}
+      onClick={() => {
+        const params = new URLSearchParams({ module: moduleTitle, source: pathname });
+        router.push(`/dashboard/support/feedback?${params.toString()}`);
+      }}
     >
       Share feedback
     </Button>

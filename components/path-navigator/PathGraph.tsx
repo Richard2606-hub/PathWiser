@@ -15,11 +15,12 @@ interface GraphNode {
 
 interface PathGraphProps {
   nodes: GraphNode[];
+  currentRole: string;
   selectedNode: string | null;
   onNodeClick: (id: string) => void;
 }
 
-export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) {
+export function PathGraph({ nodes, currentRole, selectedNode, onNodeClick }: PathGraphProps) {
   const compareMode = useAppStore((s) => s.compareMode);
   const compareNodes = useAppStore((s) => s.compareNodes);
   const addCompareNode = useAppStore((s) => s.addCompareNode);
@@ -38,8 +39,53 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
   };
 
   return (
-    <div className="w-full aspect-[16/9] max-h-[420px] overflow-visible">
-      <svg viewBox="0 0 760 420" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby="career-graph-title career-graph-desc">
+    <>
+      <section className="sm:hidden" aria-labelledby="mobile-career-paths-title">
+        <div className="mb-3">
+          <h2 id="mobile-career-paths-title" className="text-sm font-bold">Your next-role landscape</h2>
+          <p className="mt-1 text-xs leading-relaxed text-[color:var(--text-2)]">
+            Tap a destination to inspect its evidence{compareMode ? ', or select up to three to compare' : ''}.
+          </p>
+        </div>
+        <div className="grid gap-2">
+          {nodes.map((node) => {
+            const active = compareMode ? compareNodes.includes(node.id) : selectedNode === node.id;
+            return (
+              <button
+                key={node.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => handleClick(node.id)}
+                className={`min-h-16 rounded-xl border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[color:var(--accent)] focus-visible:outline-offset-2 ${
+                  active
+                    ? 'border-[color:var(--accent)] bg-[color:var(--accent-glow)]'
+                    : 'border-[color:var(--border)] bg-[color:var(--bg-elevated)]'
+                }`}
+              >
+                <span className="flex items-start justify-between gap-3">
+                  <span>
+                    <strong className="block text-sm">{node.label}</strong>
+                    <span className="mt-1 block text-xs text-[color:var(--text-2)]">
+                      {node.cohort.toLocaleString()} similar trajectories
+                    </span>
+                  </span>
+                  <span className="rounded-full bg-[color:var(--yellow)] px-2.5 py-1 font-mono text-xs font-bold text-white">
+                    {Math.round(node.probability * 100)}%
+                  </span>
+                </span>
+                {node.isMycol && (
+                  <span className="mt-2 inline-block font-mono text-[10px] font-bold uppercase tracking-wide text-[color:var(--sky)]">
+                    MyCOL priority role
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="hidden w-full aspect-[16/9] max-h-[420px] overflow-visible sm:block">
+        <svg viewBox="0 0 760 420" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby="career-graph-title career-graph-desc">
         <title id="career-graph-title">Career path destinations</title>
         <desc id="career-graph-desc">Choose a destination role to inspect it. Each node announces its observed cohort share.</desc>
         <defs>
@@ -72,7 +118,7 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
           YOU
         </text>
         <text x={you.x} y={you.y + you.r + 14} fill="var(--text-2)" fontSize="9" textAnchor="middle" fontFamily="var(--sans)" pointerEvents="none">
-          Junior Data Analyst
+          {currentRole}
         </text>
 
         {/* Destination nodes */}
@@ -188,13 +234,14 @@ export function PathGraph({ nodes, selectedNode, onNodeClick }: PathGraphProps) 
             </g>
           );
         })}
-      </svg>
-      <style jsx>{`
-        .path-graph-node:focus-visible circle:last-of-type {
-          stroke: var(--text-1);
-          stroke-width: 3px;
-        }
-      `}</style>
-    </div>
+        </svg>
+        <style jsx>{`
+          .path-graph-node:focus-visible circle:last-of-type {
+            stroke: var(--text-1);
+            stroke-width: 3px;
+          }
+        `}</style>
+      </div>
+    </>
   );
 }

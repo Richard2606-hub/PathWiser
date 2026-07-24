@@ -40,7 +40,10 @@ export function TalentMatchingView() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { void search(); /* initial query follows the saved demand shape */ /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  // The initial query intentionally uses the saved demand shape once; subsequent
+  // edits are applied only when the employer presses “Find candidates”.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void search(); }, []);
 
   return (
     <div className="flex flex-col gap-4">

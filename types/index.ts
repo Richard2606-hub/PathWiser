@@ -160,6 +160,8 @@ export interface Explanation {
   ranges_disclosed: boolean;
   passed_validation: boolean;
   validator_notes?: string[];
+  generation_mode?: 'provider' | 'template';
+  fallback_reason?: 'provider_unavailable' | 'validation_failed';
 }
 
 export interface EvidenceProvenance {

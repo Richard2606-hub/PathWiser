@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { MODULES, modulesForPersona, engineModules, supportModules, marketplaceModules } from '@/lib/corpus/modules';
 import { cn } from '@/lib/utils';
@@ -23,10 +22,10 @@ const CAP_LABELS: Record<string, string> = {
 const CAP_HINTS: Record<string, string> = {
   path_navigator: 'your realistic next moves',
   ai_coach: "the questions you can't ask",
-  fair_pay: "are you paid what you're worth?",
+  fair_pay: 'compare disclosed salary ranges',
   talent_matching: 'trajectory fit, not keywords',
   retention_signals: 'before the letter arrives',
-  onboarding_predictor: "who needs support, who'll thrive",
+  onboarding_predictor: 'plan evidence-based onboarding support',
   outcome_loop: 'where graduates actually land',
   curriculum_engine: 'teach what the market wants',
   readiness_profile: 'a credential that stays alive',
@@ -83,7 +82,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 </span>
               </div>
             }
-            highlightColor={isActivePersona ? meta.color : undefined}
           >
             {showBody && (
               <div className="flex flex-col gap-1.5">
@@ -136,7 +134,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Neutral sponsored slot */}
       <div
-        title="Neutral advertising space — signals product sustainability. Talentbank keeps commercial control."
+        title="Reserved advertising space. No campaign is active."
         className="flex flex-col gap-2 rounded-xl bg-[color:var(--bg-elevated)] p-3"
         style={{
           backgroundImage:
@@ -149,12 +147,12 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex items-center gap-2.5">
           <span className="text-xl">📢</span>
           <div className="flex flex-col leading-tight">
-            <span className="text-xs font-bold">Career Booster · MBA</span>
-            <span className="text-[10px] text-[color:var(--text-2)]">Weekend programme · KL · Sept intake</span>
+            <span className="text-xs font-bold">Sponsored opportunity</span>
+            <span className="text-[10px] text-[color:var(--text-2)]">No reviewed campaign is currently active</span>
           </div>
         </div>
         <span className="font-mono text-[9px] italic text-[color:var(--text-3)]">
-          Space reserved for Talentbank monetisation
+          Reserved · clearly separated from evidence
         </span>
       </div>
     </aside>
@@ -164,11 +162,9 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 function SidebarCard({
   title,
   children,
-  highlightColor,
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
-  highlightColor?: string;
 }) {
   return (
     <div

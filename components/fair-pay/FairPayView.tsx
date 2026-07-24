@@ -48,15 +48,15 @@ export function FairPayView() {
             cohortSize: res.aggregate.cohort_size,
           });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        showToast(`Engine API Error: ${err.message || 'Failed to fetch salary data.'}`, 'error');
+        showToast(`Engine API Error: ${err instanceof Error ? err.message : 'Failed to fetch salary data.'}`, 'error');
       } finally {
         setIsLoading(false);
       }
     }
     load();
-  }, [role, location, experience]);
+  }, [role, location, experience, showToast]);
 
   const pct = useMemo(() => {
     if (!b) return 0;

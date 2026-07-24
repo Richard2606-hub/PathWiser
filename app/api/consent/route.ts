@@ -8,7 +8,7 @@ const ConsentSchema = z.object({ type: z.enum(['trajectory_contribution','employ
 export async function GET(request: NextRequest) {
   const limited = rateLimit(request, 'consent-read', 60); if (limited) return limited;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'authentication_required' }, { status: 401 });
     const { data, error } = await supabase.from('consent_records').select('consent_type,granted_at,revoked_at').eq('user_id', user.id);
@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const limited = rateLimit(request, 'consent-write', 20); if (limited) return limited;
   const invalidOrigin = requireSameOrigin(request); if (invalidOrigin) return invalidOrigin;
+  const limited = rateLimit(request, 'consent-write', 20); if (limited) return limited;
   try {
     const body = ConsentSchema.parse(await request.json());
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'authentication_required' }, { status: 401 });
     const now = new Date().toISOString();
@@ -34,7 +34,14 @@ export async function PUT(request: NextRequest) {
       const { error: profileError } = await supabase.from('user_shapes').update({ discoverable: body.enabled, updated_at: now }).eq('user_id', user.id);
       if (profileError) throw profileError;
     }
-    return NextResponse.json({ saved: true, enabled: body.enabled });
+    const { error: auditError } = await supabase.from('audit_events').insert({
+      actor_user_id: user.id,
+      action: body.enabled ? 'consent.granted' : 'consent.revoked',
+      resource_type: 'consent_record',
+      resource_id: body.type,
+      metadata: { consent_type: body.type },
+    });
+    return NextResponse.json({ saved: true, enabled: body.enabled, audit_logged: !auditError });
   } catch (error) {
     if (error instanceof z.ZodError) return NextResponse.json({ error: 'invalid_consent', issues: error.issues }, { status: 400 });
     return NextResponse.json({ error: 'consent_save_failed', message: error instanceof Error ? error.message : String(error) }, { status: 503 });

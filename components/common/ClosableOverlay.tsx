@@ -152,7 +152,7 @@ export function CloseButton({ onClick, label = 'Close', className }: CloseButton
       onClick={onClick}
       aria-label={label}
       className={cn(
-        'absolute top-3.5 right-3.5 w-9 h-9 rounded-full',
+        'absolute top-2.5 right-2.5 h-11 w-11 rounded-full',
         'flex items-center justify-center text-lg font-mono',
         'text-[color:var(--text-3)] hover:text-[color:var(--text-1)]',
         'hover:bg-[color:var(--bg-glass-strong)]',

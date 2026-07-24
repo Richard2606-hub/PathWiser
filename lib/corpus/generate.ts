@@ -16,8 +16,8 @@
  */
 
 import type { Trajectory, TrajectoryNode, LifeStage, Persona } from '@/types';
-import { OCCUPATIONS, SECTORS, MY_STATES, occupationsBySector, findOccupation } from './occupations';
-import { seededRandom, pickRandom, pickWeighted } from '@/lib/utils';
+import { SECTORS, MY_STATES, occupationsBySector, findOccupation } from './occupations';
+import { seededRandom, pickRandom } from '@/lib/utils';
 
 // ─── Feature vector encoding ────────────────────────────────
 // 24 dimensions: 5 sector one-hot, 6 seniority one-hot, 8 skill families,
@@ -199,7 +199,6 @@ function generateOneTrajectory(seed: number, sector: string): Trajectory {
     });
   }
 
-  const allSkills = Array.from(new Set(path.flatMap((n) => n.skills_added || [])));
   const escoCodes = Array.from(new Set(path.map((n) => n.esco_code).filter(Boolean) as string[]));
 
   const persona: Persona = 'candidate';

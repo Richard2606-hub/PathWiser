@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Format a MYR amount as RM 5,500/m or RM 12,000. */
 export function formatMYR(amount: number, monthly = true): string {
-  return `RM ${amount.toLocaleString('en-MY')}${monthly ? '/m' : ''}`;
+  return `RM ${amount.toLocaleString('en-MY', { maximumFractionDigits: 0 })}${monthly ? '/m' : ''}`;
 }
 
 /** Format a probability (0-1) as a percentage string. */

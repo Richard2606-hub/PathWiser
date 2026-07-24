@@ -3,16 +3,7 @@
 import type { Persona } from '@/types';
 import { Callout } from '@/components/common/Callout';
 import { Pill } from '@/components/common/Pill';
-
-const ESCO_MAP: Record<string, { esco: string; onet: string; masco: string; confidence: number }> = {
-  'Junior Data Analyst': { esco: '2511.2', onet: '15-2051.00', masco: '2120.0', confidence: 94.2 },
-  'Data Analyst':        { esco: '2511.2', onet: '15-2051.00', masco: '2120.0', confidence: 96.1 },
-  'Data Scientist':      { esco: '2511.1', onet: '15-2051.01', masco: '2120.1', confidence: 97.8 },
-  'ML Engineer':         { esco: '2512.4', onet: '15-1252.00', masco: '2120.1', confidence: 92.4 },
-  'Software Engineer':   { esco: '2512.1', onet: '15-1252.00', masco: '2120.5', confidence: 96.7 },
-};
-
-const defaultMap = { esco: '2510.9', onet: '15-2050.00', masco: '2120.9', confidence: 88.0 };
+import { normalizeShapeInput } from '@/lib/profile/normalize';
 
 export function EscoNormalization({
   persona,
@@ -23,7 +14,7 @@ export function EscoNormalization({
   role: string;
   skills: string[];
 }) {
-  const m = ESCO_MAP[role] || defaultMap;
+  const normalized = normalizeShapeInput(persona, role, skills);
   const taxonomy = persona === 'university' ? 'ISCED' : persona === 'employer' ? 'ISIC/ESCO' : 'ESCO';
 
   return (
@@ -41,21 +32,36 @@ export function EscoNormalization({
             Normalized Profile
           </span>
         </div>
-        <h4 className="text-lg font-extrabold tracking-tight mt-1">{role}</h4>
+        <h4 className="text-lg font-extrabold tracking-tight mt-1">
+          {normalized.matchedRole || role}
+        </h4>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-          <MetricCell label="ESCO Code" value={m.esco} />
-          <MetricCell label="O*NET Match" value={m.onet} />
-          <MetricCell label="MASCO Code" value={m.masco} />
-          <MetricCell label="Confidence" value={`${m.confidence}%`} />
-        </div>
+        {normalized.method === 'unmapped' ? (
+          <Callout className="mt-3" tone="amber">
+            <strong>Human confirmation needed</strong>
+            <p className="mt-1">
+              This role or programme is not in the maintained taxonomy slice. PathWiser will keep your
+              original wording and will not invent an ESCO, O*NET, MASCO, or ISCED code.
+            </p>
+          </Callout>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+            <MetricCell
+              label={persona === 'university' ? 'ISCED Code' : 'ESCO Code'}
+              value={normalized.programmeCode || normalized.escoCode || 'Not mapped'}
+            />
+            <MetricCell label="O*NET Match" value={normalized.onetCode || 'Not applicable'} />
+            <MetricCell label="MASCO Code" value={normalized.mascoCode || 'Not applicable'} />
+            <MetricCell label="Match method" value={normalized.method === 'exact-taxonomy' ? 'Exact' : normalized.method === 'programme-taxonomy' ? 'Programme' : 'Token match'} />
+          </div>
+        )}
 
         <div className="mt-4">
           <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
             Normalized Skills
           </span>
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {skills.map((s) => <Pill key={s} variant="acquired">{s} ✓</Pill>)}
+            {normalized.skills.map((skill) => <Pill key={skill} variant="acquired">{skill} ✓</Pill>)}
           </div>
         </div>
       </div>

@@ -1,0 +1,6 @@
+.next
+node_modules
+legacy
+tmp
+coverage
+next-env.d.ts

@@ -113,7 +113,7 @@ async function retrieveDemoMode(shape: UserShape, opts: RetrieveOptions): Promis
   const mean = sims.reduce((a, b) => a + b, 0) / sims.length;
   const variance = sims.reduce((s, x) => s + (x - mean) ** 2, 0) / sims.length;
 
-  const trajectories: Trajectory[] = scored.map(({ trajectory, similarity: _sim }) => ({
+  const trajectories: Trajectory[] = scored.map(({ trajectory }) => ({
     id: trajectory.id,
     persona: trajectory.persona,
     life_stage: trajectory.life_stage,

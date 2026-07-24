@@ -1,16 +1,17 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Pill } from '@/components/common/Pill';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
 import { navigate } from '@/lib/engine/client';
 import { useAppStore } from '@/store/useAppStore';
+import { loadWorkspaceRecords, saveWorkspaceRecord } from '@/lib/records/client';
 
 interface RetentionEvidence {
   id: string; team: string; role: string; currentTenure: number; cohortSize: number; medianTenure: number;
-  nextDestinations: Array<{ role: string; share: number }>; bridges: string[];
+  nextDestinations: Array<{ role: string; share: number }>; bridges: string[]; nextReviewAt: string;
 }
 
 export function RetentionSignalsView() {
@@ -22,19 +23,43 @@ export function RetentionSignalsView() {
   const [skills, setSkills] = useState((shape?.persona === 'employer' ? shape.skills : ['Python', 'SQL']).join(', '));
   const [items, setItems] = useState<RetentionEvidence[]>([]);
   const [loading, setLoading] = useState(false);
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
+  const [persistence, setPersistence] = useState<'account'|'device'>('device');
+
+  useEffect(() => {
+    void loadWorkspaceRecords<Omit<RetentionEvidence, 'id'>>('retention_signals').then((result) => {
+      setItems(result.records.map((record) => ({ id: record.id, ...record.payload })));
+      setPersistence(result.persistence);
+    });
+  }, []);
 
   const analyse = async (event: FormEvent) => {
-    event.preventDefault(); setLoading(true);
+    event.preventDefault();
+    if (!consentConfirmed) {
+      showToast('Confirm that this review uses consented or de-identified team data.', 'warn');
+      return;
+    }
+    setLoading(true);
     try {
       const result = await navigate({ userId: 'anon', persona: 'employer', role, education: "Bachelor's", years_experience: Math.max(1, Math.round(tenure / 12)), state: shape?.state || 'Kuala Lumpur', skills: skills.split(',').map((item) => item.trim()).filter(Boolean), life_stage: 'mid_career' });
       if (!('aggregate' in result)) throw new Error(result.message);
-      const evidence: RetentionEvidence = {
-        id: `${Date.now()}`, team, role, currentTenure: tenure, cohortSize: result.cohort.size,
+      const evidence = {
+        team, role, currentTenure: tenure, cohortSize: result.cohort.size,
         medianTenure: result.aggregate.median_time_in_role_months,
         nextDestinations: result.aggregate.next_role_distribution.slice(0, 3).map((item) => ({ role: item.role, share: item.probability })),
         bridges: result.aggregate.common_skill_bridges.slice(0, 3).map((item) => item.skill),
+        nextReviewAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       };
-      setItems((current) => [evidence, ...current.filter((item) => item.team !== team)]);
+      const saved = await saveWorkspaceRecord({
+        module: 'retention_signals',
+        record_type: 'team_cohort_review',
+        title: `${team} · ${role}`,
+        payload: evidence,
+        next_review_at: evidence.nextReviewAt,
+      });
+      setPersistence(saved.persistence);
+      setItems((current) => [{ id: saved.record.id, ...saved.record.payload }, ...current.filter((item) => item.team !== team)]);
+      showToast(saved.persistence === 'account' ? 'Retention review saved to your account.' : 'Retention review saved on this device.', saved.persistence === 'account' ? 'success' : 'info');
     } catch (error) { showToast(error instanceof Error ? error.message : 'Unable to assemble a retention cohort.', 'error'); }
     finally { setLoading(false); }
   };
@@ -54,6 +79,7 @@ export function RetentionSignalsView() {
         <label className="text-xs">Comparable role<input className="community-input mt-1" value={role} onChange={(event) => setRole(event.target.value)} required /></label>
         <label className="text-xs">Average tenure (months)<input className="community-input mt-1" type="number" min={1} max={240} value={tenure} onChange={(event) => setTenure(Number(event.target.value))} /></label>
         <label className="text-xs">Current skills<input className="community-input mt-1" value={skills} onChange={(event) => setSkills(event.target.value)} /></label>
+        <label className="md:col-span-4 flex items-start gap-2 text-xs text-[color:var(--text-2)]"><input type="checkbox" checked={consentConfirmed} onChange={(event) => setConsentConfirmed(event.target.checked)} /><span>I confirm that this review uses consented or de-identified team information and is intended for a supportive career conversation.</span></label>
         <Button className="md:col-span-4 md:justify-self-start" disabled={loading}>{loading ? 'Assembling cohort…' : 'Review cohort evidence'}</Button>
       </form>
       {items.map((item) => {
@@ -63,6 +89,7 @@ export function RetentionSignalsView() {
           <div className="mt-3 grid gap-2 sm:grid-cols-2"><Evidence label="Current team tenure" value={`${item.currentTenure} months`} /><Evidence label="Cohort median time in role" value={`${item.medianTenure} months`} /></div>
           <p className="mt-3 text-xs text-[color:var(--text-2)]">Common observed next destinations: {item.nextDestinations.map((next) => `${next.role} (${Math.round(next.share * 100)}%)`).join(', ')}.</p>
           <p className="mt-2 text-xs text-[color:var(--text-2)]"><strong>Conversation prompts:</strong> Which direction feels most meaningful next? Would development in {item.bridges.join(', ') || 'an adjacent skill'} make progression here more realistic? What support would help?</p>
+          <p className="mt-2 font-mono text-[9px] uppercase text-[color:var(--text-3)]">Next review {new Date(item.nextReviewAt).toLocaleDateString()} · saved to {persistence === 'account' ? 'account' : 'this device'}</p>
         </article>;
       })}
       {!items.length && <Callout tone="amber"><strong>No team has been assessed</strong><p className="mt-1">Enter a role and tenure above. No individual employee data is required for this cohort-level review.</p></Callout>}
