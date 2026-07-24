@@ -88,14 +88,19 @@ Status meanings:
 
 ## Production configuration findings
 
-- The configured Supabase URL and keys have valid shapes and the REST endpoint is
-  reachable, but authenticated table requests currently return HTTP 403. Live
-  database mode must remain disabled until the project access policy or keys are
-  corrected and migrations are verified.
+- The configured Supabase URL and keys are valid and authenticated Auth health
+  returns HTTP 200. The live project is missing the durable workflow and
+  production-control tables (`0003` and `0004` return HTTP 404), while older
+  tables reject service reads until the explicit PostgREST grants in
+  `0005_api_privileges.sql` are applied. Live database mode must remain disabled
+  until the checksum-locked migration runner completes and the table audit passes.
 - Modelled Malaysian-calibrated evidence remains an honest, labelled fallback for
   local evaluation. Production must fail visibly rather than silently substituting
   modelled evidence when `ALLOW_FULL_MODE=true` and fallback is not explicitly
   authorised.
-- A production launch still requires a verified public deployment, production
-  environment values, applied migrations, seeded/licensed corpus data, backup and
-  alert configuration, and a final multi-account authorization test.
+- Vercel builds the merged `main` revision successfully, but currently classifies
+  it as a non-production environment and leaves the public alias pinned to an
+  older frontend. A production launch still requires Vercel alias promotion,
+  production environment values, all five migrations, seeded/licensed corpus
+  data, backup and alert configuration, and a final multi-account authorization
+  test.

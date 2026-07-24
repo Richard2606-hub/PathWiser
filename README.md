@@ -235,7 +235,7 @@ lib/
 
 types/                      # UserShape · Cohort · Aggregate · Explanation · Trajectory · WorkAnimalKey
 store/                      # useAppStore (Zustand · persisted persona + shape + judgeMode + workAnimal)
-supabase/migrations/        # 0001–0004 · core data · organisations/consent · durable workflows · erasure/retention controls
+supabase/migrations/        # 0001–0005 · core data · organisations/consent · durable workflows · erasure/retention · API grants
 openapi.yaml                # Engine API contract for Talentbank's Angular team
 legacy/                     # Stage 1 static clickable prototype (archived for reference)
 ```

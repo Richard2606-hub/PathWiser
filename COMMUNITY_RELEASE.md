@@ -4,7 +4,7 @@ The repository is community-product capable, but it is not a public deployment b
 
 ## Required launch configuration
 
-1. Create the production Supabase project and apply `0001_init.sql`, `0002_community_production.sql`, `0003_durable_workflows.sql`, and `0004_production_controls.sql` in order.
+1. Create the production Supabase project, set the server-only `SUPABASE_DB_URL`, and run `npm run supabase:migrate`. The checksum-locked runner applies `0001_init.sql` through `0005_api_privileges.sql` transactionally and in order.
 2. Import a governed, consented trajectory corpus; validate embeddings and set `EVIDENCE_CORPUS_SYNTHETIC=false` only after that import is approved.
 3. Set `AUTH_MODE=required`, `ALLOW_FULL_MODE=true`, `NEXT_PUBLIC_ENABLE_JUDGE_MODE=false`, Supabase credentials and the AI provider key in the hosting platform.
 4. Complete PDPA/legal review, retention/deletion rules, incident response, accessibility testing and a documented fairness review for candidate discovery.
