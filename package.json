@@ -14,6 +14,7 @@
     "test:smoke": "node scripts/smoke-test.mjs",
     "test:a11y": "node scripts/accessibility-test.mjs",
     "test:openapi": "node scripts/validate-openapi.mjs",
+    "test:rls:production": "tsx scripts/production-rls-test.ts",
     "corpus:generate": "tsx scripts/generate-corpus.ts",
     "corpus:embed": "tsx scripts/embed-corpus.ts",
     "supabase:migrate": "tsx scripts/migrate.ts"

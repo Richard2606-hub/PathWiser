@@ -89,15 +89,17 @@ Status meanings:
 ## Production configuration findings
 
 - The configured Supabase project is reachable in production. Migrations
-  `0001` through `0005` and their checksums are recorded, every proposal table is
+  `0001` through `0006` and their checksums are recorded, every proposal table is
   available, and the explicit PostgREST grants are applied. The governed tables
-  currently contain zero community records by design.
+  currently contain zero community records by design. A live two-account test
+  passed profile isolation, cross-account write denial, employer role gating,
+  consented discovery, hashed identifiers, immediate revocation and verified cleanup.
 - Anonymous and named preview personas explicitly request the labelled,
   Malaysian-calibrated modelled evidence path. Authenticated community requests
   never silently receive modelled people: an insufficient corpus is cohort-gated
   and an unavailable provider/database produces a retryable service response.
 - Vercel serves the verified merged application at
   `https://path-wiser-sigma.vercel.app`. Remaining community-launch gates are a
-  governed consented corpus, real organisation/account acceptance tests, backup
+  governed consented corpus, approved real organisations/accounts, backup
   and alert configuration, PDPA/legal and fairness approval, and final
-  multi-account authorization verification.
+  operational acceptance.

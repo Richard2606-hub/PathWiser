@@ -90,6 +90,8 @@ After migrations and a governed data import, set `ALLOW_FULL_MODE=true` to switc
 | `npm run test` | Vitest (engine aggregation, normalization, ranking and AI honesty) |
 | `npm run test:smoke` | Production HTTP, API, security-header and route smoke suite (server required) |
 | `npm run test:a11y` | WCAG A/AA semantic audit across 16 representative routes (server required) |
+| `npm run test:openapi` | Parse and verify the OpenAPI 3.1 evidence contract |
+| `npm run test:rls:production` | Temporary two-account live RLS/consent test with verified cleanup (production credentials required) |
 
 ---
 
@@ -235,7 +237,7 @@ lib/
 
 types/                      # UserShape · Cohort · Aggregate · Explanation · Trajectory · WorkAnimalKey
 store/                      # useAppStore (Zustand · persisted persona + shape + judgeMode + workAnimal)
-supabase/migrations/        # 0001–0005 · core data · organisations/consent · durable workflows · erasure/retention · API grants
+supabase/migrations/        # 0001–0006 · core data · organisations/consent · durable workflows · erasure/retention · API grants · extension compatibility
 openapi.yaml                # Engine API contract for Talentbank's Angular team
 legacy/                     # Stage 1 static clickable prototype (archived for reference)
 ```
