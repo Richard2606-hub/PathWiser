@@ -193,7 +193,7 @@ Attribution is displayed in-product on the Architecture and Vision screen.
 The code includes consent records, RLS, organisations, profile persistence, privacy-safe matching, durable records and preview UX. A populated real-data community launch still requires:
 
 - applying migration `0007` to production Supabase;
-- running `npm run release:preflight` with the final environment and `PATHWISER_BASE_URL`;
+- running `RELEASE_PREFLIGHT_STRICT=true npm run release:preflight` with the final environment and `PATHWISER_BASE_URL`;
 - rerunning `npm run test:rls:production`;
 - running `HARD_TEST_MINUTES=120 npm run test:hardening` against the final URL;
 - importing governed consented community data;

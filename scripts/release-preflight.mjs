@@ -6,6 +6,7 @@ const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 
 const targetUrl = (process.env.PATHWISER_BASE_URL || '').replace(/\/$/, '');
+const strict = process.env.RELEASE_PREFLIGHT_STRICT === 'true';
 const expectedMigrations = [
   '0001_init.sql',
   '0002_community_production.sql',
@@ -95,14 +96,17 @@ const errors = checks.filter((check) => !check.passed && check.severity === 'err
 const warnings = checks.filter((check) => !check.passed && check.severity === 'warning');
 
 console.log(JSON.stringify({
-  passed: errors.length === 0,
+  passed: errors.length === 0 && (!strict || warnings.length === 0),
   ready_for_real_community_launch: errors.length === 0 && warnings.length === 0,
+  strict,
   errors: errors.length,
   warnings: warnings.length,
   note: warnings.length
-    ? 'Warnings identify owner-controlled launch gates that may be acceptable for preview but not for real community launch.'
+    ? strict
+      ? 'Strict mode treats warnings as release-blocking go/no-go failures.'
+      : 'Warnings identify owner-controlled launch gates that may be acceptable for preview but not for real community launch.'
     : 'No preflight warnings detected.',
   checks,
 }, null, 2));
 
-if (errors.length) process.exit(1);
+if (errors.length || (strict && warnings.length)) process.exit(1);

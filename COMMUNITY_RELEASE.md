@@ -37,5 +37,5 @@ owner-readable and hidden from another account, so repeat it after applying
 - A provider outage produces a deterministic coach summary rather than an error or invented answer.
 - The extended hard-testing pass is run against the final target URL, for example:
   `PATHWISER_BASE_URL=https://path-wiser-sigma.vercel.app HARD_TEST_MINUTES=120 npm run test:hardening`.
-- The non-secret readiness preflight is run with the final environment, for example:
-  `PATHWISER_BASE_URL=https://path-wiser-sigma.vercel.app npm run release:preflight`.
+- The non-secret readiness preflight is run in strict mode with the final environment, for example:
+  `PATHWISER_BASE_URL=https://path-wiser-sigma.vercel.app RELEASE_PREFLIGHT_STRICT=true npm run release:preflight`.
