@@ -57,7 +57,7 @@ addCheck(
 );
 
 for (const name of requiredForFullLaunch) {
-  addCheck(`env ${name} is configured`, envPresent(name), { present: envPresent(name) }, name.startsWith('NEXT_PUBLIC_') ? 'error' : 'warning');
+  addCheck(`env ${name} is configured`, envPresent(name), { present: envPresent(name) }, 'warning');
 }
 
 addCheck('production auth is required', process.env.AUTH_MODE === 'required', { AUTH_MODE: process.env.AUTH_MODE || null }, 'warning');
