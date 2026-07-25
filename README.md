@@ -78,7 +78,7 @@ Set `ALLOW_FULL_MODE=true` only after Supabase, Gemini, consent/RLS policies, an
 | `npm run test:openapi` | Parse and verify the OpenAPI 3.1 evidence contract |
 | `npm run test:rls:production` | Temporary two-account live RLS, consent and workspace-record test with verified cleanup; production credentials required |
 | `npm run supabase:migrate` | Apply checksum-locked migrations `0001` through `0007` with `DATABASE_URL` or `SUPABASE_DB_URL` |
-| `npm run release:preflight` | Non-secret launch readiness preflight for migrations, required environment names and optional target `/api/health` |
+| `npm run release:preflight` | Non-secret launch readiness preflight for migration files, applied DB checksums when a DB URL is present, required environment names and optional target `/api/health` |
 
 ## Architecture
 

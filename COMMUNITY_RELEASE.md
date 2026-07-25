@@ -39,3 +39,4 @@ owner-readable and hidden from another account, so repeat it after applying
   `PATHWISER_BASE_URL=https://path-wiser-sigma.vercel.app HARD_TEST_MINUTES=120 npm run test:hardening`.
 - The non-secret readiness preflight is run in strict mode with the final environment, for example:
   `PATHWISER_BASE_URL=https://path-wiser-sigma.vercel.app RELEASE_PREFLIGHT_STRICT=true npm run release:preflight`.
+  When `DATABASE_URL` or `SUPABASE_DB_URL` is available, this also verifies the applied migration filenames and checksums in `public.pathwiser_schema_migrations`.
