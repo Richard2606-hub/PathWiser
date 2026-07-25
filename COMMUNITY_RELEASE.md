@@ -12,7 +12,10 @@ for the six new Final Kit modules. Governed community tables are empty, so
 anonymous preview personas use the separately labelled modelled corpus and
 authenticated evidence remains cohort-gated. The temporary two-account RLS,
 employer-membership, consent, revocation and cleanup test passed against
-production before this Final Kit expansion; repeat it after applying `0007`.
+production before this Final Kit expansion; the updated production RLS suite also
+checks that all six new Final Kit workspace record modules are insertable,
+owner-readable and hidden from another account, so repeat it after applying
+`0007`.
 
 ## Required launch configuration
 

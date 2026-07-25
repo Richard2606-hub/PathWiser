@@ -21,6 +21,20 @@ const admin = createClient(url, serviceKey, { auth: { persistSession: false, aut
 let candidateId: string | undefined;
 let employerId: string | undefined;
 
+const finalKitWorkspaceModules = [
+  'living_portfolio',
+  'life_chapter_designer',
+  'talent_reengagement',
+  'workforce_resilience',
+  'live_internship_marketplace',
+  'lifelong_learning_wallet',
+] as const;
+
+type WorkspaceProbeInsert = {
+  data: { id: string; module: string; user_id: string } | null;
+  error: { message: string } | null;
+};
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
@@ -128,14 +142,50 @@ async function main() {
   const memberships = await employer.from('organisation_members').select('user_id, member_role');
   assert(!memberships.error && memberships.data?.some((row) => row.user_id === employerId && row.member_role === 'owner'), 'Employer organisation membership was not provisioned or isolated.');
 
+  for (const moduleKey of finalKitWorkspaceModules) {
+    const workspaceInsert: WorkspaceProbeInsert = await candidate
+      .from('workspace_records')
+      .insert({
+        user_id: candidateId,
+        module: moduleKey,
+        record_type: 'production_rls_probe',
+        title: `${moduleKey} production RLS probe`,
+        payload: { qa: true, module: moduleKey },
+      })
+      .select('id,module,user_id')
+      .single();
+    assert(!workspaceInsert.error, `Final Kit workspace record insert failed for ${moduleKey}; has migration 0007 been applied? ${workspaceInsert.error?.message}`);
+    assert(workspaceInsert.data?.user_id === candidateId, `${moduleKey} workspace record was not owned by the candidate.`);
+  }
+
+  const candidateWorkspaceRecords = await candidate
+    .from('workspace_records')
+    .select('module,record_type')
+    .eq('record_type', 'production_rls_probe');
+  assert(!candidateWorkspaceRecords.error, `Candidate workspace record read failed: ${candidateWorkspaceRecords.error?.message}`);
+  assert(
+    finalKitWorkspaceModules.every((moduleKey) => candidateWorkspaceRecords.data?.some((record) => record.module === moduleKey)),
+    'Candidate could not read every inserted Final Kit workspace record.'
+  );
+
+  const employerWorkspaceRecords = await employer
+    .from('workspace_records')
+    .select('module,record_type')
+    .eq('record_type', 'production_rls_probe');
+  assert(!employerWorkspaceRecords.error, `Employer workspace isolation read failed: ${employerWorkspaceRecords.error?.message}`);
+  assert(employerWorkspaceRecords.data?.length === 0, 'Employer could read candidate-owned Final Kit workspace records.');
+
   return {
-    passed: 9,
+    passed: 12,
     candidate_profile_isolated: true,
     cross_account_update_blocked: true,
     employer_rpc_role_gated: true,
     consented_candidate_discoverable: true,
     raw_identity_hidden: true,
     revocation_immediate: true,
+    final_kit_workspace_records_insertable: true,
+    final_kit_workspace_records_readable_by_owner: true,
+    final_kit_workspace_records_isolated_by_rls: true,
   };
 }
 
