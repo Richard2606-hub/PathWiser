@@ -77,6 +77,13 @@ jobs:
           PATHWISER_BASE_URL: http://localhost:3000
         run: npm run test:a11y
 
+      - name: Run bounded hardening cycle
+        env:
+          PATHWISER_BASE_URL: http://localhost:3000
+          HARD_TEST_ITERATIONS: 2
+          HARD_TEST_A11Y_EVERY: 2
+        run: npm run test:hardening
+
       - name: Upload server log on failure
         if: failure()
         uses: actions/upload-artifact@v4
