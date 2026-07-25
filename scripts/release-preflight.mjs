@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import nextEnv from '@next/env';
-import postgres from 'postgres';
 
 const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
@@ -65,6 +64,7 @@ addCheck(
 );
 
 if (dbUrl) {
+  const { default: postgres } = await import('postgres');
   const sql = postgres(dbUrl, {
     ssl: 'require',
     max: 1,
@@ -109,16 +109,37 @@ addCheck(
 if (targetUrl) {
   try {
     const response = await fetch(`${targetUrl}/api/health`, { headers: { 'Cache-Control': 'no-store' } });
-    const body = await response.json();
-    addCheck('target health endpoint responds', response.ok, { status: response.status, target: `${targetUrl}/api/health` });
-    addCheck('target application service is alive', body.services?.application === true, { application: body.services?.application ?? null });
+    const contentType = response.headers.get('content-type') || '';
+    const text = await response.text();
+    let body = null;
+    let parseError = null;
+    if (contentType.includes('application/json')) {
+      try {
+        body = JSON.parse(text);
+      } catch (error) {
+        parseError = error instanceof Error ? error.message : String(error);
+      }
+    }
+    addCheck(
+      'target health endpoint responds with JSON',
+      Boolean(body),
+      {
+        status: response.status,
+        target: `${targetUrl}/api/health`,
+        content_type: contentType || null,
+        parse_error: parseError,
+        non_json_excerpt: body ? null : text.slice(0, 120),
+      }
+    );
+    addCheck('target health status is ready', response.ok, { status: response.status }, 'warning');
+    addCheck('target application service is alive', body?.services?.application === true, { application: body?.services?.application ?? null });
     addCheck(
       'target full-mode launch flags are active',
-      body.authentication === 'required' && body.services?.full_mode_requested === true && body.evidence?.mode === 'community',
+      body?.authentication === 'required' && body?.services?.full_mode_requested === true && body?.evidence?.mode === 'community',
       {
-        authentication: body.authentication,
-        full_mode_requested: body.services?.full_mode_requested ?? null,
-        evidence_mode: body.evidence?.mode ?? null,
+        authentication: body?.authentication ?? null,
+        full_mode_requested: body?.services?.full_mode_requested ?? null,
+        evidence_mode: body?.evidence?.mode ?? null,
       },
       'warning'
     );
