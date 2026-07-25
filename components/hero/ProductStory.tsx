@@ -13,10 +13,22 @@ const STAGES = [
 ];
 
 const AUDIENCE_MODULES = [
-  { key: 'candidate', label: 'Candidate', headline: 'Navigate a whole career', modules: ['path_navigator', 'ai_coach', 'fair_pay'], signal: 'Shares consented outcomes and reflections', color: 'var(--yellow)' },
-  { key: 'employer', label: 'Employer', headline: 'Build healthier talent systems', modules: ['talent_matching', 'retention_signals', 'onboarding_predictor'], signal: 'Publishes skills demand and workplace outcomes', color: 'var(--teal)' },
-  { key: 'university', label: 'University', headline: 'Turn outcomes into better learning', modules: ['outcome_loop', 'curriculum_engine', 'readiness_profile'], signal: 'Connects learning evidence to long-term outcomes', color: 'var(--violet)' },
+  { key: 'candidate', label: 'Candidate', headline: 'Navigate a whole career', modules: ['path_navigator', 'living_portfolio', 'ai_coach', 'fair_pay', 'life_chapter_designer'], signal: 'Shares consented outcomes and reflections', color: 'var(--yellow)' },
+  { key: 'employer', label: 'Employer', headline: 'Build healthier talent systems', modules: ['talent_matching', 'talent_reengagement', 'retention_signals', 'onboarding_predictor', 'workforce_resilience'], signal: 'Publishes skills demand and workplace outcomes', color: 'var(--teal)' },
+  { key: 'university', label: 'University', headline: 'Turn outcomes into better learning', modules: ['outcome_loop', 'live_internship_marketplace', 'curriculum_engine', 'readiness_profile', 'lifelong_learning_wallet'], signal: 'Connects learning evidence to long-term outcomes', color: 'var(--violet)' },
 ];
+
+const PROPOSAL_CORE = new Set([
+  'path_navigator',
+  'ai_coach',
+  'fair_pay',
+  'talent_matching',
+  'retention_signals',
+  'onboarding_predictor',
+  'outcome_loop',
+  'curriculum_engine',
+  'readiness_profile',
+]);
 
 const PIPELINE = [
   ['Shape', 'Role, skills, education, geography, experience, life stage, and consent.'],
@@ -71,7 +83,7 @@ export function ProductStory() {
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-bold text-[color:var(--teal)]">The Career Signal Loop</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Nine working modules, one shared evidence engine.</h2>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Fifteen audience modules, one shared evidence engine.</h2>
             <p className="mt-4 text-sm leading-7 text-[color:var(--text-2)]">Candidate choices, employer demand, and university outcomes become more useful when they connect—with consent, privacy gates, and visible limitations.</p>
           </div>
           <div className="mt-9 grid gap-5 lg:grid-cols-[280px_1fr]">
@@ -88,12 +100,12 @@ export function ProductStory() {
                 <div><p className="text-xs font-bold" style={{ color: activeAudience.color }}>{activeAudience.label} workspace</p><h3 className="mt-1 text-xl font-extrabold">{activeAudience.headline}</h3></div>
                 <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-semibold text-[color:var(--text-2)] shadow-sm">{activeAudience.signal}</span>
               </div>
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
-                {activeAudience.modules.map((moduleKey, index) => {
+              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                {activeAudience.modules.map((moduleKey) => {
                   const moduleDefinition = MODULES[moduleKey];
                   return (
                     <Link key={moduleDefinition.key} href={moduleDefinition.href} className="group rounded-xl border border-[color:var(--border)] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                      <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: activeAudience.color }}>{['Navigation', 'Intelligence', 'Valuation'][index]}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: activeAudience.color }}>{PROPOSAL_CORE.has(moduleDefinition.key) ? 'Proposal core' : 'Final Kit expansion'}</span>
                       <h4 className="mt-2 font-extrabold">{moduleDefinition.title}</h4>
                       <p className="mt-2 text-xs leading-5 text-[color:var(--text-2)]">{moduleDefinition.purpose}</p>
                       <span className="mt-4 inline-flex text-xs font-bold text-[color:var(--yellow)]">Open module →</span>

@@ -178,7 +178,7 @@ paths:
           name: module
           schema:
             type: string
-            enum: [retention_signals, onboarding_predictor, outcome_loop, curriculum_engine, readiness_profile]
+            enum: [living_portfolio, life_chapter_designer, retention_signals, talent_reengagement, onboarding_predictor, workforce_resilience, outcome_loop, live_internship_marketplace, curriculum_engine, readiness_profile, lifelong_learning_wallet]
       responses:
         '200': { description: Account records returned }
         '401': { description: Authentication required }
@@ -413,7 +413,7 @@ components:
         id: { type: string, format: uuid }
         module:
           type: string
-          enum: [retention_signals, onboarding_predictor, outcome_loop, curriculum_engine, readiness_profile]
+          enum: [living_portfolio, life_chapter_designer, retention_signals, talent_reengagement, onboarding_predictor, workforce_resilience, outcome_loop, live_internship_marketplace, curriculum_engine, readiness_profile, lifelong_learning_wallet]
         record_type: { type: string, maxLength: 80 }
         title: { type: string, maxLength: 180 }
         status:

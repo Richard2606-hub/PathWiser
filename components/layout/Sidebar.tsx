@@ -21,14 +21,20 @@ const CAP_LABELS: Record<string, string> = {
 
 const CAP_HINTS: Record<string, string> = {
   path_navigator: 'your realistic next moves',
+  living_portfolio: 'proof that grows with you',
   ai_coach: "the questions you can't ask",
   fair_pay: 'compare disclosed salary ranges',
+  life_chapter_designer: 'plan the next chapter',
   talent_matching: 'trajectory fit, not keywords',
+  talent_reengagement: 'invite talent back well',
   retention_signals: 'before the letter arrives',
   onboarding_predictor: 'plan evidence-based onboarding support',
+  workforce_resilience: 'support teams through change',
   outcome_loop: 'where graduates actually land',
+  live_internship_marketplace: 'internships as live signal',
   curriculum_engine: 'teach what the market wants',
   readiness_profile: 'a credential that stays alive',
+  lifelong_learning_wallet: 'portable learning evidence',
 };
 
 /**

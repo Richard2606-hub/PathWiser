@@ -1,6 +1,6 @@
 # PathWiser · Career OS Navigation Platform
 
-> **Release status:** the proposal-defined product is deployed as a public, production-built preview with authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all nine audience modules, health/telemetry and responsive UX. Anonymous preview personas deliberately use the labelled modelled corpus; authenticated community evidence remains cohort-gated until a governed, consented corpus is approved. Complete the owner-controlled gates in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md) before inviting real community data.
+> **Release status:** the proposal-defined product is deployed as a public, production-built preview with authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all fifteen audience modules from the proposal core and Final Kit challenge library, health/telemetry and responsive UX. Anonymous preview personas deliberately use the labelled modelled corpus; authenticated community evidence remains cohort-gated until a governed, consented corpus is approved. Complete the owner-controlled gates in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md) before inviting real community data.
 
 **Live production preview:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/)
 
@@ -264,7 +264,7 @@ Attribution is displayed in-product on the Architecture & Vision screen.
 | Criterion | Weight | How we address it |
 |---|---|---|
 | **Product & UX Thinking** | 30% | Honest navigation framing everywhere; branching trajectory viz + Compare Paths as signature moments; cohort disclosure on every output; three-audience Signal Loop |
-| **System Design & Integration** | 25% | One shared engine (`lib/engine/`) serving all nine audience modules; retrieval/aggregation/explanation cleanly separated; support controls, OpenAPI and provider abstraction create clear integration seams |
+| **System Design & Integration** | 25% | One shared engine (`lib/engine/`) serving all fifteen audience modules; retrieval/aggregation/explanation cleanly separated; support controls, OpenAPI and provider abstraction create clear integration seams |
 | **Completeness** | 20% | Every proposal module has a connected workflow; one-command local setup; `.env.example`; durable account records; deterministic fallback so provider outages do not break core evidence flows |
 | **AI Craft** | 15% | Numbers from deterministic aggregation, LLM only explains; post-generation validator rejects predictive verbs; provider abstraction so Talentbank swaps in one env var |
 | **Code Quality** | 10% | TypeScript strict + Zod schemas at every boundary; module boundaries at `lib/engine/`, `lib/ai/`, `lib/supabase/`; RLS policies in-migration; conventional-commit history |

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Callout } from '@/components/common/Callout';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
-import { MODULES, modulesForPersona } from '@/lib/corpus/modules';
+import { modulesForPersona } from '@/lib/corpus/modules';
 import { SDG_META } from '@/lib/corpus/sdgs';
 
 const AUDIENCE_META = {
@@ -11,6 +11,18 @@ const AUDIENCE_META = {
   employer:   { emoji: '🏢', color: 'var(--teal)',   label: 'EMPLOYER' },
   university: { emoji: '🎓', color: 'var(--violet)', label: 'UNIVERSITY' },
 };
+
+const PROPOSAL_CORE = new Set([
+  'path_navigator',
+  'ai_coach',
+  'fair_pay',
+  'talent_matching',
+  'retention_signals',
+  'onboarding_predictor',
+  'outcome_loop',
+  'curriculum_engine',
+  'readiness_profile',
+]);
 
 const CAPABILITIES = ['Navigation', 'Intelligence', 'Valuation'] as const;
 
@@ -99,7 +111,7 @@ export function ArchitectureView() {
       {/* 3x3 module grid */}
       <div className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-4">
         <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
-          The 9-Module Map
+          Proposal Core Map
         </span>
         <h3 className="text-base font-extrabold mt-1">
           Three capabilities × three audiences, one engine underneath
@@ -145,11 +157,42 @@ export function ArchitectureView() {
         </div>
       </div>
 
+      <div className="rounded-md border border-[color:var(--border)] bg-white p-4">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">
+          Final Kit Expansion
+        </span>
+        <h3 className="text-base font-extrabold mt-1">
+          The remaining challenge modules are now first-class routes
+        </h3>
+        <div className="mt-3 grid gap-3 lg:grid-cols-3">
+          {(['candidate', 'employer', 'university'] as const).map((aud) => {
+            const meta = AUDIENCE_META[aud];
+            const modules = modulesForPersona(aud).filter((module) => !PROPOSAL_CORE.has(module.key));
+            return (
+              <section key={aud} className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-3">
+                <h4 className="text-sm font-extrabold" style={{ color: meta.color }}>{meta.label}</h4>
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {modules.map((m) => (
+                    <a key={m.key} href={m.href} className="rounded-md border border-[color:var(--border)] bg-white p-2 transition hover:bg-[color:var(--bg-elevated)]">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xs font-bold">{m.title}</span>
+                        <span className="rounded-full bg-[color:var(--bg-elevated)] px-1.5 py-0.5 text-[8px] font-bold uppercase text-[color:var(--text-3)]">Final Kit</span>
+                      </div>
+                      <p className="mt-1 text-[10px] leading-relaxed text-[color:var(--text-2)]">{m.purpose}</p>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Stats */}
       <StatGrid cols={4}>
         <StatBox label="Evidence corpus" value={health ? health.evidence.corpus_size.toLocaleString() : 'Checking'} />
         <StatBox label="Audience surfaces" value="3" color="var(--teal)" />
-        <StatBox label="Registered modules" value={Object.keys(MODULES).length} color="var(--violet)" />
+        <StatBox label="Audience modules" value="15" color="var(--violet)" />
         <StatBox label="SDGs addressed" value={Object.keys(SDG_META).length} color="var(--sky)" />
       </StatGrid>
 

@@ -1,9 +1,15 @@
 export type WorkspaceModule =
+  | 'living_portfolio'
+  | 'life_chapter_designer'
   | 'retention_signals'
+  | 'talent_reengagement'
   | 'onboarding_predictor'
+  | 'workforce_resilience'
   | 'outcome_loop'
+  | 'live_internship_marketplace'
   | 'curriculum_engine'
-  | 'readiness_profile';
+  | 'readiness_profile'
+  | 'lifelong_learning_wallet';
 
 export type WorkspaceRecordStatus = 'draft' | 'active' | 'review_due' | 'completed' | 'archived';
 

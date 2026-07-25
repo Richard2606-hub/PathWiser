@@ -1,14 +1,16 @@
 # PathWiser frontend and UX evaluation
 
-Evaluation date: 21 July 2026. Scope: proposal-defined candidate, employer and university journeys in the local community-preview configuration.
+Evaluation date: 25 July 2026. Scope: proposal-defined candidate, employer and university journeys plus the full Final Kit challenge-module expansion in the local community-preview configuration.
 
 ## Outcome
 
 The frontend now uses a familiar modern SaaS visual system rather than the original dark technical-dashboard treatment: a light neutral canvas, conventional sticky navigation, strong typographic hierarchy, indigo primary actions, soft elevation, standard form controls and progressive disclosure. The landing page includes an interactive audience selector and product-specific calls to action. Inside the workspace, the career visualization and selected outcome are prioritised before secondary metrics, avoiding a first viewport made only of statistic blocks.
 
-It also has a coherent role-based information architecture, responsive navigation, evidence provenance at the point of use, accessible form labels, honest empty/error states, and end-to-end actions for all nine audience modules. The strongest interaction is the Candidate Path Navigator: capability sliders rerun retrieval, destination nodes expose cohort shares, and Compare Paths turns two or three choices into an understandable trade-off table.
+It also has a coherent role-based information architecture, responsive navigation, evidence provenance at the point of use, accessible form labels, honest empty/error states, and end-to-end actions for all fifteen audience modules. The strongest interaction is still the Candidate Path Navigator: capability sliders rerun retrieval, destination nodes expose cohort shares, and Compare Paths turns two or three choices into an understandable trade-off table.
 
 The browser checks passed at desktop width and 390 × 844 px. At mobile width the candidate page had no horizontal overflow (`scrollWidth 385`, viewport `390`), the closed menu was absent from the accessibility tree, and the opened drawer exposed a named `Navigation` complementary landmark.
+
+The 25 July rendered browser pass also opened the six added Final Kit module pages through the correct one-click persona launchers at desktop 1440 x 900 and mobile 390 x 844. They had no horizontal overflow, no clipped key controls or headings, visible feedback routes, and no browser console errors.
 
 ## Journey evaluation
 
@@ -17,6 +19,8 @@ The browser checks passed at desktop width and 390 × 844 px. At mobile width th
 | Candidate | Profile → path landscape → inspect destination → compare → coach/fair pay | Strong. Cohort size, provenance, ranges and limitations remain visible. The coach remains useful during provider outages through a deterministic evidence fallback. |
 | Employer | Demand shape → direct/adjacent profiles → bridge review → retention/onboarding support | Good. Matching avoids a seductive but unjustified individual score. Local profiles are unmistakably marked synthetic; connected results require explicit candidate consent and employer organisation membership. |
 | University | Programme + horizon → outcome destinations → curriculum handoff → readiness dossier | Strong. Programme/horizon changes rerun evidence; context is carried into the Curriculum Engine; exports support faculty review instead of pretending to automate governance. |
+
+Final Kit expansion check: Living Portfolio, Life Chapter Designer, Talent Re-Engagement, Workforce Resilience Planner, Live Internship Marketplace and Lifelong Learning Wallet now use familiar form controls, clear save actions, private/default consent language and responsive cards instead of static concept blocks.
 
 ## Improvements completed in the recommended sequence
 

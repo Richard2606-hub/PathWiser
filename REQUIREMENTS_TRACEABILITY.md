@@ -1,12 +1,14 @@
 # PathWiser Production Requirements Traceability
 
-Last audited: 24 July 2026
+Last audited: 25 July 2026
 
 This matrix treats `PathWiser_Proposal.docx` as the product commitment and uses
 the Talentbank Kick-Off Deck, Kick-Off Session Summary, and Final Kit as the
 official competition constraints. The official brief allowed a narrower
-prototype; PathWiser's proposal voluntarily committed to a complete sixteen
-module system. Therefore the stricter proposal scope is the acceptance target.
+prototype; PathWiser's proposal voluntarily committed to a complete proposal
+core, and the current product now also implements the remaining Final Kit
+challenge modules. Therefore the stricter acceptance target is the proposal
+core plus all fifteen audience challenge modules.
 
 Status meanings:
 
@@ -29,6 +31,7 @@ Status meanings:
 | OFF-06 | Final Kit section 05 | Live interactive demo URL | Verified production preview at `https://path-wiser-sigma.vercel.app` | Complete | Remote production smoke and rendered-browser test |
 | OFF-07 | Kick-Off Deck p. 23 and Summary pp. 2, 4 | Prioritise product/UX, functional depth, innovation, career impact, and sustainability | Career Twin differentiation, Career Signal Loop, SDG mappings, evidence disclosures | Complete | UX heuristic and content audit |
 | OFF-08 | Final Kit | Career OS core plus selected modules; live demo and 2-3 minute judge walkthrough | Product build is in scope; walkthrough recording is a separate media deliverable | External prerequisite | Verify final URL and video |
+| OFF-09 | Final Kit challenge module library | Fifteen modules across candidates, employers, and universities | All fifteen are now first-class routes in the module registry, homepage story, sidebar, architecture view, route smoke test, and accessibility test | Complete | Built app renders 46 routes; smoke covers 51 checks; rendered browser audit covers the six added pages at desktop and 390 px mobile |
 
 ## Shared engine and platform modules
 
@@ -48,24 +51,30 @@ Status meanings:
 | ID | Proposal module | Required behaviour | Implementation | Status | Acceptance test |
 |---|---|---|---|---|---|
 | C-01 | Career Path Navigator | Branching next-move landscape; node probability/salary/cohort/time; detail narrative; skill bridges; inline shape changes | Live navigate API, graph, node details, comparison, shape adjustment | Complete | Adjust profile, select nodes, compare paths, inspect mobile/touch flow |
+| C-04 | Living Portfolio | Dynamic portfolio evidence for skills, projects, learning proof, private/default sharing | Interactive evidence board, add-evidence workflow, readiness signal, gap chips, private/shareable snapshot persistence | Complete | Rendered desktop/mobile browser audit and route smoke |
 | C-02 | AI Career Coach | Explicitly invoked conversation grounded in the latest cohort; skill bridges and learning paths; honest validation | Live coach API, history, suggested questions, provider fallback | Complete | Multi-turn, invalid input, provider failure, predictive-language validation |
 | C-03 | Fair Pay Engine | Current/next-role percentile ranges, Malaysian calibration, cohort/source disclosure | Live aggregation-based pay view | Complete | Role/location/experience changes, unavailable cohort, range consistency |
+| C-05 | Life Chapter Designer | Candidate planning across exploration, acceleration, transition and later-life chapters | Chapter type, horizon slider, constraint input, selectable actions, timeline, review-cadence persistence | Complete | Rendered desktop/mobile browser audit and route smoke |
 
 ## Employer modules
 
 | ID | Proposal module | Required behaviour | Implementation | Status | Acceptance test |
 |---|---|---|---|---|---|
 | E-01 | Smart Talent Matching | Role intake, ESCO-shaped inverse retrieval, direct and adjacent consented candidates, evidence rationale without a black-box score | `/api/talent/match`, consented RPC path, modelled evaluation path, interactive filters | Conditional | Verify employer membership plus opted-in candidate against production database |
+| E-04 | Talent Re-Engagement | Consent-led alumni/silver-medalist re-engagement with bridge context | Role campaign controls, alumni bridge cards, message approach, campaign draft persistence | Complete | Rendered desktop/mobile browser audit and route smoke |
 | E-02 | Talent Retention Signals | Consent-aware cohort comparisons, tenure deviation, evidence and constructive conversation prompts, periodic review | Consent/de-identification gate, cohort comparison, constructive prompts, saved reviews and next-review cadence; no individual risk score | Conditional | Verify account records and organisation authorization in production |
 | E-03 | Onboarding Success Predictor | New-hire/role intake, cohort outcomes, support interventions, manager briefing, six-month refresh | Cohort-based support planner, durable cases, check-in history, next review and downloadable briefing; individual prediction disabled | Conditional | Verify account records and manager authorization in production |
+| E-05 | Workforce Resilience Planner | Team-level scenario planning for change exposure and reskilling support | Team selector, exposure slider, skill toggles, resilience signal, intervention plan and persistence | Complete | Rendered desktop/mobile browser audit and route smoke |
 
 ## University modules
 
 | ID | Proposal module | Required behaviour | Implementation | Status | Acceptance test |
 |---|---|---|---|---|---|
 | U-01 | Lifelong Outcome Loop | Consented programme cohorts; first, five, ten-year outcomes; salary/destination distributions; peer comparison only by agreement; curriculum handoff | Horizon/programme controls, live aggregation, CSV export, curriculum handoff, saved snapshots and six-month review | Conditional | Verify programme consent and account records in production |
+| U-04 | Live Internship Marketplace | Internship demand as a live employability signal loop | Faculty filter, modelled employer internship briefs, seats, skill tags, cohort plan persistence | Complete | Rendered desktop/mobile browser audit and route smoke |
 | U-02 | Future-State Curriculum Engine | Employer demand plus programme outcomes, gap analysis, emerging/decreasing skills, evidence/trade-offs, semester/annual planning | Live gap analysis, trade-offs, faculty pack, outcome handoff, saved faculty reviews and planning cadence | Conditional | Verify faculty authorization and account records in production |
 | U-03 | Adaptive Readiness Profile | Continuously updated capability landscape, learning history, readiness gaps, explicit sharing consent | Live capability map, editable learning evidence, current consent read, durable snapshots and downloadable dossier | Conditional | Verify consent/account persistence and credential-governance process |
+| U-05 | Lifelong Learning Wallet | Portable learning evidence across university, employer project and private reflection contexts | Add-credit workflow, shareable/private state, portable-evidence counts, learning wallet persistence | Complete | Rendered desktop/mobile browser audit and route smoke |
 
 ## Support modules
 
@@ -82,9 +91,9 @@ Status meanings:
 | MKT-01 | Working job marketplace connected to candidate direction | Community-table API with explicitly labelled modelled fallback, active-shape/cohort ranking, honest counters, filters, details, save and application brief | Conditional | Populate and verify the production marketplace tables |
 | MKT-02 | Company directory | Community-table API with labelled modelled fallback, honest counters, search/filter, detail, save and employer-to-role flow | Conditional | Populate and verify the production company table |
 | UX-01 | Every overlay has a visible escape path | Reusable close button, Escape, backdrop close, focus trap, restore focus, confirmation for onboarding progress | Complete | Fresh browser tests pass for onboarding close/Escape/focus restoration and marketplace Escape |
-| UX-02 | Preserve useful demo storytelling | Public CareerOS 15-65+ life arc, evidence trust strip, interactive Career Signal Loop, nine-module map and inspectable six-stage engine pipeline | Complete | Fresh desktop, phone and tablet visual/interaction audits pass |
+| UX-02 | Preserve useful demo storytelling | Public CareerOS 15-65+ life arc, evidence trust strip, interactive Career Signal Loop, proposal core map, Final Kit expansion map and inspectable six-stage engine pipeline | Complete | Fresh desktop, phone and tablet visual/interaction audits pass |
 | UX-03 | Dynamic, familiar interface | Conventional navigation, tabs, forms, graphs, feedback, exports, responsive layouts, live marketplace and service status | Complete | Browser interaction audit |
-| UX-04 | Accessible interaction | Semantic fields, keyboard focus, modal trap, responsive layouts, touch-sized primary controls | Complete | Automated WCAG A/AA semantic audit passes on 16 routes; keyboard dialogs and 390 px touch targets verified |
+| UX-04 | Accessible interaction | Semantic fields, keyboard focus, modal trap, responsive layouts, touch-sized primary controls | Complete | Automated WCAG A/AA semantic audit passes on 22 routes; keyboard dialogs and 390 px touch targets verified |
 
 ## Production configuration findings
 

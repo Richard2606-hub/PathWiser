@@ -4,11 +4,17 @@ import { createClient } from '@/lib/supabase/server';
 import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
 
 const ModuleSchema = z.enum([
+  'living_portfolio',
+  'life_chapter_designer',
   'retention_signals',
+  'talent_reengagement',
   'onboarding_predictor',
+  'workforce_resilience',
   'outcome_loop',
+  'live_internship_marketplace',
   'curriculum_engine',
   'readiness_profile',
+  'lifelong_learning_wallet',
 ]);
 const StatusSchema = z.enum(['draft', 'active', 'review_due', 'completed', 'archived']);
 const RecordSchema = z.object({
