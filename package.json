@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "test:hardening": "node scripts/hard-test.mjs",
     "test:a11y": "node scripts/accessibility-test.mjs",
     "test:openapi": "node scripts/validate-openapi.mjs",
     "test:rls:production": "tsx scripts/production-rls-test.ts",
