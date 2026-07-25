@@ -1,23 +1,28 @@
 /**
  * In-memory corpus singleton — generated once per server process.
- * ~1500 trajectories, deterministic seed = 42.
+ * ~4800 trajectories (≈300 per sector across the 16-sector taxonomy),
+ * deterministic seed = 42 so cohorts stay reproducible.
  *
  * Talentbank replacement: swap for a Supabase query. The engine
  * automatically uses this when Supabase is not configured.
  */
 
 import { generateCorpus } from './generate';
+import { SECTORS } from './occupations';
 import type { Trajectory } from '@/types';
 
 type EnrichedTrajectory = Trajectory & { featureVector: number[] };
+
+// ~300 trajectories per sector so sector-filtered cohorts clear the 50 floor.
+const PER_SECTOR = 300;
 
 let _cached: EnrichedTrajectory[] | null = null;
 
 export function getCorpus(): EnrichedTrajectory[] {
   if (!_cached) {
-    console.info('[PathWiser] Generating in-memory corpus (one-time, ~200ms)…');
+    console.info('[PathWiser] Generating in-memory corpus (one-time)…');
     const start = Date.now();
-    _cached = generateCorpus(1500, 42);
+    _cached = generateCorpus(PER_SECTOR * SECTORS.length, 42);
     console.info(`[PathWiser] Corpus ready in ${Date.now() - start}ms · ${_cached.length} trajectories`);
   }
   return _cached;

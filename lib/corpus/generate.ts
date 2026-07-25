@@ -20,12 +20,28 @@ import { SECTORS, MY_STATES, occupationsBySector, findOccupation } from './occup
 import { seededRandom, pickRandom } from '@/lib/utils';
 
 // ─── Feature vector encoding ────────────────────────────────
-// 24 dimensions: 5 sector one-hot, 6 seniority one-hot, 8 skill families,
-// 5 state one-hot ... though we compress into 24 total.
+// Dimension layout is dynamic so the encoding scales with the economy-wide
+// taxonomy (16 sectors × 16 states) instead of a fixed 24 slots:
+//   [ sector one-hot | state one-hot | seniority one-hot | skill-family density ]
+// Both trajectory and query vectors use the SAME layout (via the offsets
+// below), so cosine similarity stays valid regardless of taxonomy size.
 const SKILL_FAMILIES = [
   'analytics', 'engineering', 'ml_ai', 'product', 'design',
   'finance', 'communication', 'leadership'
 ];
+
+const SENIORITY_DIMS = 6;
+const SECTOR_OFFSET = 0;
+const STATE_OFFSET = SECTOR_OFFSET + SECTORS.length;
+const SENIORITY_OFFSET = STATE_OFFSET + MY_STATES.length;
+const SKILL_OFFSET = SENIORITY_OFFSET + SENIORITY_DIMS;
+const VECTOR_DIMS = SKILL_OFFSET + SKILL_FAMILIES.length;
+
+/** Index of a named skill family in the vector, or -1 if unknown. */
+function skillFamilyDim(family: string): number {
+  const idx = SKILL_FAMILIES.indexOf(family);
+  return idx >= 0 ? SKILL_OFFSET + idx : -1;
+}
 
 const SKILL_FAMILY_MAP: Record<string, string[]> = {
   analytics: ['SQL', 'Excel', 'Tableau', 'Power BI', 'DAX', 'Bloomberg', 'A/B Testing', 'Statistics'],
@@ -62,29 +78,28 @@ export function trajectoryToFeatureVector(input: {
   finalSeniority: string;
   allSkills: string[];
 }): number[] {
-  const vec: number[] = new Array(24).fill(0);
+  const vec: number[] = new Array(VECTOR_DIMS).fill(0);
 
-  // Dims 0-4: sector one-hot
+  // Sector one-hot
   const secIdx = SECTORS.indexOf(input.sector as (typeof SECTORS)[number]);
-  if (secIdx >= 0) vec[secIdx] = 1;
+  if (secIdx >= 0) vec[SECTOR_OFFSET + secIdx] = 1;
 
-  // Dims 5-9: state one-hot
+  // State one-hot
   const stIdx = MY_STATES.indexOf(input.state as (typeof MY_STATES)[number]);
-  if (stIdx >= 0) vec[5 + stIdx] = 1;
+  if (stIdx >= 0) vec[STATE_OFFSET + stIdx] = 1;
 
-  // Dims 10-15: seniority progression score
+  // Seniority one-hot
   const senIdx = SENIORITY_ORDER.indexOf(input.finalSeniority as typeof SENIORITY_ORDER[number]);
-  if (senIdx >= 0) vec[10 + senIdx] = 1;
+  if (senIdx >= 0) vec[SENIORITY_OFFSET + senIdx] = 1;
 
-  // Dims 16-23: skill family density
+  // Skill-family density
   for (const skill of input.allSkills) {
-    const family = skillToFamily(skill);
-    const famIdx = SKILL_FAMILIES.indexOf(family);
-    if (famIdx >= 0) vec[16 + famIdx] += 1;
+    const dim = skillFamilyDim(skillToFamily(skill));
+    if (dim >= 0) vec[dim] += 1;
   }
   // Normalize skill-family dims
-  const skillSum = vec.slice(16, 24).reduce((s, n) => s + n, 0) || 1;
-  for (let i = 16; i < 24; i++) vec[i] /= skillSum;
+  const skillSum = vec.slice(SKILL_OFFSET, VECTOR_DIMS).reduce((s, n) => s + n, 0) || 1;
+  for (let i = SKILL_OFFSET; i < VECTOR_DIMS; i++) vec[i] /= skillSum;
 
   return vec;
 }
@@ -126,11 +141,15 @@ export function shapeToFeatureVector(shape: {
     const analyticsWeight = 0.5 + shape.dimensions.analytics / 100;
     const leadershipWeight = 0.5 + shape.dimensions.leadership / 100;
     const communicationWeight = 0.5 + shape.dimensions.communication / 100;
-    vector[17] *= technicalWeight;
-    vector[16] *= analyticsWeight;
-    vector[18] *= analyticsWeight;
-    vector[22] *= communicationWeight;
-    vector[23] *= leadershipWeight;
+    const applyWeight = (family: string, weight: number) => {
+      const dim = skillFamilyDim(family);
+      if (dim >= 0) vector[dim] *= weight;
+    };
+    applyWeight('engineering', technicalWeight);
+    applyWeight('analytics', analyticsWeight);
+    applyWeight('ml_ai', analyticsWeight);
+    applyWeight('communication', communicationWeight);
+    applyWeight('leadership', leadershipWeight);
   }
 
   return vector;
