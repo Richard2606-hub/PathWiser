@@ -98,11 +98,14 @@ Status meanings:
 ## Production configuration findings
 
 - The configured Supabase project is reachable in production. Migrations
-  `0001` through `0006` and their checksums are recorded, every proposal table is
-  available, and the explicit PostgREST grants are applied. The governed tables
-  currently contain zero community records by design. A live two-account test
-  passed profile isolation, cross-account write denial, employer role gating,
-  consented discovery, hashed identifiers, immediate revocation and verified cleanup.
+  `0001` through `0006` and their checksums were recorded in the prior live
+  verification; this branch adds `0007_final_kit_workspace_records.sql`, which
+  must be applied before account-backed records are accepted for the six new
+  Final Kit modules. The governed tables currently contain zero community
+  records by design. A prior live two-account test passed profile isolation,
+  cross-account write denial, employer role gating, consented discovery, hashed
+  identifiers, immediate revocation and verified cleanup; the updated 12-check
+  RLS suite must be rerun after `0007`.
 - Anonymous and named preview personas explicitly request the labelled,
   Malaysian-calibrated modelled evidence path. Authenticated community requests
   never silently receive modelled people: an insufficient corpus is cohort-gated

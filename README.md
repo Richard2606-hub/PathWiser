@@ -1,291 +1,213 @@
-# PathWiser · Career OS Navigation Platform
+# PathWiser - Career OS Navigation Platform
 
-> **Release status:** the proposal-defined product is deployed as a public, production-built preview with authenticated profiles, organisation roles, revocable consent, privacy-safe matching, all fifteen audience modules from the proposal core and Final Kit challenge library, health/telemetry and responsive UX. Anonymous preview personas deliberately use the labelled modelled corpus; authenticated community evidence remains cohort-gated until a governed, consented corpus is approved. Complete the owner-controlled gates in [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md) before inviting real community data.
+> Release status: PathWiser is a production-built preview covering all fifteen audience modules from the proposal core and the Final Kit challenge library. Anonymous preview personas use clearly labelled modelled evidence; authenticated community evidence remains cohort-gated until a governed, consented corpus is approved. Complete the owner-controlled gates in [COMMUNITY_RELEASE.md](COMMUNITY_RELEASE.md) before inviting real community data.
 
-**Live production preview:** [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/)
+Live production preview: [path-wiser-sigma.vercel.app](https://path-wiser-sigma.vercel.app/)
 
-Submitted to the **Talentbank Tech Hackathon 2026** — First Cohort. PathWiser is an evidence-based Career OS navigation platform built around the **Career Twin Engine**: a hybrid retrieval + deterministic aggregation + LLM explanation architecture that helps candidates, employers, and universities across Asia make wiser career decisions.
+Submitted to the Talentbank Tech Hackathon 2026 - First Cohort. PathWiser is an evidence-based Career OS navigation platform built around the Career Twin Engine: retrieval, deterministic aggregation, and honest explanation for candidates, employers, and universities.
 
-Navigation, **not** prediction. Every claim is cohort-grounded, with explicit cohort size and range disclosure. The LLM only converts numbers into hedged language — it never invents claims about individuals.
-
----
-
-## Table of Contents
-
-- [What we built](#what-we-built)
-- [Quick start](#quick-start)
-- [Architecture](#architecture)
-- [Integration notes for Talentbank](#integration-notes-for-talentbank)
-- [File map](#file-map)
-- [Data sources & attribution](#data-sources--attribution)
-- [Judging criteria alignment](#judging-criteria-alignment)
-- [AI tools used](#ai-tools-used)
-- [Licenses](#licenses)
-
----
+Navigation, not prediction. Every claim is cohort-grounded, with explicit cohort size, source and range disclosure. The LLM only explains computed evidence; it never invents individual predictions.
 
 ## What we built
 
-Sixteen modules across four layers, all backed by a single shared engine:
+All fifteen audience modules from the proposal core plus the Final Kit challenge library are implemented, backed by one shared engine and shared platform controls.
 
 | Layer | Modules |
 |---|---|
-| **Engine** | User Profile & Shape · Trajectory Retrieval · Outcomes Aggregation · Honest Narrative |
-| **Candidate surface** | Career Path Navigator · AI Career Coach · Fair Pay Engine |
-| **Employer surface** | Smart Talent Matching · Talent Retention Signals · Onboarding Success Predictor |
-| **University surface** | Lifelong Outcome Loop · Future-State Curriculum Engine · Alumni Readiness Profile |
-| **Support** | Feedback & Reflection · System Analytics · Security & Access |
-| **Marketplace** | Job Listings · Company Directory |
-| **Meta** | Architecture & Vision (system overview screen) |
+| Engine | User Profile and Shape; Trajectory Retrieval; Outcomes Aggregation; Honest Narrative |
+| Candidate surface | Career Path Navigator; Living Portfolio; AI Career Coach; Fair Pay Engine; Life Chapter Designer |
+| Employer surface | Smart Talent Matching; Talent Re-Engagement; Talent Retention Signals; Onboarding Success Predictor; Workforce Resilience Planner |
+| University surface | Lifelong Outcome Loop; Live Internship Marketplace; Future-State Curriculum Engine; Alumni Readiness Profile; Lifelong Learning Wallet |
+| Support | Feedback and Reflection; System Analytics; Security and Access |
+| Marketplace | Job Listings; Company Directory |
+| Meta | Architecture and Vision |
 
 ### Signature features
 
-- **Career Twin Engine** — retrieval → deterministic aggregation → LLM explanation. Numbers come from aggregation, never from the LLM.
-- **Compare Paths** — pick 2–3 destinations on the Career Path Navigator and get a side-by-side trade-off table with an honest verdict.
-- **🐾 Work Animal quiz** (Menagerie Method) — 8-question personality read aligned with Talentbank's own `yourworkanimal.com` framework.
-- **UN SDG mapping** — every module tagged with the Sustainable Development Goals it addresses (4 · 5 · 8 · 9 · 10 · 17).
-- **Honest cohort disclosure** everywhere — cohort size, range, and "cohort aggregates, not individual predictions" on every output.
-- **Server-enforced audience workspaces** — authenticated accounts are restricted to candidate, employer or university routes; the optional review switch is disabled by default and still requires an admin/judge server role.
-- **Community preview personas** — three clearly labelled modelled personas can launch the complete evidence workflow even when the production community corpus is still below its privacy-safe threshold.
-- **Full close/back UX on every overlay** — ESC to close, × button, backdrop click. No sudden-modal traps.
-
----
+- Career Twin Engine: retrieval -> deterministic aggregation -> LLM explanation. Numbers come from aggregation, never from the LLM.
+- Compare Paths: side-by-side destination trade-offs on the candidate navigator.
+- Work Animal quiz: an 8-question personality read aligned with Talentbank's Menagerie-style framework.
+- UN SDG mapping: every audience module is mapped to SDGs 4, 5, 8, 9, 10 and/or 17.
+- Honest cohort disclosure: outputs state cohort size, source and limits.
+- Server-enforced audience workspaces: authenticated accounts are restricted to candidate, employer or university routes.
+- Community preview personas: three labelled modelled personas keep the product explorable while real community data is not yet approved.
+- Full close/back UX: overlays include close buttons, Escape handling and backdrop/return paths.
 
 ## Quick start
 
-**Requirements**
-- Node ≥ 18.17
-- npm ≥ 9
+Requirements:
 
-**Boot the app in demo mode** (no external credentials needed):
+- Node >= 18.17
+- npm >= 9
+
+Boot the app in preview mode:
 
 ```bash
 npm install
 npm run dev
-# → http://localhost:3000
+# http://localhost:3000
 ```
 
-This runs the engine end-to-end using an in-memory corpus of ~1,500 modelled, DOSM-calibrated trajectories. The interface discloses that evidence mode.
+This runs the engine end-to-end using an in-memory, modelled, DOSM-calibrated corpus. The interface discloses that evidence mode.
 
-**Optional: enable full mode** (real Supabase + Gemini):
+Enable full mode after migrations, credentials and governed data import:
 
 ```bash
 cp .env.example .env.local
 # Fill in NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
-# SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY
+# SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY and server-only DB URL for migrations.
+npm run supabase:migrate
 npm run dev
 ```
 
-After migrations and a governed data import, set `ALLOW_FULL_MODE=true` to switch retrieval to pgvector HNSW cosine over the persisted corpus. AI narratives fall back to deterministic cohort summaries when the provider is unavailable or fails honesty validation.
+Set `ALLOW_FULL_MODE=true` only after Supabase, Gemini, consent/RLS policies, and the governed trajectory import are ready.
 
-**Available scripts**
+## Available scripts
 
 | Script | Purpose |
 |---|---|
-| `npm run dev` | Local dev server on :3000 |
+| `npm run dev` | Local dev server on port 3000 |
 | `npm run build` | Production build |
-| `npm run start` | Serve production build |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | tsc --noEmit |
-| `npm run test` | Vitest (engine aggregation, normalization, ranking and AI honesty) |
-| `npm run test:smoke` | Production HTTP, API, security-header and route smoke suite (server required) |
-| `npm run test:a11y` | WCAG A/AA semantic audit across 16 representative routes (server required) |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint with zero warnings |
+| `npm run typecheck` | TypeScript strict check |
+| `npm run test` | Vitest coverage for engine, AI honesty, marketplace ranking, workspace fallback and module registry integrity |
+| `npm run test:smoke` | Production HTTP, API, security-header and route smoke suite; server required |
+| `npm run test:a11y` | WCAG A/AA semantic audit across public/auth, audience, marketplace and support routes; server required |
+| `npm run test:hardening` | Repeatable smoke/accessibility hardening cycles; set `HARD_TEST_MINUTES=120` for the full two-hour soak |
 | `npm run test:openapi` | Parse and verify the OpenAPI 3.1 evidence contract |
-| `npm run test:rls:production` | Temporary two-account live RLS/consent test with verified cleanup (production credentials required) |
-
----
+| `npm run test:rls:production` | Temporary two-account live RLS, consent and workspace-record test with verified cleanup; production credentials required |
+| `npm run supabase:migrate` | Apply checksum-locked migrations `0001` through `0007` with `DATABASE_URL` or `SUPABASE_DB_URL` |
 
 ## Architecture
 
-### The three-layer engine
-
-```
+```text
 User shape
-    ↓
-[1] Trajectory Retrieval
-    ─ pgvector HNSW cosine similarity (or in-memory feature-vector cosine in demo mode)
-    ─ Audience filters (life stage, geography, sector)
-    ─ Cohort-too-small honesty guard (k_min = 50)
-    ↓
-[2] Range-of-Outcomes Aggregation
-    ─ Pure deterministic functions over the retrieved cohort
-    ─ Next-role distribution, salary percentiles, skill bridges, trade-offs
-    ─ Unit-testable. Numbers come from HERE, never from the LLM.
-    ↓
-[3] Honest Narrative
-    ─ LLM converts structured aggregates → hedged prose
-    ─ Post-generation validator rejects predictive verbs + hallucinated numbers
-    ─ Template fallback if provider is unavailable (demo never breaks)
-    ↓
-UI (16 proposal modules sharing one engine and platform-control layer)
+  -> Trajectory Retrieval
+     - pgvector HNSW cosine similarity in full mode
+     - in-memory feature-vector cosine in modelled preview mode
+     - audience, life-stage, geography and sector filters
+     - minimum publishable cohort guard, k >= 50
+  -> Range-of-Outcomes Aggregation
+     - next-role distribution
+     - salary percentiles
+     - skill bridges
+     - trade-offs
+  -> Honest Narrative
+     - LLM converts computed aggregates into hedged language
+     - validator rejects predictive verbs and hallucinated numbers
+     - deterministic template fallback if the provider is unavailable
+  -> UI
+     - 15 audience modules sharing one engine and platform-control layer
 ```
 
-### The Career Signal Loop
+### Career Signal Loop
 
+```text
+Candidate choices and outcomes -> governed trajectory evidence
+Employer demand and hiring feedback -> demand signal
+University programme outcomes -> curriculum signal
+
+All three surfaces feed the shared evidence loop only through consented,
+aggregated and privacy-gated data.
 ```
-       ┌─→ Candidate (Navigate) ──→ trajectory data
-       │                                   │
-       │                                   ↓
-Engine ↑                             Corpus updates
-       │                                   ↑
-       │                                   │
-       └─── University (Outcomes) ←── Employer (Demand)
-```
-
-Same engine. Three surfaces. Candidate decisions become anonymised trajectory signal that strengthens the cohort evidence available to all three audiences. Employer demand patterns feed back to universities via the curriculum engine.
-
----
 
 ## Integration notes for Talentbank
 
-**Grep for `adoption hook` in the source** to find every integration seam.
+The integration seams are intentionally narrow:
 
-### 1. AI provider
-
-Set `AI_PROVIDER=talentbank-internal` in env. Add one case in [`lib/ai/index.ts`](lib/ai/index.ts). Create [`lib/ai/talentbank-internal.ts`](lib/ai/) implementing the `AIProvider` interface at [`lib/ai/interface.ts`](lib/ai/interface.ts). Nothing else changes.
-
-The interface is only three methods:
-
-```ts
-interface AIProvider {
-  getEmbedding(text: string): Promise<number[]>;
-  getEmbeddings(texts: string[]): Promise<number[][]>;
-  generateNarrative(aggregate: Aggregate, audience: 'candidate'|'employer'|'university'): Promise<Explanation>;
-  chatCompletion(systemPrompt: string, userMessage: string, cohortContext: Aggregate): Promise<string>;
-}
-```
-
-### 2. Vector store / retrieval
-
-Replace [`lib/engine/retrieve.ts`](lib/engine/retrieve.ts). The rest of the engine (aggregate, explain) is store-agnostic. Signature:
-
-```ts
-retrieveCohort(shape: UserShape, opts?: RetrieveOptions): Promise<Cohort>
-```
-
-Return the same `Cohort` shape and everything downstream works.
-
-### 3. Data source (trajectory corpus)
-
-- **Demo mode:** in-memory generator at [`lib/corpus/generate.ts`](lib/corpus/generate.ts). ~1,500 synthetic Malaysian trajectories, DOSM-calibrated, deterministic seed = 42.
-- **Full mode:** Supabase `trajectories` table (see [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). HNSW index on `embedding vector(768)`.
-
-To swap for Talentbank's real trajectory data: replace the corpus source. The engine reads from whatever's in `public.trajectories`.
-
-### 4. Auth
-
-Supabase Auth by default (see [`lib/supabase/`](lib/supabase/)). To swap for Talentbank SSO: replace the client factory. RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
-
-### 5. Salary anchors
-
-Currently DOSM 2024 hard-coded in [`lib/engine/aggregate.ts`](lib/engine/aggregate.ts) as calibration constants. Recruiter guide (Michael Page, Hays, Robert Walters) values used as headline anchors only — NOT reproduced from copyrighted tables.
-
-### 6. HTTP API surface
-
-The public contract covers health, navigation, coach, matching, profile, consent, feedback, durable workflow records, and marketplace endpoints in [`openapi.yaml`](openapi.yaml).
-
-Talentbank's Angular team can call this directly from their frontend without ever running React — the engine is framework-agnostic.
-
-### Owner-controlled work before public launch
-
-The code includes consent records, RLS, organisations, profile persistence and privacy-safe matching. Legal approval, the governed evidence import, production credentials/domain, representative fairness and accessibility studies, distributed rate limiting, incident response and ongoing operations remain deployment responsibilities. See [`COMMUNITY_RELEASE.md`](COMMUNITY_RELEASE.md).
-
----
+- AI provider: implement the `AIProvider` interface in [lib/ai/interface.ts](lib/ai/interface.ts) and select it in [lib/ai/index.ts](lib/ai/index.ts).
+- Retrieval/vector store: replace [lib/engine/retrieve.ts](lib/engine/retrieve.ts) while preserving the `retrieveCohort` contract.
+- Trajectory corpus: load approved records into `public.trajectories`; the rest of the engine reads from the configured corpus.
+- Auth: Supabase Auth is the default; Talentbank SSO can replace the client factory while keeping route and RLS boundaries.
+- HTTP API: [openapi.yaml](openapi.yaml) covers health, navigation, coach, matching, profile, consent, feedback, durable records and marketplace endpoints.
 
 ## File map
 
-```
+```text
 app/
-  api/engine/navigate/      # Single engine endpoint
+  api/                       Engine, coach, matching, profile, consent, feedback, records, marketplace, health
   dashboard/
-    architecture/           # System overview screen
-    candidate/              # 3 candidate modules
-    employer/               # 3 employer modules
-    university/             # 3 university modules
-    engine/                 # 4 engine internals views
-    marketplace/            # Jobs + companies
-    support/                # Feedback + analytics + security
-  page.tsx                  # Hero + one-click login bypass
-  layout.tsx                # Root layout with fonts + metadata
-  globals.css               # Design tokens
+    candidate/               5 candidate modules
+    employer/                5 employer modules
+    university/              5 university modules
+    engine/                  4 engine internals views
+    marketplace/             Jobs and companies
+    support/                 Feedback, analytics and security
+    architecture/            System overview
+  page.tsx                   Hero, storytelling and preview launch
 
 components/
-  common/                   # Button · StatBox · Callout · Pill · SdgChip · ClosableOverlay
-  layout/                   # Header · Sidebar · MobileDrawer · PanelHeader · LockedExplainer
-  hero/                     # HeroSection · HeroCanvas
-  onboarding/               # OnboardingShell + 5 step components
-  path-navigator/           # PathGraph · ComparePanel · ShapeAdjustment
-  ai-coach/                 # AICoachView (chat + quick topics)
-  fair-pay/                 # FairPayView
-  talent-matching/          # TalentMatchingView (with adjacent candidates)
-  retention/                # RetentionSignalsView
-  onboarding-predictor/     # OnboardingPredictorView
-  outcome-loop/             # OutcomeLoopView
-  curriculum-engine/        # CurriculumEngineView
-  readiness-profile/        # ReadinessProfileView
-  marketplace/              # JobListingsView · CompanyDirectoryView
-  engine/                   # UserProfileView · TrajectoryRetrievalView
-  architecture/             # ArchitectureView (system overview)
-  support/                  # FeedbackView
+  common/                    Shared UI primitives and ClosableOverlay
+  final-kit/                 Six Final Kit expansion module views
+  hero/                      Product storytelling and audience launcher
+  layout/                    Header, sidebar, route guards and bootstrap
+  path-navigator/            Candidate graph and comparison
+  marketplace/               Jobs and company directory
+  support/                   Feedback, analytics and privacy/security
 
 lib/
-  ai/                       # Provider interface + Gemini implementation + factory
-  supabase/                 # Client (browser) + server (SSR) + service-role
-  engine/                   # retrieve + aggregate + explain + client wrapper
-  corpus/                   # occupations · generate · work-animals · sdgs · modules · jobs · companies · personas
-  utils.ts                  # cn · cosineSimilarity · formatMYR · seededRandom · env helpers
+  ai/                        Provider interface, Gemini provider and validation
+  corpus/                    Modules, SDGs, personas, generated trajectories, jobs and companies
+  engine/                    Retrieval, aggregation, explanation and client wrapper
+  records/                   Account/device workspace persistence
+  security/                  Rate limits and same-origin mutation checks
+  supabase/                  Browser/server/service clients
 
-types/                      # UserShape · Cohort · Aggregate · Explanation · Trajectory · WorkAnimalKey
-store/                      # useAppStore (Zustand · persisted persona + shape + judgeMode + workAnimal)
-supabase/migrations/        # 0001–0006 · core data · organisations/consent · durable workflows · erasure/retention · API grants · extension compatibility
-openapi.yaml                # Engine API contract for Talentbank's Angular team
-legacy/                     # Stage 1 static clickable prototype (archived for reference)
+scripts/
+  hard-test.mjs              Repeatable hardening harness
+  migrate.ts                 Checksum-locked Supabase migration runner
+  production-rls-test.ts     Live two-account RLS/consent/workspace test
+
+supabase/migrations/         0001-0007 schema, RLS, consent, workflows, controls and Final Kit records
+openapi.yaml                 Integration contract
+legacy/                      Archived static prototype from the demo phase
 ```
 
----
-
-## Data sources & attribution
+## Data sources and attribution
 
 | Source | Use | License |
 |---|---|---|
-| **O*NET** (US Dept of Labor) | Occupation + skill taxonomy | CC-BY 4.0 |
-| **ESCO** (European Commission) | Occupation graph, ISCO mapping | EU Decision 2011/833/EU |
-| **DOSM Malaysia** — Salaries & Wages Survey 2024, Graduates Statistics 2024 | Salary anchors (MASCO groups, sectors, states) | CC-BY 4.0 |
-| **Michael Page MY / Hays Asia / Robert Walters MY** salary guides | Role-level calibration (headline figures only, not reproduced) | Public reports, cited |
-| **TalentCorp MyMahir Critical Occupations List** | MyCOL badges on relevant roles | Public |
-| **Synthetic corpus** | ~1,500 anonymised trajectories, DOSM-calibrated | Internal, disclosed |
+| O*NET | Occupation and skill taxonomy | CC-BY 4.0 |
+| ESCO | Occupation graph and ISCO mapping | EU Decision 2011/833/EU |
+| DOSM Malaysia | Salary and graduate-outcome calibration anchors | CC-BY 4.0 |
+| Michael Page / Hays / Robert Walters public salary guides | Headline role calibration only; tables are not reproduced | Public reports, cited |
+| TalentCorp MyMahir Critical Occupations List | MyCOL badges | Public |
+| Modelled PathWiser corpus | Disclosed preview evidence | Internal, disclosed |
 
-Attribution is displayed in-product on the Architecture & Vision screen.
-
----
+Attribution is displayed in-product on the Architecture and Vision screen.
 
 ## Judging criteria alignment
 
-| Criterion | Weight | How we address it |
-|---|---|---|
-| **Product & UX Thinking** | 30% | Honest navigation framing everywhere; branching trajectory viz + Compare Paths as signature moments; cohort disclosure on every output; three-audience Signal Loop |
-| **System Design & Integration** | 25% | One shared engine (`lib/engine/`) serving all fifteen audience modules; retrieval/aggregation/explanation cleanly separated; support controls, OpenAPI and provider abstraction create clear integration seams |
-| **Completeness** | 20% | Every proposal module has a connected workflow; one-command local setup; `.env.example`; durable account records; deterministic fallback so provider outages do not break core evidence flows |
-| **AI Craft** | 15% | Numbers from deterministic aggregation, LLM only explains; post-generation validator rejects predictive verbs; provider abstraction so Talentbank swaps in one env var |
-| **Code Quality** | 10% | TypeScript strict + Zod schemas at every boundary; module boundaries at `lib/engine/`, `lib/ai/`, `lib/supabase/`; RLS policies in-migration; conventional-commit history |
+| Criterion | How PathWiser addresses it |
+|---|---|
+| Product and UX Thinking | Evidence-first career navigation, interactive audience workspaces, close/back UX, responsive surfaces and preserved demo storytelling |
+| System Design and Integration | One shared engine serving all fifteen audience modules, OpenAPI contract, provider abstraction, RLS and consent boundaries |
+| Completeness | Proposal core plus Final Kit module library, durable workspace records, marketplace, feedback, analytics, security and release runbooks |
+| AI Craft | Deterministic numbers, LLM explanation only, validation and template fallback |
+| Code Quality | TypeScript strictness, Zod validation, automated tests, hardening harness, GitHub production quality gate |
 
----
+## Owner-controlled work before public launch
+
+The code includes consent records, RLS, organisations, profile persistence, privacy-safe matching, durable records and preview UX. A populated real-data community launch still requires:
+
+- applying migration `0007` to production Supabase;
+- rerunning `npm run test:rls:production`;
+- running `HARD_TEST_MINUTES=120 npm run test:hardening` against the final URL;
+- importing governed consented community data;
+- completing PDPA/legal, fairness, backup/restore, monitoring, support and incident-response checks.
+
+See [COMMUNITY_RELEASE.md](COMMUNITY_RELEASE.md) for the launch runbook.
 
 ## AI tools used
 
 Declared per the Kick-Off requirement:
 
-- **Claude Code** — codebase authoring, engine architecture, module scaffolding
-- **Google AI Studio (Gemini)** — narrative generation via provider abstraction (default provider when API key is present)
-
----
+- Claude Code / Codex-style coding assistance for codebase authoring, architecture, module scaffolding and QA.
+- Google AI Studio / Gemini via provider abstraction when API keys are present.
 
 ## Licenses
 
-Source code © 2026 the PathWiser team, submitted to Talentbank Tech Hackathon 2026 under the Participant Agreement's review + adoption license. On adoption, IP transfers to Talentbank per the Adoption Terms.
+Source code copyright 2026 the PathWiser team, submitted to Talentbank Tech Hackathon 2026 under the Participant Agreement's review and adoption terms.
 
-Third-party licenses:
-- O*NET data — CC-BY 4.0
-- ESCO — EU Decision 2011/833/EU
-- DOSM open data — CC-BY 4.0
-- All npm packages — see individual license files in `node_modules/`
+Third-party data/package licenses remain governed by their original sources and npm package license files.
