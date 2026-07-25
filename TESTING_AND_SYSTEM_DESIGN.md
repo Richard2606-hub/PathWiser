@@ -66,6 +66,7 @@ flowchart LR
 | Automated accessibility | WCAG 2.0/2.1/2.2 A and AA semantic rules across public, authentication/recovery, candidate, employer, university, marketplace, feedback and privacy surfaces | Pass: 22 routes and 24 applicable rule groups through `npm.cmd run test:a11y`; rendered browser review covers colour/visual and touch behaviour that JSDOM cannot measure. |
 | Dependency security | Production dependency graph | Pass: Next.js 15.5.21, PostCSS 8.5.22, Sharp 0.35.3 and Vitest 4.1.10; `npm.cmd audit --omit=dev --json` reports zero production vulnerabilities on 25 July 2026. Full dev audit still flags ESLint-era transitive tooling, so a major ESLint/tooling upgrade should be handled separately. |
 | Release metadata | Open Graph/Twitter metadata and 1200 × 630 social image | Pass: metadata tags and `/og-pathwiser.png` return HTTP 200 with the expected PNG content type. |
+| Release preflight | Non-secret migration, environment and optional target health readiness check | Added `npm.cmd run release:preflight`; it fails on missing migration files and warns on owner-controlled full-launch settings that are absent in preview/dev environments. |
 | Candidate journey | Clean onboarding -> normalization -> launch -> navigator -> cohort graph -> node detail -> compare mode -> coach -> fair-pay -> saved marketplace role | Pass in a fresh production-browser session. The audit removed demo identity leakage, a hard-coded graph role, fractional-ringgit noise and an overconfident comparison claim. |
 | Employer journey | Persona launch -> demand controls -> explainable matching -> saved retention review -> onboarding planner | Pass against the labelled modelled-evidence path in a fresh production-browser session; live account persistence and consented matching remain conditional on populated production accounts and evidence. |
 | University journey | Persona launch -> outcome horizon -> saved snapshot -> curriculum handoff -> readiness evidence -> contextual reflection | Pass against the labelled modelled-evidence path in a fresh production-browser session; live account persistence remains conditional on populated production accounts and programme consent. |
@@ -78,7 +79,7 @@ flowchart LR
 
 ## Acceptance criteria for every release
 
-1. `npm.cmd run lint`, `npm.cmd run test`, `npm.cmd run typecheck`, `npm.cmd run test:openapi`, `npm.cmd run build`, `npm.cmd run test:smoke`, `npm.cmd run test:a11y`, `npm.cmd run test:hardening`, and `npm.cmd audit --omit=dev --json` pass.
+1. `npm.cmd run release:preflight`, `npm.cmd run lint`, `npm.cmd run test`, `npm.cmd run typecheck`, `npm.cmd run test:openapi`, `npm.cmd run build`, `npm.cmd run test:smoke`, `npm.cmd run test:a11y`, `npm.cmd run test:hardening`, and `npm.cmd audit --omit=dev --json` pass.
 2. `/api/engine/navigate` returns either a validated aggregate with a cohort disclosure or an explicit `cohort_too_small` response; it never returns a fabricated individual prediction.
 3. Candidate, employer, and university persona launches reach their designated dashboard without an error state.
 4. Candidate graph selection and compare mode work; employer adjacent-talent filtering works; university programme and horizon controls update.
