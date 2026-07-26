@@ -19,7 +19,8 @@
     "release:preflight": "node scripts/release-preflight.mjs",
     "corpus:generate": "tsx scripts/generate-corpus.ts",
     "corpus:embed": "tsx scripts/embed-corpus.ts",
-    "supabase:migrate": "tsx scripts/migrate.ts"
+    "supabase:migrate": "tsx scripts/migrate.ts",
+    "seed:demo-accounts": "tsx scripts/seed-demo-accounts.ts"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",
