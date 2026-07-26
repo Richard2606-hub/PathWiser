@@ -49,10 +49,26 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
   const pathname = usePathname();
 
-  const isActive = (href: string) => pathname === href;
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
 
   return (
     <aside className="flex h-full flex-col gap-5 p-4">
+      {/* Theme Switcher */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="flex w-full items-center justify-between rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-glass)] px-3.5 py-2.5 text-xs font-semibold shadow-sm transition-all hover:border-[color:var(--accent)]"
+      >
+        <span className="flex items-center gap-2 text-[color:var(--text-1)]">
+          <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
+          <span>{theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[color:var(--yellow)] font-bold">
+          {theme}
+        </span>
+      </button>
+
       {/* Persona surfaces */}
       {(['candidate', 'employer', 'university'] as const).map((p) => {
         const meta = PERSONA_META[p];

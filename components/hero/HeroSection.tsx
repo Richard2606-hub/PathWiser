@@ -38,13 +38,28 @@ export function HeroSection() {
 
   const selected = AUDIENCES[audience];
 
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
+
   return (
     <main className="min-h-screen text-[color:var(--text-1)]">
       <nav className="sticky top-0 z-30 border-b border-[color:var(--border)] bg-white/90 backdrop-blur-xl" aria-label="Primary navigation">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 sm:px-7">
           <Link href="/" className="flex items-center gap-2.5" aria-label="PathWiser home"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--yellow)] text-xs font-extrabold text-white shadow-[0_8px_20px_rgba(79,70,229,0.22)]">PW</span><span className="text-lg font-extrabold tracking-tight">Path<span className="text-[color:var(--yellow)]">Wiser</span></span></Link>
           <div className="hidden items-center gap-7 text-sm font-medium text-[color:var(--text-2)] md:flex"><a href="#for-who" className="hover:text-[color:var(--text-1)]">Who it helps</a><a href="#how-it-works" className="hover:text-[color:var(--text-1)]">How it works</a><Link href="/dashboard/architecture" className="hover:text-[color:var(--text-1)]">Our approach</Link></div>
-          <div className="flex items-center gap-2"><Link href="/auth" className="hidden px-3 py-2 text-sm font-semibold text-[color:var(--text-2)] hover:text-[color:var(--text-1)] sm:block">Sign in</Link><Button size="sm" onClick={openOnboarding}>Get started</Button></div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle dark mode"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-glass)] text-sm shadow-sm transition-all hover:border-[color:var(--accent)] hover:scale-105 active:scale-95"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+            <Link href="/auth" className="hidden px-3 py-2 text-sm font-semibold text-[color:var(--text-2)] hover:text-[color:var(--text-1)] sm:block">Sign in</Link>
+            <Button size="sm" onClick={openOnboarding}>Get started</Button>
+          </div>
         </div>
       </nav>
 

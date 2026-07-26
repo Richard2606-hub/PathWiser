@@ -7,10 +7,14 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/common/Button';
 import type { Persona } from '@/types';
 
+import { useAppStore } from '@/store/useAppStore';
+
 type AuthMode = 'sign-in' | 'register' | 'forgot';
 
 export default function AuthPage() {
   const router = useRouter();
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -78,7 +82,18 @@ export default function AuthPage() {
   return (
     <main className="grid min-h-screen place-items-center p-4">
       <section className="w-full max-w-md rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-surface)] p-6 shadow-2xl" aria-labelledby="auth-title">
-        <Link href="/" className="font-mono text-sm font-bold text-[color:var(--yellow)]">[ PathWiser ]</Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="font-mono text-sm font-bold text-[color:var(--yellow)]">[ PathWiser ]</Link>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle dark mode"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--border)] bg-[color:var(--bg-glass)] text-xs shadow-sm transition-all hover:border-[color:var(--accent)] hover:scale-105 active:scale-95"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
         <h1 id="auth-title" className="mt-4 text-2xl font-extrabold">
           {mode === 'sign-in' ? 'Welcome back' : mode === 'register' ? 'Create your community account' : 'Reset your password'}
         </h1>
