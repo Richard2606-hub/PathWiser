@@ -27,7 +27,6 @@ export function Header() {
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
   const toggleJudgeMode = useAppStore((s) => s.toggleJudgeMode);
   const setPersona = useAppStore((s) => s.setPersona);
-  const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
   const [evidenceStatus, setEvidenceStatus] = useState<'checking' | 'modelled' | 'community' | 'unavailable'>('checking');
 
   useEffect(() => {
@@ -92,14 +91,11 @@ export function Header() {
       <div className="flex items-center gap-2">
         <AccountActions />
         {!(judgeEnabled && judgeMode) ? (
-          <button
-            type="button"
-            onClick={() => openLockedExplainer(null)}
-            aria-label={`${PERSONA_LABEL[persona].toLowerCase()} workspace for ${identity.name}. Open persona information`}
+          <div
+            title={`You're viewing the ${PERSONA_LABEL[persona].toLowerCase()} workspace`}
             className={cn(
               'flex min-h-11 min-w-11 items-center gap-2 px-3 py-1.5 rounded-xl',
-              'border border-[color:var(--border)] bg-white shadow-sm',
-              'hover:border-[color:var(--accent)] transition-colors'
+              'border border-[color:var(--border)] bg-white shadow-sm'
             )}
           >
             <span className="text-base leading-none">{PERSONA_ICON[persona]}</span>
@@ -116,7 +112,7 @@ export function Header() {
                 {PERSONA_LABEL[persona]}
               </span>
             </div>
-          </button>
+          </div>
         ) : (
           <div className="flex gap-1">
             {(['candidate', 'employer', 'university'] as const).map((p) => (

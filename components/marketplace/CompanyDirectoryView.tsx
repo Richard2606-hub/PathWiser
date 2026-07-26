@@ -73,7 +73,7 @@ export function CompanyDirectoryView() {
     return () => { cancelled = true; };
   }, []);
 
-  const sectors = useMemo(() => Array.from(new Set(companies.map((company) => company.sector.split(' · ')[0]))), [companies]);
+  const sectors = useMemo(() => Array.from(new Set(companies.map((company) => company.sector.split(' · ')[0]))).sort((a, b) => a.localeCompare(b)), [companies]);
   const filtered = useMemo(() => companies.filter((company) => {
     const query = search.trim().toLowerCase();
     if (query && !`${company.name} ${company.sector} ${company.culture}`.toLowerCase().includes(query)) return false;
@@ -102,10 +102,10 @@ export function CompanyDirectoryView() {
   return (
     <div className="flex flex-col gap-4">
       <StatGrid cols={4}>
-        <StatBox label="Employers available" value={companies.length} />
-        <StatBox label="Profiles with hiring context" value={companies.filter((company) => !company.hires.toLowerCase().includes('not published')).length} color="var(--emerald)" />
-        <StatBox label="MyCOL roles represented" value={companies.reduce((sum, company) => sum + company.mycolRoles, 0)} color="var(--yellow)" />
-        <StatBox label={`Saved on ${persistence}`} value={saved.size} color="var(--sky)" />
+        <StatBox label="Employers available" value={loading ? '…' : companies.length} />
+        <StatBox label="Profiles with hiring context" value={loading ? '…' : companies.filter((company) => !company.hires.toLowerCase().includes('not published')).length} color="var(--emerald)" />
+        <StatBox label="MyCOL roles represented" value={loading ? '…' : companies.reduce((sum, company) => sum + company.mycolRoles, 0)} color="var(--yellow)" />
+        <StatBox label={`Saved on ${persistence}`} value={loading ? '…' : saved.size} color="var(--sky)" />
       </StatGrid>
 
       <Callout tone={scope === 'community-marketplace' ? 'emerald' : 'amber'}>
@@ -130,7 +130,12 @@ export function CompanyDirectoryView() {
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-sm text-[color:var(--text-3)]" role="status">Loading employer profiles...</div>
+        <div className="grid gap-3 lg:grid-cols-2" role="status" aria-label="Loading employer profiles">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-44 rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-glass)] animate-pulse" />
+          ))}
+          <span className="sr-only">Loading employer profiles…</span>
+        </div>
       ) : filtered.length === 0 ? (
         <Callout tone="amber"><strong>No employers match these filters.</strong><p className="mt-1">Clear a filter or search more broadly.</p></Callout>
       ) : (

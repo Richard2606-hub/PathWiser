@@ -79,7 +79,7 @@ export class GeminiProvider implements AIProvider {
         'You are speaking to a university programme director. Frame the aggregate around where graduates land and what curriculum insight it implies.',
     }[audience];
 
-    const prompt = `${HONEST_NARRATIVE_CONSTRAINTS}\n\n${audiencePrompt}\n\nAggregate (verbatim numbers you must reference):\n\`\`\`json\n${JSON.stringify(aggregate, null, 2)}\n\`\`\`\n\nProduce a 2-4 sentence narrative that explains what this cohort shows.`;
+    const prompt = `${HONEST_NARRATIVE_CONSTRAINTS}\n\n${audiencePrompt}\n\nAggregate (verbatim numbers you must reference):\n\`\`\`json\n${JSON.stringify(aggregate, null, 2)}\n\`\`\`\n\nProduce a tight 2-3 sentence narrative. Lead with the single most useful decision insight — the leading destination and its key trade-off — with concrete numbers. Be direct and specific; avoid generic filler openers like "historical tracking reveals" or "the cohort typically sees".`;
 
     const result = await withTransientRetry(() => this.client.models.generateContent({
       model: this.chatModel,

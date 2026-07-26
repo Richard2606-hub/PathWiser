@@ -56,16 +56,23 @@ export function PathNavigatorView() {
   const explanation = result && 'aggregate' in result ? result.explanation : null;
 
   const selectedSalary = selectedNode ? salaries[selectedNode] : undefined;
-  const selectedProb = nextRoles.find((n) => n.role === selectedNode)?.probability;
-  const selectedMycol = nextRoles.find((n) => n.role === selectedNode)?.is_mycol_critical;
+  const selectedRole = nextRoles.find((n) => n.role === selectedNode);
+  const selectedProb = selectedRole?.probability;
+  const selectedMycol = selectedRole?.is_mycol_critical;
+  const selectedCount = selectedRole?.count ?? 0;
+  // A destination drawn from fewer than this many cohort members is statistically
+  // thin — we still show it, but label the range as indicative rather than firm.
+  const THIN_NODE = 30;
+  const selectedIsThin = selectedCount > 0 && selectedCount < THIN_NODE;
 
   const graphNodes = useMemo(() => {
     if (!nextRoles.length) return [];
-    return nextRoles.slice(0, 8).map((r, i) => ({
+    const shown = Math.min(6, nextRoles.length);
+    return nextRoles.slice(0, shown).map((r, i) => ({
       id: r.role,
       label: r.role,
-      x: 380 + Math.cos((i / Math.max(1, nextRoles.length - 1)) * Math.PI * 1.4 - Math.PI * 0.7) * 220,
-      y: 200 + Math.sin((i / Math.max(1, nextRoles.length - 1)) * Math.PI * 1.4 - Math.PI * 0.7) * 130,
+      x: 380 + Math.cos((i / Math.max(1, shown - 1)) * Math.PI * 1.4 - Math.PI * 0.7) * 220,
+      y: 200 + Math.sin((i / Math.max(1, shown - 1)) * Math.PI * 1.4 - Math.PI * 0.7) * 130,
       salary: salaries[r.role]?.median,
       cohort: r.count,
       probability: r.probability,
@@ -106,7 +113,7 @@ export function PathNavigatorView() {
       <div className="order-5"><StatGrid cols={4}>
         <StatBox label="Evidence corpus" value={result && 'aggregate' in result ? (result.evidence.corpus_size ? result.evidence.corpus_size.toLocaleString() : result.evidence.mode === 'community' ? 'Community' : 'Modelled') : '—'} />
         <StatBox label="Active Cohort" value={cohortSize?.toLocaleString() || '—'} />
-        <StatBox label="Path Branches" value={nextRoles.length} />
+        <StatBox label="Distinct destinations" value={nextRoles.length} />
         <StatBox
           label="Mean Cohort Similarity"
           value={
@@ -188,9 +195,14 @@ export function PathNavigatorView() {
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <MetricCell label="Salary median" value={formatMYR(selectedSalary.median)} />
                 <MetricCell label="Range (P25–P75)" value={`${formatMYR(selectedSalary.p25, false)}–${formatMYR(selectedSalary.p75, false)}`} />
-                <MetricCell label="Probability" value={formatPct(selectedProb ?? 0)} />
-                <MetricCell label="Cohort" value={(nextRoles.find((n) => n.role === selectedNode)?.count || 0).toLocaleString()} />
+                <MetricCell label="Cohort share" value={formatPct(selectedProb ?? 0)} />
+                <MetricCell label="Based on" value={`${selectedCount.toLocaleString()} of ${cohortSize?.toLocaleString() ?? '—'}`} />
               </div>
+              {selectedIsThin && (
+                <p className="mb-3 -mt-1 rounded bg-[color:var(--amber-soft,#fef3c7)] px-2 py-1.5 text-[10px] leading-snug text-[color:var(--text-2)]">
+                  ⚠️ Thin sample — only {selectedCount} of {cohortSize?.toLocaleString()} took this route. Treat the range as indicative, not firm; the honest floor for a confident range is {THIN_NODE}+.
+                </p>
+              )}
               {bridges.length > 0 && (
                 <div>
                   <span className="font-mono text-[9px] uppercase tracking-widest text-[color:var(--text-3)]">

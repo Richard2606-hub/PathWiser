@@ -68,8 +68,8 @@ export function JobListingsView() {
     if (company) setSearch(company);
   }, []);
 
-  const sectors = useMemo(() => Array.from(new Set(jobs.map((job) => job.sector.split(' · ')[0]))), [jobs]);
-  const locations = useMemo(() => Array.from(new Set(jobs.map((job) => job.location))), [jobs]);
+  const sectors = useMemo(() => Array.from(new Set(jobs.map((job) => job.sector.split(' · ')[0]))).sort((a, b) => a.localeCompare(b)), [jobs]);
+  const locations = useMemo(() => Array.from(new Set(jobs.map((job) => job.location))).sort((a, b) => a.localeCompare(b)), [jobs]);
   const filtered = useMemo(() => jobs.filter((job) => {
     const query = search.trim().toLowerCase();
     if (query && !`${job.title} ${job.company} ${job.skills.join(' ')}`.toLowerCase().includes(query)) return false;
@@ -125,10 +125,10 @@ export function JobListingsView() {
   return (
     <div className="flex flex-col gap-4">
       <StatGrid cols={4}>
-        <StatBox label="Available roles" value={jobs.length} />
-        <StatBox label="Strong or adjacent" value={jobs.filter((job) => job.alignment !== 'Exploratory').length} color="var(--yellow)" />
-        <StatBox label="MyCOL critical" value={jobs.filter((job) => job.mycol).length} color="var(--sky)" />
-        <StatBox label={`Saved on ${persistence}`} value={saved.size} color="var(--teal)" />
+        <StatBox label="Available roles" value={loading ? '…' : jobs.length} />
+        <StatBox label="Strong or adjacent" value={loading ? '…' : jobs.filter((job) => job.alignment !== 'Exploratory').length} color="var(--yellow)" />
+        <StatBox label="MyCOL critical" value={loading ? '…' : jobs.filter((job) => job.mycol).length} color="var(--sky)" />
+        <StatBox label={`Saved on ${persistence}`} value={loading ? '…' : saved.size} color="var(--teal)" />
       </StatGrid>
 
       <Callout tone={scope === 'community-marketplace' ? 'emerald' : 'amber'}>
@@ -148,7 +148,12 @@ export function JobListingsView() {
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-sm text-[color:var(--text-3)]" role="status">Ranking available roles against your current Career Twin...</div>
+        <div className="grid gap-3 lg:grid-cols-2" role="status" aria-label="Ranking available roles against your current Career Twin">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-40 rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-glass)] animate-pulse" />
+          ))}
+          <span className="sr-only">Ranking available roles against your current Career Twin…</span>
+        </div>
       ) : filtered.length === 0 ? (
         <Callout tone="amber"><strong>No roles match these filters.</strong><p className="mt-1">Clear a filter or search more broadly. No results have been invented.</p></Callout>
       ) : (

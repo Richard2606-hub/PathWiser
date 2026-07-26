@@ -16,8 +16,8 @@
  */
 
 import type { Trajectory, TrajectoryNode, LifeStage, Persona } from '@/types';
-import { SECTORS, MY_STATES, occupationsBySector, findOccupation } from './occupations';
-import { seededRandom, pickRandom } from '@/lib/utils';
+import { SECTORS, MY_STATES, occupationsBySector, findOccupation, type Occupation } from './occupations';
+import { seededRandom, pickRandom, pickWeighted } from '@/lib/utils';
 
 // ─── Feature vector encoding ────────────────────────────────
 // Dimension layout is dynamic so the encoding scales with the economy-wide
@@ -61,6 +61,28 @@ function skillToFamily(skill: string): string {
     }
   }
   return 'engineering';
+}
+
+// ─── Career-track coherence ─────────────────────────────────
+// Progression should follow realistic tracks (a data analyst trends toward
+// data/ML roles, not a random jump across the sector). We score how related two
+// roles are by shared exact skills + shared skill families, then weight the next
+// step by that relatedness — which also concentrates the next-role distribution
+// into meaningful shares instead of many near-equal slivers.
+function familySet(occ: Occupation): Set<string> {
+  const s = new Set<string>();
+  for (const skill of occ.typical_skills) s.add(skillToFamily(skill));
+  return s;
+}
+
+function relatednessScore(from: Occupation, fromFamilies: Set<string>, to: Occupation): number {
+  const fromSkills = new Set(from.typical_skills.map((s) => s.toLowerCase()));
+  let exact = 0;
+  for (const skill of to.typical_skills) if (fromSkills.has(skill.toLowerCase())) exact++;
+  let family = 0;
+  const toFamilies = familySet(to);
+  for (const fam of toFamilies) if (fromFamilies.has(fam)) family++;
+  return 2 * exact + family;
 }
 
 const SENIORITY_ORDER: Array<'entry' | 'junior' | 'mid' | 'senior' | 'lead' | 'exec'> = [
@@ -181,18 +203,29 @@ function generateOneTrajectory(seed: number, sector: string): Trajectory {
   const pathLength = 3 + Math.floor(rng() * 3); // 3-5 steps
   const path: TrajectoryNode[] = [];
   let currentSeniorityIdx = startSeniorityIdx;
+  let currentOcc = startOcc;
 
   for (let i = 0; i < pathLength; i++) {
-    // Progress seniority forward with some randomness (sometimes stay put)
     if (i > 0) {
+      // Progress seniority forward with some randomness (sometimes stay put)
       const stay = rng() < 0.3;
       if (!stay && currentSeniorityIdx < SENIORITY_ORDER.length - 1) {
         currentSeniorityIdx++;
       }
+      const currentSeniority = SENIORITY_ORDER[currentSeniorityIdx];
+      const candidates = sectorOccupations.filter((o) => o.seniority === currentSeniority);
+      if (candidates.length) {
+        // Weight the next role by how related it is to the current one, so a
+        // coherent track dominates while adjacent moves stay possible.
+        const fromFamilies = familySet(currentOcc);
+        const weighted = candidates.map((o) => {
+          const score = relatednessScore(currentOcc, fromFamilies, o);
+          return { item: o, weight: 1 + score * score * 2.5 };
+        });
+        currentOcc = pickWeighted(weighted, rng);
+      }
     }
-    const currentSeniority = SENIORITY_ORDER[currentSeniorityIdx];
-    const candidates = sectorOccupations.filter((o) => o.seniority === currentSeniority);
-    const occ = candidates.length ? pickRandom(candidates, rng) : startOcc;
+    const occ = currentOcc;
 
     // Salary within calibrated anchor + small jitter
     const [pLo, pHi] = occ.salary_anchor_myr;
