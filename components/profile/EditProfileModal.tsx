@@ -30,7 +30,6 @@ function clearPathWiserDeviceData() {
 }
 
 export function EditProfileModal() {
-  const router = useRouter();
   const open = useAppStore((s) => s.editProfileOpen);
   const closeEditProfile = useAppStore((s) => s.closeEditProfile);
   const storedShape = useAppStore((s) => s.shape);
