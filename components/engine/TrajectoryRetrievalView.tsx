@@ -7,10 +7,10 @@ import { Button } from '@/components/common/Button';
 import { useAppStore } from '@/store/useAppStore';
 import { DEMO_PERSONAS } from '@/lib/corpus/personas';
 import { navigate, type NavigateResponse, type CohortTooSmallResponse } from '@/lib/engine/client';
-import { formatPct } from '@/lib/utils';
+import { formatPct, resolveShape } from '@/lib/utils';
 
 export function TrajectoryRetrievalView() {
-  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<NavigateResponse | CohortTooSmallResponse | null>(null);
   const [roundTripMs, setRoundTripMs] = useState<number | null>(null);

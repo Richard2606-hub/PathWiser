@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { DEMO_PERSONAS } from '@/lib/corpus/personas';
+import { resolveShape } from '@/lib/utils';
 import { navigate, type NavigateResponse } from '@/lib/engine/client';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
 import { Pill } from '@/components/common/Pill';
 
 export function AIExplanationView() {
-  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const [result, setResult] = useState<NavigateResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

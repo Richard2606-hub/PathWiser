@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { DEMO_PERSONAS } from '@/lib/corpus/personas';
+import { resolveShape } from '@/lib/utils';
 import { findOccupation, MY_STATES, OCCUPATIONS } from '@/lib/corpus/occupations';
 import { applyNormalization, normalizeShapeInput } from '@/lib/profile/normalize';
 import { Callout } from '@/components/common/Callout';
@@ -41,7 +42,7 @@ const LIFE_STAGES: Array<{ value: LifeStage; label: string }> = [
 ];
 
 export function UserProfileView() {
-  const storedShape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const storedShape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const identity = useAppStore((state) => state.identity);
   const setShape = useAppStore((state) => state.setShape);
   const setIdentity = useAppStore((state) => state.setIdentity);

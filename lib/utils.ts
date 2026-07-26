@@ -1,9 +1,37 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { UserShape } from '@/types';
 
 /** Tailwind class merger. Use everywhere for conditional classes. */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * A shape is "complete enough" to query the engine only when it carries the
+ * fields the engine requires. A half-filled profile (e.g. right after signup)
+ * is NOT complete — sending it would fail engine validation with a 400.
+ */
+export function isCompleteShape(shape: UserShape | null | undefined): shape is UserShape {
+  return Boolean(
+    shape &&
+    shape.persona &&
+    shape.role?.trim() &&
+    typeof shape.years_experience === 'number' &&
+    shape.state?.trim() &&
+    shape.life_stage &&
+    Array.isArray(shape.skills) && shape.skills.length > 0,
+  );
+}
+
+/**
+ * Resolve the shape to use for an engine call: the user's own shape when it is
+ * complete, otherwise a complete fallback (the disclosed demo persona). This
+ * keeps every module working instead of throwing a raw 400 for an unfinished
+ * profile.
+ */
+export function resolveShape(shape: UserShape | null | undefined, fallback: UserShape): UserShape {
+  return isCompleteShape(shape) ? shape : fallback;
 }
 
 /** Format a MYR amount as RM 5,500/m or RM 12,000. */

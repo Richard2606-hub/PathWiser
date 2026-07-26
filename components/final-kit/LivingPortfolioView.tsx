@@ -6,6 +6,7 @@ import { Callout } from '@/components/common/Callout';
 import { Pill } from '@/components/common/Pill';
 import { StatBox, StatGrid } from '@/components/common/StatBox';
 import { DEMO_PERSONAS } from '@/lib/corpus/personas';
+import { resolveShape } from '@/lib/utils';
 import { saveWorkspaceRecord } from '@/lib/records/client';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -16,7 +17,7 @@ const STARTER_EVIDENCE = [
 ];
 
 export function LivingPortfolioView() {
-  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const showToast = useAppStore((state) => state.showToast);
   const [targetRole, setTargetRole] = useState('Data Analyst');
   const [evidence, setEvidence] = useState(STARTER_EVIDENCE);

@@ -11,10 +11,13 @@ import { Button } from '@/components/common/Button';
 import { PathGraph } from './PathGraph';
 import { ComparePanel } from './ComparePanel';
 import { ShapeAdjustment } from './ShapeAdjustment';
-import { formatMYR, formatPct } from '@/lib/utils';
+import { formatMYR, formatPct, resolveShape, isCompleteShape } from '@/lib/utils';
 
 export function PathNavigatorView() {
-  const shape = useAppStore((s) => s.shape) || DEMO_PERSONAS.aisyah.shape;
+  const storeShape = useAppStore((s) => s.shape);
+  const openOnboarding = useAppStore((s) => s.openOnboarding);
+  const shape = resolveShape(storeShape, DEMO_PERSONAS.aisyah.shape);
+  const usingExample = !isCompleteShape(storeShape);
   const compareMode = useAppStore((s) => s.compareMode);
   const compareNodes = useAppStore((s) => s.compareNodes);
   const toggleCompareMode = useAppStore((s) => s.toggleCompareMode);
@@ -109,6 +112,15 @@ export function PathNavigatorView() {
 
   return (
     <div className="flex flex-col gap-4">
+      {usingExample && (
+        <Callout className="order-0" tone="amber">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span><strong>You&apos;re viewing example evidence.</strong> Build your profile to see paths matched to your role, skills, and experience.</span>
+            <Button size="sm" onClick={openOnboarding}>Build your profile</Button>
+          </div>
+        </Callout>
+      )}
+
       {/* Stats */}
       <div className="order-5"><StatGrid cols={4}>
         <StatBox label="Evidence corpus" value={result && 'aggregate' in result ? (result.evidence.corpus_size ? result.evidence.corpus_size.toLocaleString() : result.evidence.mode === 'community' ? 'Community' : 'Modelled') : '—'} />

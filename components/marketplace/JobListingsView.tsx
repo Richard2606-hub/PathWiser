@@ -10,7 +10,7 @@ import { DEMO_PERSONAS } from '@/lib/corpus/personas';
 import { navigate } from '@/lib/engine/client';
 import { loadSavedItems, updateSavedItem } from '@/lib/marketplace/saved';
 import { type MarketplaceJob, type RankedMarketplaceJob, rankMarketplaceJobs } from '@/lib/marketplace/rank';
-import { formatMYR } from '@/lib/utils';
+import { formatMYR, resolveShape } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 
 interface JobsResponse {
@@ -20,7 +20,7 @@ interface JobsResponse {
 }
 
 export function JobListingsView() {
-  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const showToast = useAppStore((state) => state.showToast);
   const [jobs, setJobs] = useState<RankedMarketplaceJob[]>([]);
   const [scope, setScope] = useState<JobsResponse['data_scope']>('modelled-marketplace');

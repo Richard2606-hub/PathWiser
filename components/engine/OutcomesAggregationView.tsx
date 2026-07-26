@@ -8,10 +8,10 @@ import { Callout } from '@/components/common/Callout';
 import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { Pill } from '@/components/common/Pill';
 import { Button } from '@/components/common/Button';
-import { formatMYR, formatPct } from '@/lib/utils';
+import { formatMYR, formatPct, resolveShape } from '@/lib/utils';
 
 export function OutcomesAggregationView() {
-  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const [result, setResult] = useState<NavigateResponse | null>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(true);

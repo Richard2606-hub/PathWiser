@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { DEMO_PERSONAS } from '@/lib/corpus/personas';
+import { resolveShape } from '@/lib/utils';
 import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
 
@@ -16,7 +17,7 @@ const QUICK_TOPICS = [
 
 export function AICoachView() {
   const showToast = useAppStore((state) => state.showToast);
-  const shape = useAppStore((state) => state.shape) || DEMO_PERSONAS.aisyah.shape;
+  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', text: 'Welcome. I reason only over a retrieved trajectory cohort and never predict an individual outcome. What decision would you like to examine?' }]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
