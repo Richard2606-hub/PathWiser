@@ -16,7 +16,11 @@ import { formatMYR, formatPct, resolveShape, isCompleteShape } from '@/lib/utils
 export function PathNavigatorView() {
   const storeShape = useAppStore((s) => s.shape);
   const openOnboarding = useAppStore((s) => s.openOnboarding);
-  const shape = resolveShape(storeShape, DEMO_PERSONAS.aisyah.shape);
+  const shape = useMemo(() => resolveShape(storeShape, DEMO_PERSONAS.aisyah.shape), [storeShape]);
+  const shapeKey = useMemo(
+    () => `${shape.role}-${shape.years_experience}-${shape.state}-${(shape.skills || []).join(',')}-${shape.persona}`,
+    [shape],
+  );
   const usingExample = !isCompleteShape(storeShape);
   const compareMode = useAppStore((s) => s.compareMode);
   const compareNodes = useAppStore((s) => s.compareNodes);
@@ -44,7 +48,7 @@ export function PathNavigatorView() {
       .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, [shape, requestVersion]);
+  }, [shapeKey, requestVersion]);
 
   const cohortSize = result && 'cohort' in result ? result.cohort.size : null;
   const nextRoles = useMemo(
