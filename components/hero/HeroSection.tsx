@@ -55,8 +55,9 @@ export function HeroSection() {
             <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-3 py-1.5 text-xs font-semibold text-[color:var(--text-2)] shadow-sm"><span className="h-2 w-2 rounded-full bg-[color:var(--emerald)]" />Evidence-based career decisions</span>
             <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-[64px]">Make your next career move with <span className="text-[color:var(--yellow)]">evidence</span>, not guesswork.</h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-[color:var(--text-2)] sm:text-lg">PathWiser turns privacy-protected career trajectories into realistic options for candidates, employers and universities—without pretending to predict anyone’s future.</p>
-            <div className="mt-8 flex flex-wrap gap-3"><Button size="lg" onClick={openOnboarding}>Build your career profile <span aria-hidden="true">→</span></Button><Button size="lg" variant="outline" onClick={() => quickLaunch('aisyah')}>See an example</Button></div>
-            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[color:var(--text-2)]"><span>✓ Cohort-based evidence</span><span>✓ Revocable consent</span><span>✓ No individual prediction score</span></div>
+            <div className="mt-8 flex flex-wrap gap-3"><Button size="lg" onClick={openOnboarding}>Build your career profile <span aria-hidden="true">→</span></Button><Button size="lg" variant="outline" onClick={() => quickLaunch(selected.preview)}>See a live {selected.title.toLowerCase()} example</Button></div>
+            <p className="mt-3 text-xs text-[color:var(--text-3)]">New here? Build a profile in ~2 minutes, or explore a modelled example instantly — no account needed.</p>
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[color:var(--text-2)]"><span>✓ Cohort-based evidence</span><span>✓ Revocable consent</span><span>✓ No individual prediction score</span></div>
           </div>
 
           <div className="rounded-[24px] border border-[color:var(--border)] bg-white p-4 shadow-[0_24px_70px_rgba(30,41,59,0.14)] sm:p-6">
