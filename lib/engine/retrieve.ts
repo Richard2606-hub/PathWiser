@@ -101,9 +101,26 @@ async function retrieveDemoMode(shape: UserShape, opts: RetrieveOptions): Promis
     return true;
   });
 
-  // 2. Score by cosine similarity
+  // 2. Score by cosine similarity + starting role relevance boost
   const scored = filtered
-    .map((t) => ({ trajectory: t, similarity: cosineSimilarity(queryVector, t.featureVector) }))
+    .map((t) => {
+      let sim = cosineSimilarity(queryVector, t.featureVector);
+      const startRole = (t.path[0]?.role || '').toLowerCase();
+      const targetRole = shape.role.toLowerCase();
+
+      if (startRole === targetRole) {
+        sim += 0.50; // Direct match
+      } else if (startRole.includes(targetRole) || targetRole.includes(startRole)) {
+        sim += 0.30; // Partial match
+      } else {
+        const startWords = startRole.split(/[\s/]+/).filter((w) => w.length > 2);
+        const targetWords = targetRole.split(/[\s/]+/).filter((w) => w.length > 2);
+        if (startWords.some((w) => targetWords.includes(w))) {
+          sim += 0.20; // Shared discipline word match
+        }
+      }
+      return { trajectory: t, similarity: sim };
+    })
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, k);
 

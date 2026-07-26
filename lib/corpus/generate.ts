@@ -201,14 +201,14 @@ const LIFE_STAGE_BY_STARTING_SENIORITY: Record<string, LifeStage> = {
   exec: 'senior_career',
 };
 
-function generateOneTrajectory(seed: number, sector: string): Trajectory {
+function generateOneTrajectory(seed: number, sector: string, forcedStartOcc?: Occupation): Trajectory {
   const rng = seededRandom(seed);
   const state = pickRandom([...MY_STATES], rng);
   const sectorOccupations = occupationsBySector(sector);
 
   // Start with an entry/junior/mid role
   const startPool = sectorOccupations.filter((o) => ['entry', 'junior', 'mid'].includes(o.seniority));
-  const startOcc = pickRandom(startPool, rng);
+  const startOcc = forcedStartOcc || pickRandom(startPool.length ? startPool : sectorOccupations, rng);
   const startSeniorityIdx = SENIORITY_ORDER.indexOf(startOcc.seniority);
 
   const life_stage = LIFE_STAGE_BY_STARTING_SENIORITY[startOcc.seniority] || 'early_career';
@@ -293,9 +293,11 @@ export function generateCorpus(count = 1500, baseSeed = 42): Array<Trajectory & 
   const corpus: Array<Trajectory & { featureVector: number[] }> = [];
 
   for (const sector of SECTORS) {
+    const sectorOccs = occupationsBySector(sector).filter((o) => ['entry', 'junior', 'mid'].includes(o.seniority));
     for (let i = 0; i < perSector; i++) {
       const seed = baseSeed + corpus.length;
-      const traj = generateOneTrajectory(seed, sector);
+      const forcedOcc = sectorOccs.length ? sectorOccs[i % sectorOccs.length] : undefined;
+      const traj = generateOneTrajectory(seed, sector, forcedOcc);
       const finalStep = traj.path[traj.path.length - 1];
       const finalOcc = finalStep ? findOccupation(finalStep.role) : undefined;
       const finalSeniority = finalOcc?.seniority || 'mid';
