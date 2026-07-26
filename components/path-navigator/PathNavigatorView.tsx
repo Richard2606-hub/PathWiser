@@ -71,16 +71,38 @@ export function PathNavigatorView() {
   const graphNodes = useMemo(() => {
     if (!nextRoles.length) return [];
     const shown = Math.min(6, nextRoles.length);
-    return nextRoles.slice(0, shown).map((r, i) => ({
-      id: r.role,
-      label: r.role,
-      x: 380 + Math.cos((i / Math.max(1, shown - 1)) * Math.PI * 1.4 - Math.PI * 0.7) * 220,
-      y: 200 + Math.sin((i / Math.max(1, shown - 1)) * Math.PI * 1.4 - Math.PI * 0.7) * 130,
-      salary: salaries[r.role]?.median,
-      cohort: r.count,
-      probability: r.probability,
-      isMycol: r.is_mycol_critical,
-    }));
+    const col1Count = Math.ceil(shown / 2);
+    const col2Count = shown - col1Count;
+
+    const col1X = 340;
+    const col2X = 580;
+    const startY = 85;
+    const endY = 335;
+
+    return nextRoles.slice(0, shown).map((r, i) => {
+      let x: number;
+      let y: number;
+
+      if (i < col1Count) {
+        x = col1X;
+        y = col1Count === 1 ? 210 : startY + (i / (col1Count - 1)) * (endY - startY);
+      } else {
+        const idx2 = i - col1Count;
+        x = col2X;
+        y = col2Count === 1 ? 210 : startY + (idx2 / (col2Count - 1)) * (endY - startY);
+      }
+
+      return {
+        id: r.role,
+        label: r.role,
+        x,
+        y,
+        salary: salaries[r.role]?.median,
+        cohort: r.count,
+        probability: r.probability,
+        isMycol: r.is_mycol_critical,
+      };
+    });
   }, [nextRoles, salaries]);
 
   if (loading) return <LoadingSkeleton />;
