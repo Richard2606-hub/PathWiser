@@ -36,7 +36,7 @@ export function LifeChapterDesignerView() {
     const saved = await saveWorkspaceRecord({
       module: 'life_chapter_designer',
       record_type: 'chapter_plan',
-      title: `${CHAPTERS[chapter].label} chapter - ${months} months`,
+      title: `${shape?.role || 'Career'} · ${CHAPTERS[chapter].label} chapter - ${months} months`,
       status: 'active',
       payload: { chapter, months, constraint, plan },
       next_review_at: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),

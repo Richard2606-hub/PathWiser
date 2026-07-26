@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Callout } from '@/components/common/Callout';
 import { Pill } from '@/components/common/Pill';
@@ -9,14 +9,7 @@ import { DEMO_PERSONAS } from '@/lib/corpus/personas';
 import { resolveShape } from '@/lib/utils';
 import { saveWorkspaceRecord } from '@/lib/records/client';
 import { useAppStore } from '@/store/useAppStore';
-
-const STARTER_EVIDENCE = [
-  { skill: 'SQL', source: 'Capstone analytics project', confidence: 82 },
-  { skill: 'Python', source: 'Portfolio notebook', confidence: 76 },
-  { skill: 'Communication', source: 'Peer presentation review', confidence: 71 },
-];
-
-import { OCCUPATIONS, findOccupation } from '@/lib/corpus/occupations';
+import { findOccupation } from '@/lib/corpus/occupations';
 
 export function LivingPortfolioView() {
   const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
