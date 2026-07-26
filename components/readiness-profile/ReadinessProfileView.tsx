@@ -13,9 +13,12 @@ interface Capability { skill: string; status: 'declared' | 'bridge'; prevalence?
 
 export function ReadinessProfileView() {
   const showToast = useAppStore((state) => state.showToast);
-  const [student, setStudent] = useState('Student profile');
-  const [targetRole, setTargetRole] = useState('Junior Data Scientist');
-  const [skills, setSkills] = useState('Python, SQL, Core Algorithms');
+  const storeShape = useAppStore((state) => state.shape);
+  const identity = useAppStore((state) => state.identity);
+
+  const [student, setStudent] = useState(identity.name !== 'You' ? identity.name : 'Student profile');
+  const [targetRole, setTargetRole] = useState(storeShape?.role || 'Junior Data Scientist');
+  const [skills, setSkills] = useState(storeShape?.skills?.length ? storeShape.skills.join(', ') : 'Python, SQL, Core Algorithms');
   const [capabilities, setCapabilities] = useState<Capability[]>([]);
   const [cohortSize, setCohortSize] = useState(0);
   const [source, setSource] = useState('Not analysed');
@@ -25,6 +28,12 @@ export function ReadinessProfileView() {
   const [learningEvents, setLearningEvents] = useState<string[]>([]);
   const [savedSnapshots, setSavedSnapshots] = useState(0);
   const [persistence, setPersistence] = useState<'account'|'device'>('device');
+
+  useEffect(() => {
+    if (storeShape?.role) setTargetRole(storeShape.role);
+    if (storeShape?.skills?.length) setSkills(storeShape.skills.join(', '));
+    if (identity.name && identity.name !== 'You') setStudent(identity.name);
+  }, [storeShape?.role, storeShape?.skills, identity.name]);
 
   const analyse = async (event?: FormEvent) => {
     event?.preventDefault(); setLoading(true);

@@ -34,11 +34,19 @@ function bandFromOccupation(role: string, state: string) {
 
 export function FairPayView() {
   const showToast = useAppStore((s) => s.showToast);
-  const [role, setRole] = useState('Software Engineer');
+  const storeShape = useAppStore((s) => s.shape);
+
+  const [role, setRole] = useState(storeShape?.role || 'Software Engineer');
   const [salary, setSalary] = useState(5500);
-  const [location, setLocation] = useState('Kuala Lumpur');
-  const [experience, setExperience] = useState(3);
+  const [location, setLocation] = useState(storeShape?.state || 'Kuala Lumpur');
+  const [experience, setExperience] = useState(storeShape?.years_experience || 3);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (storeShape?.role) setRole(storeShape.role);
+    if (storeShape?.state) setLocation(storeShape.state);
+    if (typeof storeShape?.years_experience === 'number') setExperience(storeShape.years_experience);
+  }, [storeShape?.role, storeShape?.state, storeShape?.years_experience]);
 
   const [b, setB] = useState<{ p10: number; p25: number; median: number; p75: number; p90: number; name: string; cohortSize: number; source: 'cohort' | 'calibrated' } | null>(null);
 

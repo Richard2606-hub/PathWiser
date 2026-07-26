@@ -16,14 +16,33 @@ const STARTER_EVIDENCE = [
   { skill: 'Communication', source: 'Peer presentation review', confidence: 71 },
 ];
 
+import { OCCUPATIONS, findOccupation } from '@/lib/corpus/occupations';
+
 export function LivingPortfolioView() {
   const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
   const showToast = useAppStore((state) => state.showToast);
-  const [targetRole, setTargetRole] = useState('Data Analyst');
-  const [evidence, setEvidence] = useState(STARTER_EVIDENCE);
+  const [targetRole, setTargetRole] = useState(shape.role || 'Data Analyst');
+  const [evidence, setEvidence] = useState(() => {
+    return shape.skills.map((sk, idx) => ({
+      skill: sk,
+      source: idx === 0 ? 'Capstone analytics project' : idx === 1 ? 'Portfolio notebook' : 'Peer review',
+      confidence: 70 + (idx * 5) % 25,
+    }));
+  });
   const [skill, setSkill] = useState('');
   const [source, setSource] = useState('');
   const [sharing, setSharing] = useState(false);
+
+  useEffect(() => {
+    if (shape.role) setTargetRole(shape.role);
+    if (shape.skills.length) {
+      setEvidence(shape.skills.map((sk, idx) => ({
+        skill: sk,
+        source: idx === 0 ? 'Capstone analytics project' : idx === 1 ? 'Portfolio notebook' : 'Peer review',
+        confidence: 70 + (idx * 5) % 25,
+      })));
+    }
+  }, [shape.role, shape.skills]);
 
   const readiness = useMemo(() => {
     const declared = new Set(shape.skills.map((item) => item.toLowerCase()));
@@ -32,13 +51,10 @@ export function LivingPortfolioView() {
   }, [evidence, shape.skills]);
 
   const gaps = useMemo(() => {
-    const roleGaps: Record<string, string[]> = {
-      'Data Analyst': ['Dashboard storytelling', 'Experiment design', 'Stakeholder framing'],
-      'Software Engineer': ['System design', 'Testing discipline', 'Cloud deployment'],
-      'Product Manager': ['Discovery interviews', 'Roadmap trade-offs', 'Metric design'],
-    };
+    const matchingOcc = findOccupation(targetRole);
+    const typicalGaps = matchingOcc?.typical_skills || ['System design', 'Testing discipline', 'Cloud deployment'];
     const owned = new Set(evidence.map((item) => item.skill.toLowerCase()));
-    return (roleGaps[targetRole] || roleGaps['Data Analyst']).filter((item) => !owned.has(item.toLowerCase()));
+    return typicalGaps.filter((item) => !owned.has(item.toLowerCase())).slice(0, 4);
   }, [evidence, targetRole]);
 
   const addEvidence = () => {

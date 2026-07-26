@@ -16,6 +16,7 @@ const CHAPTERS = {
 
 export function LifeChapterDesignerView() {
   const showToast = useAppStore((state) => state.showToast);
+  const shape = useAppStore((state) => state.shape);
   const [chapter, setChapter] = useState<keyof typeof CHAPTERS>('acceleration');
   const [months, setMonths] = useState(6);
   const [constraint, setConstraint] = useState('Limited time outside work');

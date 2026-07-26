@@ -8,16 +8,16 @@ import { Callout } from '@/components/common/Callout';
 import { Button } from '@/components/common/Button';
 
 interface Message { role: 'user' | 'assistant'; text: string; }
-const QUICK_TOPICS = [
-  { title: 'Career pivot', prompt: 'What cohort evidence should I consider before moving from data analytics into product management?' },
-  { title: 'Salary context', prompt: 'What salary ranges appear around the realistic next roles in my cohort?' },
-  { title: 'Skill bridge', prompt: 'Which skill bridges are most common for people moving toward machine learning?' },
-  { title: 'Trade-offs', prompt: 'Compare the trade-offs between a technical individual-contributor path and management.' },
-];
-
 export function AICoachView() {
   const showToast = useAppStore((state) => state.showToast);
   const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
+
+  const quickTopics = [
+    { title: 'Career pivot', prompt: `What cohort evidence should I consider before moving from ${shape.role} into adjacent leadership roles?` },
+    { title: 'Salary context', prompt: `What salary ranges appear around the realistic next roles for a ${shape.role}?` },
+    { title: 'Skill bridge', prompt: `Which skill bridges are most common for a ${shape.role} aiming for career advancement?` },
+    { title: 'Trade-offs', prompt: `Compare the trade-offs between continuing as a ${shape.role} versus pivoting to management.` },
+  ];
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', text: 'Welcome. I reason only over a retrieved trajectory cohort and never predict an individual outcome. What decision would you like to examine?' }]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
@@ -48,7 +48,7 @@ export function AICoachView() {
       <div ref={scrollRef} className="flex min-h-[340px] max-h-[480px] flex-col gap-3 overflow-y-auto p-3.5" aria-live="polite">{messages.map((message, index) => <MessageBubble key={`${message.role}-${index}`} message={message} />)}{typing && <div className="self-start rounded-2xl bg-[color:var(--bg-elevated)] px-3.5 py-2 text-xs">Retrieving and validating cohort evidence…</div>}</div>
       <div className="flex gap-2 border-t border-[color:var(--border)] p-2.5"><label htmlFor="coach-question" className="sr-only">Question for the Career Twin Coach</label><input id="coach-question" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void send(input); }} maxLength={2000} placeholder="Ask about options, bridges, ranges, or trade-offs" className="community-input flex-1" /><Button onClick={() => void send(input)} disabled={typing || !input.trim()}>Send</Button></div>
     </section>
-    <aside className="flex flex-col gap-2"><span className="font-mono text-[10px] uppercase text-[color:var(--text-2)]">Evidence questions</span>{QUICK_TOPICS.map((topic) => <button key={topic.title} type="button" onClick={() => void send(topic.prompt)} disabled={typing} className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-3 text-left transition hover:border-[color:var(--yellow)] disabled:opacity-50"><strong className="text-sm">{topic.title}</strong><span className="mt-1 block text-[11px] text-[color:var(--text-3)]">{topic.prompt}</span></button>)}<Callout tone="teal"><strong>How answers are controlled</strong><p className="mt-1">A fresh cohort is retrieved for the saved shape. Unknown numbers and predictive language are prohibited. A failed validation is replaced by a deterministic cohort summary.</p></Callout></aside>
+    <aside className="flex flex-col gap-2"><span className="font-mono text-[10px] uppercase text-[color:var(--text-2)]">Evidence questions</span>{quickTopics.map((topic) => <button key={topic.title} type="button" onClick={() => void send(topic.prompt)} disabled={typing} className="rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)] p-3 text-left transition hover:border-[color:var(--yellow)] disabled:opacity-50"><strong className="text-sm">{topic.title}</strong><span className="mt-1 block text-[11px] text-[color:var(--text-3)]">{topic.prompt}</span></button>)}<Callout tone="teal"><strong>How answers are controlled</strong><p className="mt-1">A fresh cohort is retrieved for the saved shape. Unknown numbers and predictive language are prohibited. A failed validation is replaced by a deterministic cohort summary.</p></Callout></aside>
   </div>;
 }
 
