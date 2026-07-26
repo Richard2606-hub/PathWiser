@@ -95,6 +95,12 @@ function relatednessScore(from: Occupation, fromFamilies: Set<string>, to: Occup
     stemBoost = 20;
   }
 
+  // Strict penalty: if they don't share any title words and have 1 or fewer exact skills in common,
+  // zero out the relatedness score to prevent unrealistic cross-discipline jumps (e.g. Data Analyst -> Software Engineer).
+  if (stemBoost === 0 && exact < 2) {
+    return 0;
+  }
+
   return 3 * exact + 2 * family + stemBoost;
 }
 
