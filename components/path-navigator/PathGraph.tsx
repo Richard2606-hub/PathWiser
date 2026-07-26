@@ -29,6 +29,12 @@ export function PathGraph({ nodes, currentRole, selectedNode, onNodeClick }: Pat
   // Root "YOU" node
   const you = { id: '__you', label: 'YOU', x: 80, y: 200, r: 22 };
 
+  // Encode size/weight RELATIVE to the strongest destination so the leading
+  // move stands out even when the whole distribution sits at single digits
+  // (a realistic, diverse cohort rarely has one 25% path).
+  const maxProb = Math.max(0.0001, ...nodes.map((n) => n.probability));
+  const rel = (p: number) => p / maxProb; // 0..1, leader = 1
+
   const handleClick = (id: string) => {
     if (compareMode) {
       if (compareNodes.includes(id)) removeCompareNode(id);
@@ -98,17 +104,18 @@ export function PathGraph({ nodes, currentRole, selectedNode, onNodeClick }: Pat
           </filter>
         </defs>
 
-        {/* Edges */}
-        {nodes.map((n) => (
+        {/* Edges — thicker + more opaque toward higher-share destinations; the
+            top-ranked (first) destination gets a solid connector. */}
+        {nodes.map((n, idx) => (
           <line
             key={`e-${n.id}`}
             x1={you.x}
             y1={you.y}
             x2={n.x}
             y2={n.y}
-            stroke="rgba(79,70,229,0.18)"
-            strokeWidth="2"
-            strokeDasharray="4 4"
+            stroke={`rgba(79,70,229,${(0.15 + rel(n.probability) * 0.4).toFixed(2)})`}
+            strokeWidth={(1.25 + rel(n.probability) * 2.25).toFixed(2)}
+            strokeDasharray={idx === 0 ? undefined : '4 4'}
           />
         ))}
 
@@ -122,11 +129,13 @@ export function PathGraph({ nodes, currentRole, selectedNode, onNodeClick }: Pat
         </text>
 
         {/* Destination nodes */}
-        {nodes.map((n) => {
+        {nodes.map((n, idx) => {
           const isSelected = selectedNode === n.id && !compareMode;
           const isInCompare = compareMode && compareNodes.includes(n.id);
-          const r = 14 + Math.min(8, n.probability * 24);
-          const fillOpacity = n.probability > 0.15 ? 0.95 : 0.5;
+          const isPrimary = idx === 0; // the top-ranked (most common) next move
+          // Size + emphasis scale with the destination's share relative to the leader.
+          const r = 15 + rel(n.probability) * 11;
+          const fillOpacity = 0.55 + rel(n.probability) * 0.4;
 
           return (
             <g
@@ -184,12 +193,12 @@ export function PathGraph({ nodes, currentRole, selectedNode, onNodeClick }: Pat
                   pointerEvents="none"
                 />
               )}
-              {/* Node body */}
+              {/* Node body — the leading move is solid accent, the rest neutral */}
               <circle
                 cx={n.x}
                 cy={n.y}
                 r={r}
-                fill={n.probability > 0.15 ? 'var(--yellow)' : 'var(--text-3)'}
+                fill={isPrimary ? 'var(--yellow)' : 'var(--text-3)'}
                 opacity={fillOpacity}
               />
               {/* Probability label */}
