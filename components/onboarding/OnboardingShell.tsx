@@ -184,16 +184,16 @@ export function OnboardingShell() {
           {step === 3 && (
             <EscoNormalization
               persona={effectiveRole}
-              role={profileValues?.role || 'Junior Data Analyst'}
-              skills={profileValues?.skills || ['SQL', 'Python']}
+              role={profileValues?.role || useAppStore.getState().shape?.role || 'Software Engineer'}
+              skills={profileValues?.skills || useAppStore.getState().shape?.skills || ['SQL', 'Python']}
             />
           )}
           {step === 4 && (
             <ShapeSummary
               persona={effectiveRole}
-              name={profileValues?.name}
-              role={profileValues?.role}
-              skills={profileValues?.skills}
+              name={profileValues?.name || useAppStore.getState().identity.name}
+              role={profileValues?.role || useAppStore.getState().shape?.role}
+              skills={profileValues?.skills || useAppStore.getState().shape?.skills}
             />
           )}
         </div>
