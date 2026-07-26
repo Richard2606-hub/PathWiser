@@ -48,6 +48,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const setPersona = useAppStore((s) => s.setPersona);
   const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
   const pathname = usePathname();
+  const isActive = (href: string) => pathname === href;
 
   const theme = useAppStore((s) => s.theme);
   const toggleTheme = useAppStore((s) => s.toggleTheme);
