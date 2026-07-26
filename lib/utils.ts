@@ -31,7 +31,26 @@ export function isCompleteShape(shape: UserShape | null | undefined): shape is U
  * profile.
  */
 export function resolveShape(shape: UserShape | null | undefined, fallback: UserShape): UserShape {
-  return isCompleteShape(shape) ? shape : fallback;
+  const target = isCompleteShape(shape) ? shape : fallback;
+  return sanitizeShape(target);
+}
+
+export function sanitizeShape(shape: UserShape): UserShape {
+  const cleanSkills = (shape.skills || [])
+    .map((s) => (typeof s === 'string' ? s.trim() : ''))
+    .filter((s) => s.length > 0 && s.length <= 80);
+
+  return {
+    ...shape,
+    userId: shape.userId?.trim() || 'anon',
+    persona: ['candidate', 'employer', 'university'].includes(shape.persona) ? shape.persona : 'candidate',
+    role: shape.role?.trim() || 'Software Engineer',
+    education: shape.education?.trim() || "Bachelor's Degree",
+    years_experience: typeof shape.years_experience === 'number' && !isNaN(shape.years_experience) ? Math.max(0, Math.min(60, shape.years_experience)) : 3,
+    state: shape.state?.trim() || 'Kuala Lumpur',
+    skills: cleanSkills.length > 0 ? cleanSkills.slice(0, 50) : ['Software Engineering', 'Problem Solving'],
+    life_stage: ['student', 'young_adult', 'early_career', 'mid_career', 'senior_career', 'executive'].includes(shape.life_stage) ? shape.life_stage : 'early_career',
+  };
 }
 
 /** Format a MYR amount as RM 5,500/m or RM 12,000. */

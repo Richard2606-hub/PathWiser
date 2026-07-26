@@ -116,7 +116,8 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: 'invalid_input', issues: err.issues }, { status: 400 });
+      console.warn('[PathWiser] Navigate Zod validation failed:', err.issues);
+      return NextResponse.json({ error: 'invalid_input', message: 'Profile shape validation failed.', issues: err.issues }, { status: 400 });
     }
     if (isTransientAIError(err) || err instanceof EvidenceServiceUnavailableError) {
       void recordEngineEvent({ module: 'navigate', latencyMs: Date.now() - startedAt, outcome: 'error' });

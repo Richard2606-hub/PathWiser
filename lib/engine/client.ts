@@ -5,6 +5,7 @@
 
 import type { UserShape, Aggregate, Explanation, EvidenceProvenance } from '@/types';
 import type { EvidenceMode } from '@/lib/evidence';
+import { sanitizeShape } from '@/lib/utils';
 
 export interface NavigateOptions {
   currentStepIndex?: number;
@@ -36,9 +37,10 @@ export interface CohortTooSmallResponse {
 }
 
 export async function navigate(
-  shape: UserShape,
+  rawShape: UserShape,
   options: NavigateOptions = {}
 ): Promise<NavigateResponse | CohortTooSmallResponse> {
+  const shape = sanitizeShape(rawShape);
   const evidenceMode = options.evidenceMode ??
     (shape.userId === 'anon' || shape.userId.startsWith('demo-') ? 'modelled' : 'community');
   const res = await fetch('/api/engine/navigate', {
