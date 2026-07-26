@@ -82,7 +82,15 @@ function relatednessScore(from: Occupation, fromFamilies: Set<string>, to: Occup
   let family = 0;
   const toFamilies = familySet(to);
   for (const fam of toFamilies) if (fromFamilies.has(fam)) family++;
-  return 2 * exact + family;
+
+  const cleanFrom = from.role.replace(/^(Junior|Senior|Lead|Principal|Head of|Director of|Chief|VP of)\s+/i, '').toLowerCase();
+  const cleanTo = to.role.replace(/^(Junior|Senior|Lead|Principal|Head of|Director of|Chief|VP of)\s+/i, '').toLowerCase();
+  let stemBoost = 0;
+  if (cleanFrom === cleanTo || cleanFrom.includes(cleanTo) || cleanTo.includes(cleanFrom)) {
+    stemBoost = 12;
+  }
+
+  return 3 * exact + 2 * family + stemBoost;
 }
 
 const SENIORITY_ORDER: Array<'entry' | 'junior' | 'mid' | 'senior' | 'lead' | 'exec'> = [
