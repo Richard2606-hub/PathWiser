@@ -48,3 +48,4 @@ export function getCorpusStats() {
 
 export { generateCorpus, shapeToFeatureVector, trajectoryToFeatureVector } from './generate';
 export { OCCUPATIONS, SECTORS, MY_STATES } from './occupations';
+export { UNIVERSITIES, type UniversityProfile } from './universities';
