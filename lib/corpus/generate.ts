@@ -87,7 +87,7 @@ function relatednessScore(from: Occupation, fromFamilies: Set<string>, to: Occup
   const cleanTo = to.role.replace(/^(Junior|Senior|Lead|Principal|Head of|Director of|Chief|VP of)\s+/i, '').toLowerCase();
   let stemBoost = 0;
   if (cleanFrom === cleanTo || cleanFrom.includes(cleanTo) || cleanTo.includes(cleanFrom)) {
-    stemBoost = 12;
+    stemBoost = 20;
   }
 
   return 3 * exact + 2 * family + stemBoost;
@@ -220,15 +220,18 @@ function generateOneTrajectory(seed: number, sector: string): Trajectory {
       if (!stay && currentSeniorityIdx < SENIORITY_ORDER.length - 1) {
         currentSeniorityIdx++;
       }
-      const currentSeniority = SENIORITY_ORDER[currentSeniorityIdx];
-      const candidates = sectorOccupations.filter((o) => o.seniority === currentSeniority);
+      const targetSeniorities = [
+        SENIORITY_ORDER[currentSeniorityIdx],
+        SENIORITY_ORDER[Math.min(SENIORITY_ORDER.length - 1, currentSeniorityIdx + 1)],
+      ];
+      const candidates = sectorOccupations.filter((o) => targetSeniorities.includes(o.seniority) && o.role !== currentOcc.role);
       if (candidates.length) {
         // Weight the next role by how related it is to the current one, so a
         // coherent track dominates while adjacent moves stay possible.
         const fromFamilies = familySet(currentOcc);
         const weighted = candidates.map((o) => {
           const score = relatednessScore(currentOcc, fromFamilies, o);
-          return { item: o, weight: 1 + score * score * 2.5 };
+          return { item: o, weight: 1 + Math.pow(score, 3) * 20 };
         });
         currentOcc = pickWeighted(weighted, rng);
       }
