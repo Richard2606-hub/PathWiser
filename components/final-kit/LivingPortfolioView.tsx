@@ -9,7 +9,7 @@ import { DEMO_PERSONAS } from '@/lib/corpus/personas';
 import { resolveShape } from '@/lib/utils';
 import { saveWorkspaceRecord } from '@/lib/records/client';
 import { useAppStore } from '@/store/useAppStore';
-import { findOccupation } from '@/lib/corpus/occupations';
+import { findOccupation, SECTORS, occupationsBySector } from '@/lib/corpus/occupations';
 
 export function LivingPortfolioView() {
   const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
@@ -93,9 +93,13 @@ export function LivingPortfolioView() {
           <label className="mt-3 block text-xs">
             Target role
             <select value={targetRole} onChange={(event) => setTargetRole(event.target.value)} className="community-input mt-1">
-              <option>Data Analyst</option>
-              <option>Software Engineer</option>
-              <option>Product Manager</option>
+              {SECTORS.map((sec) => (
+                <optgroup key={sec} label={sec}>
+                  {occupationsBySector(sec).map((o) => (
+                    <option key={o.role} value={o.role}>{o.role}</option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </label>
           <label className="mt-3 flex items-center gap-2 text-xs">
