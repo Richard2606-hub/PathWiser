@@ -117,7 +117,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <details className="rounded-xl bg-[color:var(--bg-elevated)]">
         <summary className="cursor-pointer px-3 py-2.5 text-[11px] font-semibold text-[color:var(--text-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--yellow)]">
-          Technical details
+          🔍 How the engine works <span className="font-normal text-[color:var(--text-3)]">· optional</span>
         </summary>
         <div className="flex flex-col gap-3 border-t border-[color:var(--border)] p-3">
           <ModuleTile module={MODULES.architecture} isActive={isActive} onNavigate={onNavigate} wide gradient />
