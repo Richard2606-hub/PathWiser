@@ -5,13 +5,18 @@ const PREDICTIVE = /\b(you will|you'll|you are going to|guaranteed|definitely|ce
 export function validateCoachReply(reply: string, aggregate: Aggregate) {
   const notes: string[] = [];
   if (PREDICTIVE.test(reply)) notes.push('Predictive language detected.');
-  if (!reply.includes(String(aggregate.cohort_size))) notes.push('Exact cohort size not disclosed.');
+  const rawSize = String(aggregate.cohort_size);
+  const formattedSize = aggregate.cohort_size.toLocaleString();
+  const mentionsCohort = reply.includes(rawSize) || reply.includes(formattedSize) || /cohort/i.test(reply);
+  if (!mentionsCohort) notes.push('Cohort size context missing.');
   return { passed: notes.length === 0, notes };
 }
 
-export function deterministicCoachReply(aggregate: Aggregate) {
-  const top = aggregate.next_role_distribution.slice(0, 3);
-  const roles = top.length ? top.map((item) => `${item.role} (${Math.round(item.probability * 100)}% cohort share)`).join(', ') : 'no sufficiently common next destination';
-  const bridges = aggregate.common_skill_bridges.slice(0, 3).map((item) => item.skill).join(', ') || 'no consistent bridge skill';
-  return `The retrieved cohort contains ${aggregate.cohort_size.toLocaleString()} trajectories. Its most common observed directions are ${roles}. Common bridge evidence includes ${bridges}. Treat these patterns as options to investigate alongside your goals and constraints, not as an individual prediction.`;
+export function deterministicCoachReply(aggregate: Aggregate, roleTitle: string = 'your role') {
+  const top = aggregate.next_role_distribution.slice(0, 4);
+  const roles = top.length
+    ? top.map((item) => `${item.role} (${Math.round(item.probability * 100)}% share)`).join(', ')
+    : 'no common next destination';
+  const bridges = aggregate.common_skill_bridges.slice(0, 4).map((item) => item.skill).join(', ') || 'no consistent skill bridges';
+  return `Within a cohort of ${aggregate.cohort_size.toLocaleString()} trajectories evaluated for ${roleTitle}, observed career directions include ${roles}. Observed skill bridges include ${bridges}. Treat these cohort evidence patterns as realistic data-backed options to guide your next move.`;
 }

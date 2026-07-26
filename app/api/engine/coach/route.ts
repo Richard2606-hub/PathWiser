@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. System Prompt setup
-    let systemPrompt = `You are a Career AI Coach. You must guide the user based on the trajectory data provided in the context.`;
+    let systemPrompt = `You are a Career AI Coach advising a ${shape.role} (${shape.years_experience} years experience, ${shape.state}). You must answer questions specifically for a ${shape.role} using the retrieved cohort data.`;
     if (history && history.length > 0) {
       const historyStr = history.map(h => `${h.role}: ${h.content}`).join('\n');
       systemPrompt += `\n\nConversation history:\n${historyStr}`;
@@ -66,22 +66,22 @@ export async function POST(req: NextRequest) {
     let validated = true;
     let fallbackReason: 'validation_failed' | 'provider_unavailable' | null = null;
     if (!aggContext) {
-       responseText = `Only ${cohort.size} comparable trajectories were found, below the minimum cohort of 50. PathWiser cannot provide a responsible evidence-based answer for this question yet. Broaden the role, location, or skill constraints and try again.`;
+       responseText = `Only ${cohort.size} comparable trajectories were found for ${shape.role}, below the minimum cohort of 50. PathWiser cannot provide a responsible evidence-based answer for this question yet. Broaden the role, location, or skill constraints and try again.`;
     } else {
        try {
          responseText = process.env.GEMINI_API_KEY
            ? await getAIProvider().chatCompletion(systemPrompt, message, aggContext)
-           : deterministicCoachReply(aggContext);
+           : deterministicCoachReply(aggContext, shape.role);
          const validation = validateCoachReply(responseText, aggContext);
          if (!validation.passed) {
            console.warn('[PathWiser] Coach reply rejected:', validation.notes.join(' '));
-           responseText = deterministicCoachReply(aggContext);
+           responseText = deterministicCoachReply(aggContext, shape.role);
            validated = false;
            fallbackReason = 'validation_failed';
          }
        } catch (providerError) {
          console.warn('[PathWiser] Coach provider unavailable; using deterministic evidence summary:', providerError instanceof Error ? providerError.message : providerError);
-         responseText = deterministicCoachReply(aggContext);
+         responseText = deterministicCoachReply(aggContext, shape.role);
          validated = false;
          fallbackReason = 'provider_unavailable';
        }
