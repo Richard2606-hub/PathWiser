@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
@@ -43,14 +45,23 @@ const CAP_HINTS: Record<string, string> = {
  */
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const judgeEnabled = process.env.NEXT_PUBLIC_ENABLE_JUDGE_MODE === 'true';
-  const persona = useAppStore((s) => s.persona);
-  const judgeMode = useAppStore((s) => s.judgeMode);
+  
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const storePersona = useAppStore((s) => s.persona);
+  const storeJudgeMode = useAppStore((s) => s.judgeMode);
+  const storeTheme = useAppStore((s) => s.theme);
+  
+  const persona = mounted ? storePersona : 'candidate';
+  const judgeMode = mounted ? storeJudgeMode : false;
+  const theme = mounted ? storeTheme : 'light';
+
   const setPersona = useAppStore((s) => s.setPersona);
   const openLockedExplainer = useAppStore((s) => s.openLockedExplainer);
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href;
 
-  const theme = useAppStore((s) => s.theme);
   const toggleTheme = useAppStore((s) => s.toggleTheme);
 
   return (

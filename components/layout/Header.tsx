@@ -21,14 +21,24 @@ const PERSONA_LABEL: Record<string, string> = {
 export function Header() {
   const judgeEnabled = process.env.NEXT_PUBLIC_ENABLE_JUDGE_MODE === 'true';
   const router = useRouter();
-  const theme = useAppStore((s) => s.theme);
-  const toggleTheme = useAppStore((s) => s.toggleTheme);
-  const persona = useAppStore((s) => s.persona);
-  const judgeMode = useAppStore((s) => s.judgeMode);
-  const identity = useAppStore((s) => s.identity);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const storeTheme = useAppStore((s) => s.theme);
+  const storePersona = useAppStore((s) => s.persona);
+  const storeJudgeMode = useAppStore((s) => s.judgeMode);
+  const storeIdentity = useAppStore((s) => s.identity);
+
+  const theme = mounted ? storeTheme : 'light';
+  const persona = mounted ? storePersona : 'candidate';
+  const judgeMode = mounted ? storeJudgeMode : false;
+  const identity = mounted ? storeIdentity : { name: 'You', role: 'Candidate' };
+
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
   const toggleJudgeMode = useAppStore((s) => s.toggleJudgeMode);
   const setPersona = useAppStore((s) => s.setPersona);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
+
   const [evidenceStatus, setEvidenceStatus] = useState<'checking' | 'modelled' | 'community' | 'unavailable'>('checking');
 
   useEffect(() => {
