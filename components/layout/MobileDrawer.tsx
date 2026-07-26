@@ -46,7 +46,7 @@ export function MobileDrawer() {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-[320px] max-w-[88vw] lg:hidden',
-          'bg-[#0d141d] border-r border-[color:var(--border-strong)]',
+          'bg-[color:var(--bg-surface)] border-r border-[color:var(--border-strong)]',
           'overflow-y-auto shadow-2xl',
           'transition-transform duration-300 ease-out',
           'translate-x-0'
