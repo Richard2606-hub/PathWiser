@@ -1,11 +1,9 @@
 'use client';
 
 import { FormEvent, useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import { ClosableOverlay, CloseButton } from '@/components/common/ClosableOverlay';
 import { Button } from '@/components/common/Button';
-import { Pill } from '@/components/common/Pill';
 import { MY_STATES, findOccupation } from '@/lib/corpus/occupations';
 import { applyNormalization, normalizeShapeInput } from '@/lib/profile/normalize';
 import { createClient } from '@/lib/supabase/client';
@@ -185,7 +183,7 @@ export function EditProfileModal() {
   };
 
   return (
-    <ClosableOverlay open={open} onClose={closeEditProfile} maxWidth="max-w-2xl">
+    <ClosableOverlay open={open} onClose={closeEditProfile} contentClassName="max-w-2xl">
       <div className="flex items-center justify-between border-b border-[color:var(--border)] p-4 sm:p-5">
         <div>
           <h2 className="text-lg font-bold">Edit Profile</h2>
