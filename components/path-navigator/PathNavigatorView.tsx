@@ -48,6 +48,7 @@ export function PathNavigatorView() {
       .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [shapeKey, requestVersion]);
 
   const cohortSize = result && 'cohort' in result ? result.cohort.size : null;
