@@ -11,25 +11,25 @@ import { isTransientAIError } from '@/lib/ai/gemini';
 
 const ShapeSchema = z.object({
   userId: z.string().trim().min(1).max(160).default('anon'),
-  persona: z.enum(['candidate', 'employer', 'university']),
-  role: z.string().trim().min(1).max(160),
-  esco_code: z.string().trim().max(40).optional(),
-  onet_code: z.string().trim().max(40).optional(),
-  masco_code: z.string().trim().max(40).optional(),
-  education: z.string().trim().max(240),
-  years_experience: z.number().min(0).max(60),
-  state: z.string().trim().max(80),
-  skills: z.array(z.string().trim().min(1).max(80)).max(50),
-  life_stage: z.enum(['student', 'young_adult', 'early_career', 'mid_career', 'senior_career', 'executive']),
-  work_animal: z.enum(['owl', 'fox', 'bear', 'dolphin', 'eagle', 'ant']).optional(),
+  persona: z.enum(['candidate', 'employer', 'university']).default('candidate'),
+  role: z.string().trim().min(1).max(160).default('Software Engineer'),
+  esco_code: z.string().trim().max(80).optional().nullable(),
+  onet_code: z.string().trim().max(80).optional().nullable(),
+  masco_code: z.string().trim().max(80).optional().nullable(),
+  education: z.string().trim().max(240).default("Bachelor's Degree"),
+  years_experience: z.number().min(0).max(60).default(3),
+  state: z.string().trim().max(80).default('Kuala Lumpur'),
+  skills: z.array(z.string().trim().max(120)).max(100).default(['Software Engineering']),
+  life_stage: z.enum(['student', 'young_adult', 'early_career', 'mid_career', 'senior_career', 'executive']).default('early_career'),
+  work_animal: z.string().optional().nullable(),
   dimensions: z.object({
-    technical: z.number().min(0).max(100),
-    domain: z.number().min(0).max(100),
-    leadership: z.number().min(0).max(100),
-    analytics: z.number().min(0).max(100),
-    communication: z.number().min(0).max(100),
-  }).optional(),
-});
+    technical: z.number(),
+    domain: z.number(),
+    leadership: z.number(),
+    analytics: z.number(),
+    communication: z.number(),
+  }).optional().nullable(),
+}).passthrough();
 
 const RequestSchema = z.object({
   shape: ShapeSchema,
