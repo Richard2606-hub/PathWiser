@@ -9,9 +9,14 @@ import { saveWorkspaceRecord } from '@/lib/records/client';
 import { useAppStore } from '@/store/useAppStore';
 
 const INTERNSHIPS = [
-  { id: 'int-analytics', title: 'Analytics Intern', employer: 'Maybank', faculty: 'Computer Science', skills: ['SQL', 'Dashboard storytelling'], seats: 8 },
-  { id: 'int-platform', title: 'Platform Engineering Intern', employer: 'Petronas Digital', faculty: 'Engineering', skills: ['Cloud operations', 'Testing discipline'], seats: 5 },
-  { id: 'int-product', title: 'Product Discovery Intern', employer: 'Grab', faculty: 'Business', skills: ['Customer discovery', 'Metric design'], seats: 6 },
+  { id: 'int-analytics', title: 'Analytics & Data Intern', employer: 'Maybank', faculty: 'Computer Science', skills: ['SQL', 'Dashboard storytelling', 'Python'], seats: 12 },
+  { id: 'int-platform', title: 'Platform Engineering Intern', employer: 'Petronas Digital', faculty: 'Engineering', skills: ['Cloud operations', 'CI/CD', 'Docker'], seats: 8 },
+  { id: 'int-product', title: 'Product Discovery Intern', employer: 'Grab', faculty: 'Business', skills: ['Customer discovery', 'Metric design', 'Figma'], seats: 10 },
+  { id: 'int-finance', title: 'Financial Analyst Intern', employer: 'CIMB Bank', faculty: 'Business', skills: ['Financial Modeling', 'Excel', 'FP&A'], seats: 6 },
+  { id: 'int-health', title: 'Clinical Care & Informatics Intern', employer: 'KPJ Healthcare', faculty: 'Healthcare', skills: ['Patient Care', 'Clinical Systems', 'Triage'], seats: 15 },
+  { id: 'int-marketing', title: 'Growth Marketing Intern', employer: 'AirAsia MOVE', faculty: 'Business', skills: ['Google Ads', 'SEO', 'Copywriting'], seats: 8 },
+  { id: 'int-civil', title: 'BIM & Site Operations Intern', employer: 'Gamuda Berhad', faculty: 'Engineering', skills: ['AutoCAD', 'Structural Design', 'Revit'], seats: 7 },
+  { id: 'int-legal', title: 'Corporate Compliance Intern', employer: 'Zaid Ibrahim & Co', faculty: 'Law', skills: ['Legal Research', 'Drafting', 'Compliance'], seats: 4 },
 ];
 
 export function LiveInternshipMarketplaceView() {
@@ -51,6 +56,8 @@ export function LiveInternshipMarketplaceView() {
             <option>Computer Science</option>
             <option>Engineering</option>
             <option>Business</option>
+            <option>Healthcare</option>
+            <option>Law</option>
           </select>
         </label>
       </div>
