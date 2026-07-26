@@ -85,8 +85,13 @@ function relatednessScore(from: Occupation, fromFamilies: Set<string>, to: Occup
 
   const cleanFrom = from.role.replace(/^(Junior|Senior|Lead|Principal|Head of|Director of|Chief|VP of)\s+/i, '').toLowerCase();
   const cleanTo = to.role.replace(/^(Junior|Senior|Lead|Principal|Head of|Director of|Chief|VP of)\s+/i, '').toLowerCase();
+
+  const fromWords = cleanFrom.split(/[\s/]+/).filter((w) => w.length > 2);
+  const toWords = cleanTo.split(/[\s/]+/).filter((w) => w.length > 2);
+  const sharedWord = fromWords.some((w) => toWords.includes(w));
+
   let stemBoost = 0;
-  if (cleanFrom === cleanTo || cleanFrom.includes(cleanTo) || cleanTo.includes(cleanFrom)) {
+  if (cleanFrom === cleanTo || cleanFrom.includes(cleanTo) || cleanTo.includes(cleanFrom) || sharedWord) {
     stemBoost = 20;
   }
 
