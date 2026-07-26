@@ -18,9 +18,35 @@ const HORIZONS = [
 type Horizon = typeof HORIZONS[number]['key'];
 
 const PROGRAMMES = [
-  { key: 'cs', label: 'BSc Computer Science (AI/DS)', role: 'Software Engineer', skills: ['Python','SQL','Algorithms'] },
-  { key: 'it', label: 'BSc Information Technology', role: 'IT Support', skills: ['Networks','SQL','Cloud'] },
-  { key: 'biz', label: 'BSc Business Analytics', role: 'Data Analyst', skills: ['SQL','Excel','Tableau'] },
+  // Computing & analytics
+  { key: 'cs', label: 'BSc Computer Science (AI/DS)', role: 'Junior Software Engineer', skills: ['JavaScript', 'Git', 'Python basics'] },
+  { key: 'it', label: 'BSc Information Technology', role: 'IT Support Specialist', skills: ['Helpdesk', 'Networking Basics', 'Troubleshooting'] },
+  { key: 'biz', label: 'BSc Business Analytics', role: 'Junior Data Analyst', skills: ['SQL', 'Excel', 'Tableau'] },
+  // Business, finance & law
+  { key: 'acc', label: 'BAcc Accounting', role: 'Accounts Executive', skills: ['Bookkeeping', 'Excel', 'AutoCount'] },
+  { key: 'fin', label: 'BSc Finance & Banking', role: 'Financial Analyst', skills: ['Financial Modeling', 'Excel', 'Bloomberg'] },
+  { key: 'act', label: 'BSc Actuarial Science', role: 'Actuarial Analyst', skills: ['Actuarial Modeling', 'R', 'Probability'] },
+  { key: 'hr', label: 'BBA Human Resource Management', role: 'HR Executive', skills: ['Recruitment', 'Employee Relations', 'HR Policy'] },
+  { key: 'mkt', label: 'BBA Marketing', role: 'Digital Marketing Executive', skills: ['Google Ads', 'SEO', 'Copywriting'] },
+  { key: 'law', label: 'LLB Law', role: 'Legal Executive', skills: ['Legal Research', 'Drafting', 'Case Management'] },
+  // Health & life sciences
+  { key: 'nur', label: 'BSc Nursing', role: 'Staff Nurse', skills: ['Patient Care', 'Clinical Procedures', 'BLS'] },
+  { key: 'med', label: 'MBBS Medicine', role: 'Medical Officer', skills: ['Clinical Diagnosis', 'Patient Mgmt', 'Emergency Care'] },
+  { key: 'pha', label: 'BPharm Pharmacy', role: 'Pharmacist', skills: ['Dispensing', 'Clinical Pharmacy', 'Counseling'] },
+  { key: 'bio', label: 'BSc Biotechnology', role: 'Quality Control Analyst (Pharma)', skills: ['GMP', 'Lab Testing', 'HPLC'] },
+  { key: 'env', label: 'BSc Environmental Science', role: 'Environmental Officer', skills: ['EIA', 'Monitoring', 'Compliance'] },
+  // Engineering & built environment
+  { key: 'civ', label: 'BEng Civil Engineering', role: 'Civil Engineer', skills: ['Structural Design', 'AutoCAD', 'Site Supervision'] },
+  { key: 'mec', label: 'BEng Mechanical Engineering', role: 'Mechanical Engineer', skills: ['CAD', 'GD&T', 'Mechanical Design'] },
+  { key: 'ele', label: 'BEng Electrical Engineering', role: 'Electrical Engineer', skills: ['Circuit Design', 'PLC', 'Power'] },
+  { key: 'che', label: 'BEng Chemical Engineering', role: 'Chemical Engineer', skills: ['Process Design', 'Unit Operations', 'Safety'] },
+  { key: 'arc', label: 'BSc Architecture', role: 'Architect', skills: ['Design', 'Revit', 'BIM'] },
+  // Services, humanities & primary industry
+  { key: 'edu', label: 'BEd Education (Secondary)', role: 'Secondary School Teacher', skills: ['Subject Expertise', 'Pedagogy', 'Assessment'] },
+  { key: 'com', label: 'BA Mass Communication', role: 'Journalist', skills: ['Reporting', 'Writing', 'Interviewing'] },
+  { key: 'hos', label: 'BSc Hospitality Management', role: 'Guest Service Associate', skills: ['Front Desk', 'Customer Service', 'PMS'] },
+  { key: 'log', label: 'BSc Logistics & Supply Chain', role: 'Supply Chain Analyst', skills: ['Demand Planning', 'SAP', 'Forecasting'] },
+  { key: 'agr', label: 'BSc Agriculture Science', role: 'Agronomist', skills: ['Crop Science', 'Soil Analysis', 'Field Trials'] },
 ];
 
 interface OutcomeRow { role: string; share: number; count: number; salary: number | null; }

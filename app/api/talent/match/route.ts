@@ -6,7 +6,7 @@ import { getEvidenceProvenance, resolveEvidenceMode } from '@/lib/evidence';
 import { rateLimit, requireSameOrigin } from '@/lib/security/rateLimit';
 import { createClient } from '@/lib/supabase/server';
 import { getAIProvider } from '@/lib/ai';
-import type { TalentCandidateMatch, UserShape } from '@/types';
+import type { Cohort, TalentCandidateMatch, UserShape } from '@/types';
 
 const RequestSchema = z.object({
   role: z.string().trim().min(2).max(160),
@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!candidates.length) {
+      candidates = buildCandidatesFromCohort(cohort.trajectories, input.skills, cohort.size, 8);
+    }
+    if (!candidates.length) {
       candidates = MODELLED_CANDIDATES.map((candidate) => buildMatch(candidate.id, candidate.display_name, candidate.current_role, candidate.state, candidate.skills, input.skills, cohort.size, 'synthetic-example'));
     }
 
@@ -68,6 +71,34 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) return NextResponse.json({ error: 'invalid_query', issues: error.issues }, { status: 400 });
     return NextResponse.json({ error: 'talent_match_failed', message: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
+}
+
+/**
+ * Synthesise a diverse, sector-relevant candidate pool from the retrieved cohort
+ * so Talent Matching reflects the whole taxonomy — a Healthcare search surfaces
+ * Healthcare trajectories, a Skilled-Trades search surfaces tradespeople — rather
+ * than a fixed handful of data-role profiles.
+ */
+function buildCandidatesFromCohort(
+  trajectories: Cohort['trajectories'],
+  requiredSkills: string[],
+  cohortSize: number,
+  count: number,
+): TalentCandidateMatch[] {
+  if (!trajectories.length) return [];
+  const step = Math.max(1, Math.floor(trajectories.length / count));
+  const seenRole = new Set<string>();
+  const picks: TalentCandidateMatch[] = [];
+  for (let i = 0; i < trajectories.length && picks.length < count; i += step) {
+    const t = trajectories[i];
+    const current = t.path[t.path.length - 1];
+    if (!current) continue;
+    if (seenRole.has(current.role) && picks.length < count - 1) continue; // diversify roles
+    seenRole.add(current.role);
+    const skills = Array.from(new Set(t.path.flatMap((n) => n.skills_added || []))).slice(0, 6);
+    picks.push(buildMatch(t.id, `Modelled profile ${String(picks.length + 1).padStart(2, '0')}`, current.role, t.state, skills, requiredSkills, cohortSize, 'synthetic-example'));
+  }
+  return picks;
 }
 
 function buildMatch(id: string, displayName: string, currentRole: string, state: string, candidateSkills: string[], requiredSkills: string[], cohortSize: number, consentScope: TalentCandidateMatch['consent_scope']): TalentCandidateMatch {

@@ -16,6 +16,7 @@
 import { getAIProvider } from '@/lib/ai';
 import type { UserShape, Cohort, Trajectory } from '@/types';
 import { getCorpus, shapeToFeatureVector } from '@/lib/corpus';
+import { OCCUPATIONS, findOccupation } from '@/lib/corpus/occupations';
 import { cosineSimilarity, hasSupabaseConfig, hasGeminiConfig } from '@/lib/utils';
 import { resolveEvidenceMode, type EvidenceMode } from '@/lib/evidence';
 
@@ -250,11 +251,19 @@ async function retrieveFullMode(shape: UserShape, opts: RetrieveOptions): Promis
 /**
  * Infer the most likely sector from a user's shape (role + skills).
  * Used to soft-filter the demo corpus so retrieval feels contextually right.
+ *
+ * First we look the role up in the occupation taxonomy — an exact or fuzzy match
+ * gives the authoritative sector for any of the 440 roles (so a nurse retrieves
+ * Healthcare, an electrician Skilled Trades, etc.). Only when the role is
+ * genuinely unknown do we fall back to keyword heuristics, then Tech.
  */
 function inferSectorFromShape(shape: UserShape): string {
-  const role = shape.role.toLowerCase();
+  const role = shape.role.trim();
+  const taxonomySector = findOccupation(role)?.sector || fuzzyOccupationSector(role);
+  if (taxonomySector) return taxonomySector;
+
   const skills = shape.skills.map((s) => s.toLowerCase()).join(' ');
-  const combined = `${role} ${skills}`;
+  const combined = `${role.toLowerCase()} ${skills}`;
 
   if (/(reservoir|geolog|petrol|energy|upstream|downstream)/i.test(combined)) return 'Energy';
   if (/(analyst|invest|banking|financ|derivative|risk|actuar)/i.test(role) &&
@@ -263,6 +272,17 @@ function inferSectorFromShape(shape: UserShape): string {
   if (/(marketing|brand|growth marketer|copywrit|seo|content)/i.test(combined)) return 'Marketing';
   // Default: Tech (data, software, ML, product, design analytics land here)
   return 'Tech';
+}
+
+/** Best-effort taxonomy match when the role isn't an exact occupation title. */
+function fuzzyOccupationSector(role: string): string | undefined {
+  const query = role.toLowerCase();
+  if (query.length < 3) return undefined;
+  const hit = OCCUPATIONS.find((occ) => {
+    const name = occ.role.toLowerCase();
+    return name.includes(query) || query.includes(name);
+  });
+  return hit?.sector;
 }
 
 /**

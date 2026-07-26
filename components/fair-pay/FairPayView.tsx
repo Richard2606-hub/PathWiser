@@ -6,9 +6,31 @@ import { StatGrid, StatBox } from '@/components/common/StatBox';
 import { formatMYR } from '@/lib/utils';
 import { navigate } from '@/lib/engine/client';
 import { useAppStore } from '@/store/useAppStore';
+import { SECTORS, MY_STATES, occupationsBySector, findOccupation } from '@/lib/corpus/occupations';
 
-const ROLES = ['Software Engineer', 'Data Analyst', 'Data Scientist', 'Product Manager'];
-const LOCATIONS = ['Kuala Lumpur', 'Selangor', 'Penang', 'Johor'];
+const LOCATIONS = [...MY_STATES];
+// Higher cost-of-living regions carry a modest wage premium; the rest sit at or
+// slightly below the DOSM-anchored national band for the occupation.
+const STATE_MULTIPLIER: Record<string, number> = {
+  'Kuala Lumpur': 1.08, 'Selangor': 1.05, 'Putrajaya': 1.05, 'Penang': 1.0, 'Johor': 1.0, 'Labuan': 0.98,
+};
+
+/** Deterministic DOSM-calibrated band derived from an occupation's salary anchor. */
+function bandFromOccupation(role: string, state: string) {
+  const occ = findOccupation(role);
+  if (!occ) return null;
+  const m = STATE_MULTIPLIER[state] ?? 0.92;
+  const [lo, hi] = occ.salary_anchor_myr;
+  const p25 = Math.round(lo * m);
+  const p75 = Math.round(hi * m);
+  return {
+    p10: Math.round(lo * 0.82 * m),
+    p25,
+    median: Math.round((lo + hi) / 2 * m),
+    p75,
+    p90: Math.round(hi * 1.18 * m),
+  };
+}
 
 export function FairPayView() {
   const showToast = useAppStore((s) => s.showToast);
@@ -18,12 +40,13 @@ export function FairPayView() {
   const [experience, setExperience] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [b, setB] = useState<{ p10: number; p25: number; median: number; p75: number; p90: number; name: string; cohortSize: number } | null>(null);
+  const [b, setB] = useState<{ p10: number; p25: number; median: number; p75: number; p90: number; name: string; cohortSize: number; source: 'cohort' | 'calibrated' } | null>(null);
 
   useEffect(() => {
     async function load() {
       setIsLoading(true);
       setB(null);
+      const calibrated = bandFromOccupation(role, location);
       try {
         const res = await navigate({
           userId: 'anon',
@@ -32,25 +55,26 @@ export function FairPayView() {
           education: "Bachelor's Degree",
           years_experience: experience,
           state: location,
-          skills: [],
+          skills: findOccupation(role)?.typical_skills ?? [],
           life_stage: 'early_career',
         }, { currentStepIndex: -1 });
 
-        if ('aggregate' in res && res.aggregate?.salary_percentiles_by_role && res.aggregate.salary_percentiles_by_role[role]) {
-          const stats = res.aggregate.salary_percentiles_by_role[role];
-          setB({
-            p10: stats.p10,
-            p25: stats.p25,
-            median: stats.median,
-            p75: stats.p75,
-            p90: stats.p90,
-            name: role,
-            cohortSize: res.aggregate.cohort_size,
-          });
+        const cohortSize = 'aggregate' in res ? res.aggregate.cohort_size : ('cohort_size' in res ? res.cohort_size : 0);
+        const stats = 'aggregate' in res ? res.aggregate.salary_percentiles_by_role?.[role] : undefined;
+        if (stats) {
+          setB({ p10: stats.p10, p25: stats.p25, median: stats.median, p75: stats.p75, p90: stats.p90, name: role, cohortSize, source: 'cohort' });
+        } else if (calibrated) {
+          // The exact role isn't a common cohort destination — fall back to the
+          // occupation's DOSM-calibrated wage anchor so every role still resolves.
+          setB({ ...calibrated, name: role, cohortSize, source: 'calibrated' });
         }
       } catch (err: unknown) {
-        console.error(err);
-        showToast(`Engine API Error: ${err instanceof Error ? err.message : 'Failed to fetch salary data.'}`, 'error');
+        if (calibrated) {
+          setB({ ...calibrated, name: role, cohortSize: 0, source: 'calibrated' });
+        } else {
+          console.error(err);
+          showToast(`Engine API Error: ${err instanceof Error ? err.message : 'Failed to fetch salary data.'}`, 'error');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -99,8 +123,12 @@ export function FairPayView() {
         <div className="flex flex-col gap-3 p-4 rounded-md border border-[color:var(--border)] bg-[color:var(--bg-glass)]">
           <Field label="Occupation">
             <select value={role} onChange={(e) => setRole(e.target.value)} className="fp-input">
-              {ROLES.map((r) => (
-                <option key={r} value={r}>{r}</option>
+              {SECTORS.map((sector) => (
+                <optgroup key={sector} label={sector}>
+                  {occupationsBySector(sector).map((o) => (
+                    <option key={o.role} value={o.role}>{o.role}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </Field>
@@ -205,7 +233,11 @@ export function FairPayView() {
 
           <Callout>
             <strong>Evidence and calibration</strong>
-            <p className="mt-1">Calculated from {b.cohortSize.toLocaleString()} retrieved trajectories. This is cohort context, not a valuation of an individual.</p>
+            <p className="mt-1">
+              {b.source === 'cohort'
+                ? `Calculated from ${b.cohortSize.toLocaleString()} retrieved trajectories. This is cohort context, not a valuation of an individual.`
+                : `DOSM-calibrated wage band for ${b.name}, adjusted for ${location}. Cohort context: ${b.cohortSize.toLocaleString()} trajectories. This is occupation context, not a valuation of an individual.`}
+            </p>
             <ul className="mt-2 space-y-1 text-[11px]">
               <li><strong>DOSM</strong> — Salaries &amp; Wages Survey Report 2024</li>
               <li><strong>ESCO and O*NET</strong> — occupation and skill taxonomy anchors</li>
