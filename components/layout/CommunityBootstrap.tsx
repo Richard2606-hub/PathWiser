@@ -34,6 +34,7 @@ export function CommunityBootstrap({ children, authRequired, hasSessionCookie }:
   const setShape = useAppStore((state) => state.setShape);
   const setIdentity = useAppStore((state) => state.setIdentity);
   const setJudgeMode = useAppStore((state) => state.setJudgeMode);
+  const openOnboarding = useAppStore((state) => state.openOnboarding);
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -111,6 +112,13 @@ export function CommunityBootstrap({ children, authRequired, hasSessionCookie }:
           setIdentity(demo.identity);
         }
 
+        // A signed-in visitor with no saved profile yet (e.g. just after
+        // creating an account) is guided straight into building one, instead of
+        // silently browsing example data or hitting an empty-profile engine error.
+        if (!profileLoaded && !authRequired && hasSessionCookie) {
+          openOnboarding();
+        }
+
         setFailure(loadFailure);
         setReady(profileLoaded || !authRequired);
       }
@@ -122,7 +130,7 @@ export function CommunityBootstrap({ children, authRequired, hasSessionCookie }:
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [attempt, authRequired, hasSessionCookie, setIdentity, setJudgeMode, setPersona, setShape]);
+  }, [attempt, authRequired, hasSessionCookie, openOnboarding, setIdentity, setJudgeMode, setPersona, setShape]);
 
   if (failure && authRequired) {
     return (
