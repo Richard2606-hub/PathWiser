@@ -60,7 +60,8 @@ export default function AuthPage() {
       }
 
       const next = new URLSearchParams(window.location.search).get('next');
-      router.replace(next?.startsWith('/dashboard') ? next : '/dashboard');
+      const target = mode === 'register' ? '/dashboard?onboarding=true' : (next?.startsWith('/dashboard') ? next : '/dashboard');
+      router.replace(target);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Authentication failed.');

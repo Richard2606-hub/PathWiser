@@ -9,7 +9,7 @@ const pill = 'hidden sm:inline-flex rounded-full border border-[color:var(--bord
 
 export function AccountActions() {
   const router = useRouter();
-  const openOnboarding = useAppStore((state) => state.openOnboarding);
+  const openEditProfile = useAppStore((state) => state.openEditProfile);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
@@ -24,7 +24,7 @@ export function AccountActions() {
 
   return (
     <div className="flex items-center gap-2">
-      <button type="button" className={pill} onClick={() => openOnboarding()}>
+      <button type="button" className={pill} onClick={() => openEditProfile()}>
         Edit profile
       </button>
       <button type="button" className={pill} onClick={async () => { await createClient().auth.signOut(); router.replace('/'); router.refresh(); }}>

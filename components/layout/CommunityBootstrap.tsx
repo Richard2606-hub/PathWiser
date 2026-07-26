@@ -112,10 +112,11 @@ export function CommunityBootstrap({ children, authRequired, hasSessionCookie }:
           setIdentity(demo.identity);
         }
 
-        // A signed-in visitor with no saved profile yet (e.g. just after
-        // creating an account) is guided straight into building one, instead of
-        // silently browsing example data or hitting an empty-profile engine error.
-        if (!profileLoaded && !authRequired && hasSessionCookie) {
+        // A signed-in visitor with no saved profile yet or newly registered
+        // (e.g. right after setting up password) is guided straight into building
+        // their profile before entering the dashboard.
+        const isNewRegistration = typeof window !== 'undefined' && window.location.search.includes('onboarding=true');
+        if (isNewRegistration || (!profileLoaded && hasSessionCookie)) {
           openOnboarding();
         }
 

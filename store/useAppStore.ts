@@ -35,6 +35,11 @@ interface AppState {
   closeOnboarding: () => void;
   resetOnboarding: () => void;
 
+  // Edit Profile Modal
+  editProfileOpen: boolean;
+  openEditProfile: () => void;
+  closeEditProfile: () => void;
+
   // Work Animal
   workAnimal: WorkAnimalResult | null;
   setWorkAnimal: (r: WorkAnimalResult | null) => void;
@@ -112,6 +117,10 @@ export const useAppStore = create<AppState>()(
       closeOnboarding: () => set({ onboardOpen: false }),
       resetOnboarding: () =>
         set({ onboardOpen: false, onboardStep: 0, onboardRole: null }),
+
+      editProfileOpen: false,
+      openEditProfile: () => set({ editProfileOpen: true }),
+      closeEditProfile: () => set({ editProfileOpen: false }),
 
       workAnimal: null,
       setWorkAnimal: (workAnimal) => set({ workAnimal }),

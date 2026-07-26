@@ -5,6 +5,7 @@ import { LockedExplainer } from '@/components/layout/LockedExplainer';
 import { PersonaRouteGuard } from '@/components/layout/PersonaRouteGuard';
 import { CommunityBootstrap } from '@/components/layout/CommunityBootstrap';
 import { OnboardingShell } from '@/components/onboarding/OnboardingShell';
+import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { ToastLayer } from '@/components/common/Toast';
 import { cookies } from 'next/headers';
 
@@ -31,6 +32,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <MobileDrawer />
         <LockedExplainer />
         <OnboardingShell />
+        <EditProfileModal />
         <ToastLayer />
       </div>
     </div>
