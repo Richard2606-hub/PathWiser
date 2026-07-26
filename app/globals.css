@@ -3,8 +3,7 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════
-   PathWiser design tokens
-   Ported from the Stage 1 static prototype (see /legacy/styles.css).
+   PathWiser design tokens & theme definitions
    ═══════════════════════════════════════════ */
 :root {
   --bg-base: #f3f6fb;
@@ -29,9 +28,9 @@
   --accent: var(--yellow);
   --accent-glow: var(--yellow-glow);
 
-  --text-1: #172033;
-  --text-2: #536179;
-  --text-3: #7b879c;
+  --text-1: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b;
 
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
   --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -43,6 +42,34 @@
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dark, [data-theme="dark"] {
+  --bg-base: #090d16;
+  --bg-surface: rgba(15, 23, 42, 0.96);
+  --bg-elevated: #111827;
+  --bg-glass: #1e293b;
+  --bg-glass-strong: #0f172a;
+  --border: #334155;
+  --border-strong: #475569;
+
+  --yellow: #818cf8;
+  --yellow-glow: rgba(129, 140, 248, 0.22);
+  --teal: #2dd4bf;
+  --teal-glow: rgba(45, 212, 191, 0.22);
+  --violet: #a78bfa;
+  --violet-glow: rgba(167, 139, 250, 0.22);
+  --rose: #fb7185;
+  --emerald: #34d399;
+  --sky: #38bdf8;
+  --amber: #fbbf24;
+
+  --accent: var(--yellow);
+  --accent-glow: var(--yellow-glow);
+
+  --text-1: #f8fafc;
+  --text-2: #cbd5e1;
+  --text-3: #94a3b8;
 }
 
 /* ─── Base ─── */
@@ -59,7 +86,18 @@ html, body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
 }
+
+.dark html,
+.dark body {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(99, 102, 241, 0.14), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(20, 184, 166, 0.12), transparent 24rem),
+    var(--bg-base);
+  color: var(--text-1);
+}
+
 body {
   overflow-x: hidden;
 }
@@ -68,12 +106,21 @@ body {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 0.65rem;
-  background: #fff;
+  background: var(--bg-glass);
   color: var(--text-1);
   min-height: 2.75rem;
   padding: 0.7rem 0.85rem;
   font-size: 0.875rem;
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
 }
+
+.community-input option,
+option,
+select option {
+  background-color: var(--bg-glass);
+  color: var(--text-1);
+}
+
 .community-input:focus {
   outline: none;
   border-color: var(--yellow);
@@ -100,4 +147,40 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ─── Dark Mode Tailwind Utility Bridges ─── */
+.dark .bg-white {
+  background-color: var(--bg-glass) !important;
+}
+.dark .bg-white\/95 {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+}
+.dark .bg-white\/90 {
+  background-color: rgba(30, 41, 59, 0.90) !important;
+}
+.dark .bg-white\/80 {
+  background-color: rgba(30, 41, 59, 0.80) !important;
+}
+.dark .bg-slate-50,
+.dark .bg-gray-50 {
+  background-color: var(--bg-elevated) !important;
+}
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--text-1) !important;
+}
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: var(--text-2) !important;
+}
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--border) !important;
 }

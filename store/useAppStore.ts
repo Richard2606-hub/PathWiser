@@ -11,6 +11,11 @@ interface WorkAnimalResult {
 }
 
 interface AppState {
+  // Theme (Light / Dark mode)
+  theme: 'light' | 'dark';
+  setTheme: (t: 'light' | 'dark') => void;
+  toggleTheme: () => void;
+
   // Persona + judge mode
   persona: Persona;
   judgeMode: boolean;
@@ -84,6 +89,10 @@ const DEFAULT_SHAPE_SLIDERS = {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      theme: 'light',
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+
       persona: 'candidate',
       judgeMode: false,
       setPersona: (persona) => set({ persona }),

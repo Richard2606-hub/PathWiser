@@ -21,6 +21,8 @@ const PERSONA_LABEL: Record<string, string> = {
 export function Header() {
   const judgeEnabled = process.env.NEXT_PUBLIC_ENABLE_JUDGE_MODE === 'true';
   const router = useRouter();
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
   const persona = useAppStore((s) => s.persona);
   const judgeMode = useAppStore((s) => s.judgeMode);
   const identity = useAppStore((s) => s.identity);
@@ -87,8 +89,17 @@ export function Header() {
         </span>
       </div>
 
-      {/* Right · identity + judge toggle */}
+      {/* Right · theme + identity + judge toggle */}
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label="Toggle dark mode"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-[color:var(--border)] bg-[color:var(--bg-glass)] text-base shadow-sm transition-all hover:border-[color:var(--accent)] hover:scale-105 active:scale-95"
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         <AccountActions />
         {!(judgeEnabled && judgeMode) ? (
           <div

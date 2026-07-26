@@ -28,6 +28,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ThemeProvider } from '@/components/layout/ThemeProvider';
+
 export default function RootLayout({
   children,
 }: {
@@ -47,7 +49,9 @@ export default function RootLayout({
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%234f46e5'/><text x='50' y='62' font-family='Arial,sans-serif' font-size='42' font-weight='800' text-anchor='middle' fill='white'>PW</text></svg>"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
