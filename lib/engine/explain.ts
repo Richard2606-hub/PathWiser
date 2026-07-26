@@ -21,24 +21,32 @@ export async function explain(
   aggregate: Aggregate,
   opts: ExplainOptions
 ): Promise<Explanation> {
-  if (opts.useTemplateOnly) {
+  if (opts.useTemplateOnly || !process.env.GEMINI_API_KEY) {
     return renderTemplateExplanation(aggregate, opts.audience);
   }
 
   try {
     const ai = getAIProvider();
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    const timeoutMs = 2500;
+
+    const timeoutPromise = new Promise<Explanation>((resolve) => {
+      setTimeout(() => {
+        resolve(renderTemplateExplanation(aggregate, opts.audience, 'provider_unavailable'));
+      }, timeoutMs);
+    });
+
+    const aiPromise = (async () => {
       const explanation = await ai.generateNarrative(aggregate, opts.audience);
       if (explanation.passed_validation) {
-        return { ...explanation, generation_mode: 'provider' };
+        return { ...explanation, generation_mode: 'provider' as const };
       }
-    }
-    return renderTemplateExplanation(aggregate, opts.audience, 'validation_failed');
+      return renderTemplateExplanation(aggregate, opts.audience, 'validation_failed');
+    })();
+
+    return await Promise.race([aiPromise, timeoutPromise]);
   } catch (err) {
-    // Graceful degradation: template narrative that still references aggregates verbatim.
-    // Talentbank's engineers will see the fallback in logs and know something's up.
     console.warn(
-      '[PathWiser] AI provider unavailable, falling back to template narrative:',
+      '[PathWiser] AI provider unavailable or timed out, falling back to template narrative:',
       err instanceof Error ? err.message : err
     );
     return renderTemplateExplanation(aggregate, opts.audience, 'provider_unavailable');
