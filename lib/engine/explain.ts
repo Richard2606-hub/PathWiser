@@ -63,7 +63,7 @@ export function renderTemplateExplanation(
   audience: 'candidate' | 'employer' | 'university',
   fallbackReason?: Explanation['fallback_reason'],
 ): Explanation {
-  const topRole = agg.next_role_distribution[0];
+  const topRole = agg.next_role_distribution?.[0];
   const topSalary = topRole ? agg.salary_percentiles_by_role[topRole.role] : undefined;
   const topBridges = agg.common_skill_bridges.slice(0, 3).map((b) => b.skill).join(', ');
 
