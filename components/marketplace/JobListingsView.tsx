@@ -20,7 +20,12 @@ interface JobsResponse {
 }
 
 export function JobListingsView() {
-  const shape = resolveShape(useAppStore((state) => state.shape), DEMO_PERSONAS.aisyah.shape);
+  const storeShape = useAppStore((state) => state.shape);
+  const shape = useMemo(() => resolveShape(storeShape, DEMO_PERSONAS.aisyah.shape), [storeShape]);
+  const shapeKey = useMemo(
+    () => `${shape.role}-${shape.years_experience}-${shape.state}-${(shape.skills || []).join(',')}`,
+    [shape],
+  );
   const showToast = useAppStore((state) => state.showToast);
   const [jobs, setJobs] = useState<RankedMarketplaceJob[]>([]);
   const [scope, setScope] = useState<JobsResponse['data_scope']>('modelled-marketplace');
@@ -61,7 +66,8 @@ export function JobListingsView() {
     }
     void load();
     return () => { cancelled = true; };
-  }, [shape]);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [shapeKey]);
 
   useEffect(() => {
     const company = new URLSearchParams(window.location.search).get('company');
