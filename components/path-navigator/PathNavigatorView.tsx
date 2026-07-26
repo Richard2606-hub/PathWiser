@@ -238,7 +238,7 @@ export function PathNavigatorView() {
                 <MetricCell label="Based on" value={`${selectedCount.toLocaleString()} of ${cohortSize?.toLocaleString() ?? '—'}`} />
               </div>
               {selectedIsThin && (
-                <p className="mb-3 -mt-1 rounded bg-[color:var(--amber-soft,#fef3c7)] px-2 py-1.5 text-[10px] leading-snug text-[color:var(--text-2)]">
+                <p className="mb-3 -mt-1 rounded-md border border-[color:var(--amber)]/30 bg-[color:var(--amber)]/10 px-2.5 py-1.5 text-[10px] font-medium leading-snug text-[color:var(--text-1)]">
                   ⚠️ Thin sample — only {selectedCount} of {cohortSize?.toLocaleString()} took this route. Treat the range as indicative, not firm; the honest floor for a confident range is {THIN_NODE}+.
                 </p>
               )}

@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 type Tone = 'default' | 'teal' | 'violet' | 'emerald' | 'amber' | 'rose';
 
 const TONES: Record<Tone, { border: string; bg: string }> = {
-  default:  { border: 'var(--border-strong)', bg: '#f8fafc' },
-  teal:     { border: 'var(--teal)', bg: 'rgba(15,159,143,0.07)' },
-  violet:   { border: 'var(--violet)', bg: 'rgba(124,58,237,0.07)' },
-  emerald:  { border: 'var(--emerald)', bg: 'rgba(5,150,105,0.07)' },
-  amber:    { border: 'var(--amber)', bg: 'rgba(217,119,6,0.07)' },
-  rose:     { border: 'var(--rose)', bg: 'rgba(225,29,72,0.07)' },
+  default:  { border: 'var(--border-strong)', bg: 'var(--bg-glass-strong)' },
+  teal:     { border: 'var(--teal)', bg: 'var(--teal-glow)' },
+  violet:   { border: 'var(--violet)', bg: 'var(--violet-glow)' },
+  emerald:  { border: 'var(--emerald)', bg: 'rgba(16, 185, 129, 0.10)' },
+  amber:    { border: 'var(--amber)', bg: 'rgba(245, 158, 11, 0.12)' },
+  rose:     { border: 'var(--rose)', bg: 'rgba(244, 63, 94, 0.12)' },
 };
 
 export function Callout({
