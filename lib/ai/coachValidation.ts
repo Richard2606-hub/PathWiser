@@ -18,5 +18,5 @@ export function deterministicCoachReply(aggregate: Aggregate, roleTitle: string 
     ? top.map((item) => `${item.role} (${Math.round(item.probability * 100)}% share)`).join(', ')
     : 'no common next destination';
   const bridges = aggregate.common_skill_bridges.slice(0, 4).map((item) => item.skill).join(', ') || 'no consistent skill bridges';
-  return `Within a cohort of ${aggregate.cohort_size.toLocaleString()} trajectories evaluated for ${roleTitle}, observed career directions include ${roles}. Observed skill bridges include ${bridges}. Treat these cohort evidence patterns as realistic data-backed options to guide your next move.`;
+  return `Within a cohort of ${aggregate.cohort_size.toLocaleString()} trajectories evaluated for ${roleTitle}, observed career directions include ${roles}. Observed skill bridges include ${bridges}. Treat these cohort evidence patterns as realistic data-backed options to guide your next move, not as an individual prediction.`;
 }
